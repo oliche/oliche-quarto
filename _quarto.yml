@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "oliche · Analysis Hub"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: analyses/
+        text: Analyses
+    right:
+      - icon: github
+        href: https://github.com/oliche
+  page-footer:
+    center: "Olivier Winter"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
+    highlight-style: github

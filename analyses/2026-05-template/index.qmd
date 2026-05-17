@@ -1,0 +1,35 @@
+---
+title: "Analysis Template"
+description: "A minimal template showing the expected structure for new analyses."
+date: "2026-05-17"
+author: "Olivier Winter"
+categories: [template]
+---
+
+## Overview
+
+Replace this section with a brief description of the question being addressed.
+
+## Setup
+
+```{python}
+#| label: setup
+#| echo: true
+
+# Standard imports — remove what you don't need
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+```
+
+## Analysis
+
+Add your analysis here. Each section becomes a TOC entry.
+
+## Results
+
+Summarise key findings.
+
+## Conclusion
+
+One-paragraph takeaway.
