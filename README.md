@@ -23,17 +23,8 @@
 **One-time setup**
 
 1. Go to **github.com/oliche/oliche-quarto → Settings → Pages**
-2. Set source to **"Deploy from a branch"**, branch **`gh-pages`**, folder **`/ (root)`**
+2. Set source to **"GitHub Actions"**
 3. Save
 
-**Publish**
-
-```bash
-quarto publish gh-pages
-```
-
-This renders the site and pushes it to the `gh-pages` branch. GitHub Pages picks it up automatically within a minute or two.
-
-The site will be live at: **https://oliche.github.io/oliche-quarto/**
-
-> Run the same command whenever you want to push updates.
+Every push to `main` now triggers a build and deploy automatically.
+The site is live at: **https://oliche.github.io/oliche-quarto/**
