@@ -16,6 +16,9 @@ website:
   page-footer:
     center: "Olivier Winter"
 
+execute:
+  freeze: auto
+
 format:
   html:
     theme: cosmo

@@ -218,8 +218,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Quarto
-_site/
 .quarto/
+# _freeze/ is intentionally NOT ignored — commit it to cache execution results
 *_files/
 *.freeze
 

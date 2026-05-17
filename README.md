@@ -14,7 +14,18 @@
    ---
    ```
 3. Write your analysis below the front matter (markdown + code cells)
-4. Run `quarto render` from the repo root — your card appears on the home page automatically
+4. Render and publish:
+   ```bash
+   quarto render
+   git add -A && git commit -m "Add <analysis-name>" && git push
+   ```
+   Only analyses whose source has changed are re-executed (outputs are cached in `_freeze/`).
+   GitHub Actions picks up the pre-built `_site/` and deploys it automatically.
+
+   To render a single analysis without touching the rest:
+   ```bash
+   quarto render analyses/2026-05-neuron-tuning/
+   ```
 
 > Preview while writing: `quarto preview` starts a live-reload server at http://localhost:5851/
 

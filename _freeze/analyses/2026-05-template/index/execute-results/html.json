@@ -1,0 +1,12 @@
+{
+  "hash": "dae229204490efa8b66db8284a994dfb",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "---\ntitle: \"Analysis Template\"\ndescription: \"A minimal template showing the expected structure for new analyses.\"\ndate: \"2026-05-17\"\nauthor: \"Olivier Winter\"\ncategories: [template]\n---\n\n## Overview\n\nReplace this section with a brief description of the question being addressed.\n\n## Setup\n\n::: {#setup .cell execution_count=1}\n``` {.python .cell-code}\n# Standard imports — remove what you don't need\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\n```\n:::\n\n\n## Analysis\n\nAdd your analysis here. Each section becomes a TOC entry.\n\n## Results\n\nSummarise key findings.\n\n## Conclusion\n\nOne-paragraph takeaway.\n\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

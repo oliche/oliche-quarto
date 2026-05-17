@@ -1,0 +1,51 @@
+[
+  {
+    "objectID": "analyses/2026-05-template/index.html",
+    "href": "analyses/2026-05-template/index.html",
+    "title": "Analysis Template",
+    "section": "",
+    "text": "Replace this section with a brief description of the question being addressed."
+  },
+  {
+    "objectID": "analyses/2026-05-template/index.html#overview",
+    "href": "analyses/2026-05-template/index.html#overview",
+    "title": "Analysis Template",
+    "section": "",
+    "text": "Replace this section with a brief description of the question being addressed."
+  },
+  {
+    "objectID": "analyses/2026-05-template/index.html#setup",
+    "href": "analyses/2026-05-template/index.html#setup",
+    "title": "Analysis Template",
+    "section": "Setup",
+    "text": "Setup\n\n\nCode\n# Standard imports — remove what you don't need\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt"
+  },
+  {
+    "objectID": "analyses/2026-05-template/index.html#analysis",
+    "href": "analyses/2026-05-template/index.html#analysis",
+    "title": "Analysis Template",
+    "section": "Analysis",
+    "text": "Analysis\nAdd your analysis here. Each section becomes a TOC entry."
+  },
+  {
+    "objectID": "analyses/2026-05-template/index.html#results",
+    "href": "analyses/2026-05-template/index.html#results",
+    "title": "Analysis Template",
+    "section": "Results",
+    "text": "Results\nSummarise key findings."
+  },
+  {
+    "objectID": "analyses/2026-05-template/index.html#conclusion",
+    "href": "analyses/2026-05-template/index.html#conclusion",
+    "title": "Analysis Template",
+    "section": "Conclusion",
+    "text": "Conclusion\nOne-paragraph takeaway."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Analysis Hub",
+    "section": "",
+    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nAnalysis Template\n\n1 min\n\n\ntemplate\n\n\n\nA minimal template showing the expected structure for new analyses.\n\n\n\nMay 17, 2026\n\n\n\n\n\n\nNo matching items"
+  }
+]
