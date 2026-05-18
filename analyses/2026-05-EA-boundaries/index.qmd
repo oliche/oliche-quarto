@@ -1,0 +1,30 @@
+---
+title: "Ephys-Atlas Region Boundary Landmarks"
+description: "Brute-force search for sharp ephys feature transitions across Cosmos region boundaries that can serve as anatomical landmarks for Neuropixels probe localisation."
+date: "2026-05-18"
+author: "Olivier Winter"
+categories: [electrophysiology, ephys-atlas, anatomy, landmarks]
+---
+
+## Overview
+
+Beyond the atlas itself it is useful to supply the community with a set of **anatomical landmarks**: locations in the brain where there is a sharp transition in predicted electrophysiological features that a scientist can use to confirm or refine their probe location.
+The DG–thalamus LFP landmark from the repro-ephys paper (eLife 2024) is one such example.
+
+The strategy here is a brute-force search:
+
+1. For each region boundary at the **Cosmos** level (13 regions), collect all probe penetrations that cross it.
+2. For each ephys feature, test whether there is a statistically significant and large-effect-size transition across the boundary.
+3. Rank candidate landmarks by effect size / p-value and document them.
+
+Vintage used: **2026_W21** (~383 k channels across all IBL recordings).
+
+## Cosmos boundary transition counts
+
+Channels are first aggregated by depth (`axial_um`) within each probe — taking the modal Cosmos region at each depth level — before adjacent-depth transitions are detected.
+The matrix is **directional**: row = "from" region, column = "to" region.
+
+![13×13 directional transition count matrix at the Cosmos level. Diagonal is masked (grey). Color range is clipped at the 97th percentile of off-diagonal values.](figures/cosmos_transition_matrix.png)
+
+The dominant transitions all pass through **root** (the catch-all outside-brain label), reflecting that most probes enter and exit the brain through unlabelled tissue.
+Biologically meaningful boundaries are off the root row/column: **MB↔TH** (98/51), **CB↔root** (248/338), **HPF↔root** (368/385), and **Isocortex→root** (44/435, strongly asymmetric as expected — probes enter cortex from above).

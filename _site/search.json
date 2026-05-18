@@ -46,6 +46,27 @@
     "href": "index.html",
     "title": "Analysis Hub",
     "section": "",
-    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nMulti-Channel LFP Denoising: NP1 vs NP2\n\n2 min\n\n\nelectrophysiology\n\nLFP\n\ndenoising\n\nNeuropixels\n\n\n\nEvaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\nNo matching items"
+    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nMulti-Channel LFP Denoising: NP1 vs NP2\n\n2 min\n\n\nelectrophysiology\n\nLFP\n\ndenoising\n\nNeuropixels\n\n\n\nEvaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\n\n\n\n\nEphys-Atlas Region Boundary Landmarks\n\n2 min\n\n\nelectrophysiology\n\nephys-atlas\n\nanatomy\n\nlandmarks\n\n\n\nBrute-force search for sharp ephys feature transitions across Cosmos region boundaries that can serve as anatomical landmarks for Neuropixels probe localisation.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "analyses/2026-05-EA-boundaries/index.html",
+    "href": "analyses/2026-05-EA-boundaries/index.html",
+    "title": "Ephys-Atlas Region Boundary Landmarks",
+    "section": "",
+    "text": "Beyond the atlas itself it is useful to supply the community with a set of anatomical landmarks: locations in the brain where there is a sharp transition in predicted electrophysiological features that a scientist can use to confirm or refine their probe location. The DG–thalamus LFP landmark from the repro-ephys paper (eLife 2024) is one such example.\nThe strategy here is a brute-force search:\n\nFor each region boundary at the Cosmos level (13 regions), collect all probe penetrations that cross it.\nFor each ephys feature, test whether there is a statistically significant and large-effect-size transition across the boundary.\nRank candidate landmarks by effect size / p-value and document them.\n\nVintage used: 2026_W21 (~383 k channels across all IBL recordings)."
+  },
+  {
+    "objectID": "analyses/2026-05-EA-boundaries/index.html#overview",
+    "href": "analyses/2026-05-EA-boundaries/index.html#overview",
+    "title": "Ephys-Atlas Region Boundary Landmarks",
+    "section": "",
+    "text": "Beyond the atlas itself it is useful to supply the community with a set of anatomical landmarks: locations in the brain where there is a sharp transition in predicted electrophysiological features that a scientist can use to confirm or refine their probe location. The DG–thalamus LFP landmark from the repro-ephys paper (eLife 2024) is one such example.\nThe strategy here is a brute-force search:\n\nFor each region boundary at the Cosmos level (13 regions), collect all probe penetrations that cross it.\nFor each ephys feature, test whether there is a statistically significant and large-effect-size transition across the boundary.\nRank candidate landmarks by effect size / p-value and document them.\n\nVintage used: 2026_W21 (~383 k channels across all IBL recordings)."
+  },
+  {
+    "objectID": "analyses/2026-05-EA-boundaries/index.html#cosmos-boundary-transition-counts",
+    "href": "analyses/2026-05-EA-boundaries/index.html#cosmos-boundary-transition-counts",
+    "title": "Ephys-Atlas Region Boundary Landmarks",
+    "section": "Cosmos boundary transition counts",
+    "text": "Cosmos boundary transition counts\nChannels are first aggregated by depth (axial_um) within each probe — taking the modal Cosmos region at each depth level — before adjacent-depth transitions are detected. The matrix is directional: row = “from” region, column = “to” region.\n\n\n\n13×13 directional transition count matrix at the Cosmos level. Diagonal is masked (grey). Color range is clipped at the 97th percentile of off-diagonal values.\n\n\nThe dominant transitions all pass through root (the catch-all outside-brain label), reflecting that most probes enter and exit the brain through unlabelled tissue. Biologically meaningful boundaries are off the root row/column: MB↔︎TH (98/51), CB↔︎root (248/338), HPF↔︎root (368/385), and Isocortex→root (44/435, strongly asymmetric as expected — probes enter cortex from above)."
   }
 ]
