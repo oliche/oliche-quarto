@@ -1,0 +1,15 @@
+full_path_ap,version,referencing,position,number,label
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/007/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,tip0,low,7,7_NP2low_tip0
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/007/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,7,7_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/004/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,external,high,4,4_NP2high_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/004/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,4,4_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/001/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,external,high,1,1_NP2high_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/001/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,1,1_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/005/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,external,low,5,5_NP2low_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/005/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,5,5_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/006/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,jointips,low,6,6_NP2low_jointips
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/006/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,6,6_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/002/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,jointips,high,2,2_NP2high_jointips
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/002/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,2,2_NP1_external
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/003/raw_ephys_data/ephysData_g0/ephysData_g0_imec0/ephysData_g0_t0.imec0.ap.bin,NP2,tip0,high,3,3_NP2high_tip0
+/home/pranavrai/Work/int-brain-lab/projects/np1_vs_np2_steinmetz_lab/raw_data/003/raw_ephys_data/ephysData_g0/ephysData_g0_imec1/ephysData_g0_t0.imec1.ap.bin,NP1,external,,3,3_NP1_external

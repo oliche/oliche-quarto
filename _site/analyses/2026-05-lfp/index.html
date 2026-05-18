@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Olivier Winter">
-<meta name="dcterms.date" content="2026-05-17">
-<meta name="description" content="A minimal template showing the expected structure for new analyses.">
+<meta name="dcterms.date" content="2026-05-18">
+<meta name="description" content="Evaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.">
 
-<title>Analysis Template – oliche · Analysis Hub</title>
+<title>Multi-Channel LFP Denoising: NP1 vs NP2 – Analysis Hub</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-09bcd2438ddda8166a810b4ec224e0a2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-f270057d9bf8c523baade79d16a33fc2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -120,7 +120,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">oliche · Analysis Hub</span>
+    <span class="navbar-title">Analysis Hub</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -161,10 +161,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
-  <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis">Analysis</a></li>
-  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  <li><a href="#probe-geometry" id="toc-probe-geometry" class="nav-link" data-scroll-target="#probe-geometry">Probe geometry</a></li>
+  <li><a href="#preprocessing---cross-correlation-evaluation" id="toc-preprocessing---cross-correlation-evaluation" class="nav-link" data-scroll-target="#preprocessing---cross-correlation-evaluation">Preprocessing - Cross-correlation Evaluation</a></li>
+  <li><a href="#power-spectral-density" id="toc-power-spectral-density" class="nav-link" data-scroll-target="#power-spectral-density">Power spectral density</a></li>
   </ul>
 </nav>
     </div>
@@ -173,15 +173,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Analysis Template</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Multi-Channel LFP Denoising: NP1 vs NP2</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
   <div class="quarto-categories">
-    <div class="quarto-category">template</div>
+    <div class="quarto-category">electrophysiology</div>
+    <div class="quarto-category">LFP</div>
+    <div class="quarto-category">denoising</div>
+    <div class="quarto-category">Neuropixels</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    A minimal template showing the expected structure for new analyses.
+    Evaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.
   </div>
 </div>
 
@@ -198,7 +201,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 17, 2026</p>
+      <p class="date">May 18, 2026</p>
     </div>
   </div>
   
@@ -212,31 +215,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>Replace this section with a brief description of the question being addressed.</p>
+<p>Seven simultaneous NP1+NP2 recordings (datasets 001–007) were collected by Kim in the Steinmetz lab to characterise how probe version and referencing scheme affect LFP quality. NP2 was recorded with three referencing conditions (external, tip reference, join tip references) at two cortical depths (high/low), controlled by the NP2 channel mapping; NP1 always used external referencing.</p>
+<p><strong>The datasets with matched external referencing (004, 005) provide a ground-truth convergence test: effective denoising should bring the NP1 and NP2 CSD distributions closer together.</strong></p>
 </section>
-<section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div id="setup" class="cell" data-execution_count="1">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard imports — remove what you don't need</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<ul>
+<li><strong>Voltage amplitude is equivalent</strong> between NP1 and NP2 when the same external referencing scheme is applied, once hardware filters are accounted for.</li>
+<li><strong>CAR can´t be applied on both NP1 and NP2</strong>, the NP2 spatial span is much shorter than NP1, resulting in a destructive effect.</li>
+<li>First order CSD conserves a small amount of correlation, while second order CSD destroys it completely. Spatial noise attenuation slightly improves on the correlation after spatial derivative.</li>
+</ul>
+</section>
+<section id="probe-geometry" class="level2">
+<h2 class="anchored" data-anchor-id="probe-geometry">Probe geometry</h2>
+<p>NP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank. In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/channel_locations.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>Matched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.</figcaption>
+</figure>
 </div>
 </section>
-<section id="analysis" class="level2">
-<h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
-<p>Add your analysis here. Each section becomes a TOC entry.</p>
+<section id="preprocessing---cross-correlation-evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="preprocessing---cross-correlation-evaluation">Preprocessing - Cross-correlation Evaluation</h2>
+<p>The evaluation metric is the peak of the normalised cross-correlation between matched NP1/NP2 channel pairs. Each raw snippet goes through the following ordered stages:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>bandpass</code></td>
+<td>0.2-300Hz bandpass filter (includes sample shifts)</td>
+</tr>
+<tr class="even">
+<td><code>car</code></td>
+<td>Global CAR subtracted from <code>bandpass</code></td>
+</tr>
+<tr class="odd">
+<td><code>cadzow</code></td>
+<td>Spatiotemporal SVD denoising (rank 4, fmax 200 Hz)</td>
+</tr>
+<tr class="even">
+<td><code>csd1</code></td>
+<td>1st-order finite-difference CSD on <code>bandpass</code></td>
+</tr>
+<tr class="odd">
+<td><code>csd1_denoise</code></td>
+<td>1st-order CSD on <code>cadzow</code></td>
+</tr>
+<tr class="even">
+<td><code>csd2</code></td>
+<td>2nd-order CSD on <code>bandpass</code></td>
+</tr>
+<tr class="odd">
+<td><code>csd2_denoise</code></td>
+<td>2nd-order CSD on <code>cadzow</code></td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/preprocessing_xcor_004.png" class="img-fluid figure-img"></p>
+<figcaption>Signal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/preprocessing_xcor_005.png" class="img-fluid figure-img"></p>
+<figcaption>Same for dataset 005.</figcaption>
+</figure>
+</div>
 </section>
-<section id="results" class="level2">
-<h2 class="anchored" data-anchor-id="results">Results</h2>
-<p>Summarise key findings.</p>
-</section>
-<section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>One-paragraph takeaway.</p>
+<section id="power-spectral-density" class="level2">
+<h2 class="anchored" data-anchor-id="power-spectral-density">Power spectral density</h2>
+<p>PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/psd_dataset_004.png" class="img-fluid figure-img"></p>
+<figcaption>PSD — dataset 004. Left: NP1 matched channels. Right: NP2.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/psd_dataset_005.png" class="img-fluid figure-img"></p>
+<figcaption>PSD — dataset 005. Left: NP1 matched channels. Right: NP2.</figcaption>
+</figure>
+</div>
+<p>Both probes show similar spectral profiles. The 50 Hz mains harmonic is visible but moderate.</p>
 
 
 <!-- -->
@@ -695,42 +764,65 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Analysis Template"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "A minimal template showing the expected structure for new analyses."</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-05-17"</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [template]</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Replace this section with a brief description of the question being addressed.</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## Setup</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard imports — remove what you don't need</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## Analysis</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>Add your analysis here. Each section becomes a TOC entry.</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>Summarise key findings.</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>One-paragraph takeaway.</span>
-</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Multi-Channel LFP Denoising: NP1 vs NP2"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Evaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals."</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-05-18"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [electrophysiology, LFP, denoising, Neuropixels]</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>Seven simultaneous NP1+NP2 recordings (datasets 001–007) were collected by Kim in the Steinmetz lab to characterise how probe version and referencing scheme affect LFP quality.</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>NP2 was recorded with three referencing conditions (external, tip reference, join tip references) at two cortical depths (high/low), controlled by the NP2 channel mapping;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>NP1 always used external referencing.</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>**The datasets with matched external referencing (004, 005) provide a ground-truth convergence test: effective denoising should bring the NP1 and NP2 CSD distributions closer together.**</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusions</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Voltage amplitude is equivalent** between NP1 and NP2 when the same external referencing scheme is applied, once hardware filters are accounted for.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CAR can´t be applied on both NP1 and NP2**, the NP2 spatial span is much shorter than NP1, resulting in a destructive effect.</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>First order CSD conserves a small amount of correlation, while second order CSD destroys it completely. Spatial noise attenuation slightly improves on the correlation after spatial derivative.</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">## Probe geometry</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>NP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank.</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="al">![Matched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png)</span>{width=70%}</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Preprocessing - Cross-correlation Evaluation</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>The evaluation metric is the peak of the normalised cross-correlation between matched NP1/NP2 channel pairs.</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>Each raw snippet goes through the following ordered stages:</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stage <span class="pp">|</span> Description <span class="pp">|</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`bandpass`</span> <span class="pp">|</span> 0.2-300Hz bandpass filter (includes sample shifts) <span class="pp">|</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`car`</span> <span class="pp">|</span> Global CAR subtracted from <span class="in">`bandpass`</span> <span class="pp">|</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`cadzow`</span> <span class="pp">|</span> Spatiotemporal SVD denoising (rank 4, fmax 200 Hz) <span class="pp">|</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`csd1`</span> <span class="pp">|</span> 1st-order finite-difference CSD on <span class="in">`bandpass`</span> <span class="pp">|</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`csd1_denoise`</span> <span class="pp">|</span> 1st-order CSD on <span class="in">`cadzow`</span><span class="pp">|</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`csd2`</span> <span class="pp">|</span> 2nd-order CSD on <span class="in">`bandpass`</span> <span class="pp">|</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`csd2_denoise`</span> <span class="pp">|</span> 2nd-order CSD on <span class="in">`cadzow`</span><span class="pp">|</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="al">![Signal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.](figures/preprocessing_xcor_004.png)</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for dataset 005.](figures/preprocessing_xcor_005.png)</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="fu">## Power spectral density</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 004. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_004.png)</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 005. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_005.png)</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>Both probes show similar spectral profiles. The 50 Hz mains harmonic is visible but moderate.</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

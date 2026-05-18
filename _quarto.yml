@@ -1,9 +1,12 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - index.qmd
+    - analyses/2026-05-lfp/index.qmd
 
 website:
-  title: "oliche · Analysis Hub"
+  title: "Analysis Hub"
   navbar:
     left:
       - href: index.qmd

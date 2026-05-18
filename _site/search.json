@@ -1,51 +1,51 @@
 [
   {
-    "objectID": "analyses/2026-05-template/index.html",
-    "href": "analyses/2026-05-template/index.html",
-    "title": "Analysis Template",
+    "objectID": "analyses/2026-05-lfp/index.html",
+    "href": "analyses/2026-05-lfp/index.html",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
     "section": "",
-    "text": "Replace this section with a brief description of the question being addressed."
+    "text": "Seven simultaneous NP1+NP2 recordings (datasets 001–007) were collected by Kim in the Steinmetz lab to characterise how probe version and referencing scheme affect LFP quality. NP2 was recorded with three referencing conditions (external, tip reference, join tip references) at two cortical depths (high/low), controlled by the NP2 channel mapping; NP1 always used external referencing.\nThe datasets with matched external referencing (004, 005) provide a ground-truth convergence test: effective denoising should bring the NP1 and NP2 CSD distributions closer together."
   },
   {
-    "objectID": "analyses/2026-05-template/index.html#overview",
-    "href": "analyses/2026-05-template/index.html#overview",
-    "title": "Analysis Template",
+    "objectID": "analyses/2026-05-lfp/index.html#overview",
+    "href": "analyses/2026-05-lfp/index.html#overview",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
     "section": "",
-    "text": "Replace this section with a brief description of the question being addressed."
+    "text": "Seven simultaneous NP1+NP2 recordings (datasets 001–007) were collected by Kim in the Steinmetz lab to characterise how probe version and referencing scheme affect LFP quality. NP2 was recorded with three referencing conditions (external, tip reference, join tip references) at two cortical depths (high/low), controlled by the NP2 channel mapping; NP1 always used external referencing.\nThe datasets with matched external referencing (004, 005) provide a ground-truth convergence test: effective denoising should bring the NP1 and NP2 CSD distributions closer together."
   },
   {
-    "objectID": "analyses/2026-05-template/index.html#setup",
-    "href": "analyses/2026-05-template/index.html#setup",
-    "title": "Analysis Template",
-    "section": "Setup",
-    "text": "Setup\n\n\nCode\n# Standard imports — remove what you don't need\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt"
+    "objectID": "analyses/2026-05-lfp/index.html#conclusions",
+    "href": "analyses/2026-05-lfp/index.html#conclusions",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
+    "section": "Conclusions",
+    "text": "Conclusions\n\nVoltage amplitude is equivalent between NP1 and NP2 when the same external referencing scheme is applied, once hardware filters are accounted for.\nCAR can´t be applied on both NP1 and NP2, the NP2 spatial span is much shorter than NP1, resulting in a destructive effect.\nFirst order CSD conserves a small amount of correlation, while second order CSD destroys it completely. Spatial noise attenuation slightly improves on the correlation after spatial derivative."
   },
   {
-    "objectID": "analyses/2026-05-template/index.html#analysis",
-    "href": "analyses/2026-05-template/index.html#analysis",
-    "title": "Analysis Template",
-    "section": "Analysis",
-    "text": "Analysis\nAdd your analysis here. Each section becomes a TOC entry."
+    "objectID": "analyses/2026-05-lfp/index.html#probe-geometry",
+    "href": "analyses/2026-05-lfp/index.html#probe-geometry",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
+    "section": "Probe geometry",
+    "text": "Probe geometry\nNP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank. In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.\n\n\n\nMatched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis."
   },
   {
-    "objectID": "analyses/2026-05-template/index.html#results",
-    "href": "analyses/2026-05-template/index.html#results",
-    "title": "Analysis Template",
-    "section": "Results",
-    "text": "Results\nSummarise key findings."
+    "objectID": "analyses/2026-05-lfp/index.html#preprocessing---cross-correlation-evaluation",
+    "href": "analyses/2026-05-lfp/index.html#preprocessing---cross-correlation-evaluation",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
+    "section": "Preprocessing - Cross-correlation Evaluation",
+    "text": "Preprocessing - Cross-correlation Evaluation\nThe evaluation metric is the peak of the normalised cross-correlation between matched NP1/NP2 channel pairs. Each raw snippet goes through the following ordered stages:\n\n\n\nStage\nDescription\n\n\n\n\nbandpass\n0.2-300Hz bandpass filter (includes sample shifts)\n\n\ncar\nGlobal CAR subtracted from bandpass\n\n\ncadzow\nSpatiotemporal SVD denoising (rank 4, fmax 200 Hz)\n\n\ncsd1\n1st-order finite-difference CSD on bandpass\n\n\ncsd1_denoise\n1st-order CSD on cadzow\n\n\ncsd2\n2nd-order CSD on bandpass\n\n\ncsd2_denoise\n2nd-order CSD on cadzow\n\n\n\n\n\n\nSignal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.\n\n\n\n\n\nSame for dataset 005."
   },
   {
-    "objectID": "analyses/2026-05-template/index.html#conclusion",
-    "href": "analyses/2026-05-template/index.html#conclusion",
-    "title": "Analysis Template",
-    "section": "Conclusion",
-    "text": "Conclusion\nOne-paragraph takeaway."
+    "objectID": "analyses/2026-05-lfp/index.html#power-spectral-density",
+    "href": "analyses/2026-05-lfp/index.html#power-spectral-density",
+    "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
+    "section": "Power spectral density",
+    "text": "Power spectral density\nPSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).\n\n\n\nPSD — dataset 004. Left: NP1 matched channels. Right: NP2.\n\n\n\n\n\nPSD — dataset 005. Left: NP1 matched channels. Right: NP2.\n\n\nBoth probes show similar spectral profiles. The 50 Hz mains harmonic is visible but moderate."
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Analysis Hub",
     "section": "",
-    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nAnalysis Template\n\n1 min\n\n\ntemplate\n\n\n\nA minimal template showing the expected structure for new analyses.\n\n\n\nMay 17, 2026\n\n\n\n\n\n\nNo matching items"
+    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nMulti-Channel LFP Denoising: NP1 vs NP2\n\n2 min\n\n\nelectrophysiology\n\nLFP\n\ndenoising\n\nNeuropixels\n\n\n\nEvaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\nNo matching items"
   }
 ]
