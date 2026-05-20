@@ -81,7 +81,7 @@ import matplotlib.gridspec as gridspec
 
 ```{python}
 #| label: simulate
-#| fig-cap: "Per-channel RMS before and after CAR for two correlation lengths. Dashed lines are the analytical prediction."
+#| output: false
 
 rng = np.random.default_rng(42)
 
@@ -146,8 +146,13 @@ fig.suptitle(
     fontsize=10,
 )
 plt.tight_layout()
-plt.show()
+from pathlib import Path
+Path("figures").mkdir(exist_ok=True)
+plt.savefig("figures/simulate.png", dpi=150)
+plt.close()
 ```
+
+![Per-channel RMS before and after CAR for two correlation lengths. Dashed lines are the analytical prediction.](figures/simulate.png)
 
 ## Conclusion
 
