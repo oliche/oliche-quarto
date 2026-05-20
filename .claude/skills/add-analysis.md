@@ -41,9 +41,20 @@ categories: [tag1, tag2]
 ---
 ```
 
-- Use `{python}` code cells; figures render inline via matplotlib `plt.show()`
-- Do **not** call `matplotlib.use(...)` — Quarto handles the backend
+- Use `{python}` code cells
 - Math: `$inline$` and `$$display$$` (MathJax, works in HTML output)
+- **Figures:** save explicitly to `figures/` and reference with `![caption](figures/foo.png)`.
+  Do NOT rely on `plt.show()` inline — `.gitignore` blocks `*_files/` so Quarto's default
+  `index_files/figure-html/` output path is ignored by git and the image won't deploy.
+  Pattern:
+  ```python
+  #| output: false
+  from pathlib import Path
+  Path("figures").mkdir(exist_ok=True)
+  plt.savefig("figures/foo.png", dpi=150)
+  plt.close()
+  ```
+  Then in markdown: `![caption](figures/foo.png)`
 
 ### 3. Register the new file in `_quarto.yml`
 
