@@ -1,5 +1,40 @@
 [
   {
+    "objectID": "analyses/2026-05-car-rms/index.html",
+    "href": "analyses/2026-05-car-rms/index.html",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "",
+    "text": "Common Average Referencing (CAR) subtracts the mean across channels at each time step. When channels are spatially correlated this introduces a position-dependent bias in per-channel RMS: edge channels lose less variance than central ones, producing a characteristic U-shape."
+  },
+  {
+    "objectID": "analyses/2026-05-car-rms/index.html#overview",
+    "href": "analyses/2026-05-car-rms/index.html#overview",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "",
+    "text": "Common Average Referencing (CAR) subtracts the mean across channels at each time step. When channels are spatially correlated this introduces a position-dependent bias in per-channel RMS: edge channels lose less variance than central ones, producing a characteristic U-shape."
+  },
+  {
+    "objectID": "analyses/2026-05-car-rms/index.html#model",
+    "href": "analyses/2026-05-car-rms/index.html#model",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "Model",
+    "text": "Model\n\nCovariance\nConsider \\(N\\) channels with an exponentially decaying covariance plus uncorrelated noise:\n\\[C_{jk} = \\sigma_s^2\\,e^{-|j-k|/\\lambda} + \\sigma_n^2\\,\\delta_{jk}\\]\nwhere \\(\\lambda\\) is the spatial correlation length in channels.\n\n\nVariance after CAR\nThe CAR-subtracted signal \\(y_j = x_j - \\frac{1}{N}\\sum_k x_k\\) has variance\n\\[\\operatorname{Var}(y_j)\n  = C_{jj}\n  - \\frac{2}{N}\\sum_k C_{jk}\n  + \\frac{1}{N^2}\\sum_{j,k} C_{jk}\\]\nSetting \\(r = e^{-1/\\lambda}\\) and splitting the absolute value, the row sum closes in a geometric series:\n\\[S_j \\equiv \\sum_{k=0}^{N-1} r^{|j-k|}\n         = \\frac{1 + r - r^{j+1} - r^{N-j}}{1-r}\\]\nThe grand sum \\(T \\equiv \\sum_j S_j\\) is\n\\[T = \\frac{N(1+r) - \\dfrac{2r(1-r^N)}{1-r}}{1-r}\\]\nSubstituting and separating the noise contribution gives the closed-form RMS profile:\n\\[\\boxed{\n  \\mathrm{RMS}_j = \\sqrt{\n    \\sigma_s^2\\!\\left(1 - \\frac{2S_j}{N} + \\frac{T}{N^2}\\right)\n    + \\sigma_n^2\\,\\frac{N-1}{N}\n  }\n}\\]\nThe noise term \\(\\sigma_n^2(N-1)/N\\) is position-independent — it is the standard single-degree-of-freedom reduction from mean subtraction.\n\n\nAsymptotic limits\nFor a channel deep in the array (\\(r^j \\approx 0\\), \\(r^{N-j} \\approx 0\\)):\n\\[S_j^\\infty = \\frac{1+r}{1-r} \\approx 2\\lambda \\quad (\\lambda \\gg 1)\\]\nFor an edge channel (\\(j = 0\\) or \\(j = N-1\\), with \\(N \\gg \\lambda\\)):\n\\[S_0 = \\frac{1-r^N}{1-r} \\approx \\lambda\\]\nThe edge row sum is roughly half the bulk value, so CAR removes half as much signal variance at the edges. The transition from elevated-edge to flat-bulk RMS occurs over \\(\\approx\\lambda\\) channels — the width of the U-shape horns is a direct read-out of the spatial correlation length."
+  },
+  {
+    "objectID": "analyses/2026-05-car-rms/index.html#simulation",
+    "href": "analyses/2026-05-car-rms/index.html#simulation",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "Simulation",
+    "text": "Simulation\n\n\nCode\nimport warnings\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport matplotlib.gridspec as gridspec\n\n\n\n\nCode\nrng = np.random.default_rng(42)\n\nN = 500          # channels\nT_samp = 20_000  # time samples\nsigma_s = 1.0\nsigma_n = 0.5\nn_win = 6        # time windows for variability display\n\ndef analytical_rms(N, lam, sigma_s, sigma_n):\n    \"\"\"Closed-form per-channel RMS after CAR.\"\"\"\n    r = np.exp(-1.0 / lam)\n    j = np.arange(N)\n    S = (1 + r - r ** (j + 1) - r ** (N - j)) / (1 - r)\n    T_grand = (N * (1 + r) - 2 * r * (1 - r**N) / (1 - r)) / (1 - r)\n    var = sigma_s**2 * (1 - 2 * S / N + T_grand / N**2) + sigma_n**2 * (N - 1) / N\n    return np.sqrt(np.clip(var, 0, None))\n\ndef simulate(N, lam, sigma_s, sigma_n, T_samp, rng):\n    \"\"\"Generate correlated data, apply CAR, return (data, data_car).\"\"\"\n    idx = np.arange(N)\n    C = sigma_s**2 * np.exp(-np.abs(idx[:, None] - idx[None, :]) / lam)\n    C += sigma_n**2 * np.eye(N)\n    evals, evecs = np.linalg.eigh(C)\n    L = evecs * np.sqrt(np.maximum(evals, 0))[None, :]\n    with warnings.catch_warnings():\n        warnings.simplefilter(\"ignore\")\n        data = L @ rng.standard_normal((N, T_samp))\n    data_car = data - data.mean(axis=0, keepdims=True)\n    return data, data_car\n\nlambdas = [100, 300]\nfig, axes = plt.subplots(2, 2, figsize=(11, 7), sharey=\"row\", sharex=True)\ncmap = plt.get_cmap(\"tab10\")\nwin = T_samp // n_win\n\nfor col, lam in enumerate(lambdas):\n    data, data_car = simulate(N, lam, sigma_s, sigma_n, T_samp, rng)\n    rms_pred = analytical_rms(N, lam, sigma_s, sigma_n)\n\n    # top row: original\n    for i in range(n_win):\n        s, e = i * win, (i + 1) * win\n        axes[0, col].plot(np.sqrt(np.mean(data[:, s:e]**2, axis=1)),\n                          color=cmap(i), alpha=0.6, lw=0.8)\n    axes[0, col].set_title(f\"Original  (λ = {lam})\")\n    axes[0, col].set_ylabel(\"RMS\" if col == 0 else \"\")\n\n    # bottom row: after CAR\n    for i in range(n_win):\n        s, e = i * win, (i + 1) * win\n        axes[1, col].plot(np.sqrt(np.mean(data_car[:, s:e]**2, axis=1)),\n                          color=cmap(i), alpha=0.6, lw=0.8)\n    axes[1, col].plot(rms_pred, \"k--\", lw=1.5, label=\"Analytical\")\n    axes[1, col].set_title(f\"After CAR  (λ = {lam})\")\n    axes[1, col].set_ylabel(\"RMS\" if col == 0 else \"\")\n    axes[1, col].set_xlabel(\"Channel index\")\n    axes[1, col].legend(fontsize=8)\n\nfig.suptitle(\n    f\"N = {N}, σ_s = {sigma_s}, σ_n = {sigma_n}  —  {n_win} time windows overlaid\",\n    fontsize=10,\n)\nplt.tight_layout()\nplt.show()\n\n\n\n\n\nPer-channel RMS before and after CAR for two correlation lengths. Dashed lines are the analytical prediction."
+  },
+  {
+    "objectID": "analyses/2026-05-car-rms/index.html#conclusion",
+    "href": "analyses/2026-05-car-rms/index.html#conclusion",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "Conclusion",
+    "text": "Conclusion\nCAR suppresses the spatially correlated signal most effectively for central channels — those with correlated neighbours on both sides — and least at the edges. The resulting U-shaped RMS profile is fully predicted by a closed-form expression in terms of \\(r =\ne^{-1/\\lambda}\\). Crucially, the horn width of the U directly estimates \\(\\lambda\\): for \\(\\lambda = 100\\) the upturn spans ~100 channels; for \\(\\lambda = 300\\) it spans the entire 500-channel array, preventing the profile from ever flattening. This makes the post-CAR RMS a cheap diagnostic for the spatial correlation scale of the recording."
+  },
+  {
     "objectID": "analyses/2026-05-lfp/index.html",
     "href": "analyses/2026-05-lfp/index.html",
     "title": "Multi-Channel LFP Denoising: NP1 vs NP2",
@@ -46,7 +81,7 @@
     "href": "index.html",
     "title": "Analysis Hub",
     "section": "",
-    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nMulti-Channel LFP Denoising: NP1 vs NP2\n\n2 min\n\n\nelectrophysiology\n\nLFP\n\ndenoising\n\nNeuropixels\n\n\n\nEvaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\n\n\n\n\nEphys-Atlas Region Boundary Landmarks\n\n2 min\n\n\nelectrophysiology\n\nephys-atlas\n\nanatomy\n\nlandmarks\n\n\n\nBrute-force search for sharp ephys feature transitions across Cosmos region boundaries that can serve as anatomical landmarks for Neuropixels probe localisation.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\nNo matching items"
+    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\nRMS bias from Common Average Referencing\n\n5 min\n\n\nsignal-processing\n\nneuroscience\n\n\n\nCAR on spatially correlated channels produces a U-shaped per-channel RMS profile. We derive the closed-form expression and verify it against synthetic data.\n\n\n\nMay 20, 2026\n\n\n\n\n\n\n\n\n\n\nMulti-Channel LFP Denoising: NP1 vs NP2\n\n2 min\n\n\nelectrophysiology\n\nLFP\n\ndenoising\n\nNeuropixels\n\n\n\nEvaluating geometry-aware denoising strategies for Neuropixels LFP recordings using cross-probe cross-correlation on CSD-transformed signals.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\n\n\n\n\nEphys-Atlas Region Boundary Landmarks\n\n2 min\n\n\nelectrophysiology\n\nephys-atlas\n\nanatomy\n\nlandmarks\n\n\n\nBrute-force search for sharp ephys feature transitions across Cosmos region boundaries that can serve as anatomical landmarks for Neuropixels probe localisation.\n\n\n\nMay 18, 2026\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "analyses/2026-05-EA-boundaries/index.html",

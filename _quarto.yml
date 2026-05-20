@@ -5,6 +5,7 @@ project:
     - index.qmd
     - analyses/2026-05-lfp/index.qmd
     - analyses/2026-05-EA-boundaries/index.qmd
+    - analyses/2026-05-car-rms/index.qmd
 
 website:
   title: "Analysis Hub"
