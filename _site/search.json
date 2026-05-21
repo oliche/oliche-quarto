@@ -14,6 +14,13 @@
     "text": "Common Average Referencing (CAR) subtracts the mean across channels at each time step. When channels are spatially correlated this introduces a position-dependent bias in per-channel RMS: edge channels lose less variance than central ones, producing a characteristic U-shape."
   },
   {
+    "objectID": "analyses/2026-05-car-rms/index.html#data",
+    "href": "analyses/2026-05-car-rms/index.html#data",
+    "title": "RMS bias from Common Average Referencing",
+    "section": "Data",
+    "text": "Data"
+  },
+  {
     "objectID": "analyses/2026-05-car-rms/index.html#model",
     "href": "analyses/2026-05-car-rms/index.html#model",
     "title": "RMS bias from Common Average Referencing",

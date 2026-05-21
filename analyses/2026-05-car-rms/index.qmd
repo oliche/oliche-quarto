@@ -13,6 +13,11 @@ When channels are spatially correlated this introduces a **position-dependent bi
 per-channel RMS: edge channels lose less variance than central ones, producing a
 characteristic U-shape.
 
+## Data
+
+![Per-channel RMS after CAR for for NP1 (left) and NP2 (right)](figures/2026-05-19_lf_rms_vs_depth.png)
+![Per-channel RMS with no CAR applied for for NP1 (left) and NP2 (right)](figures/2026-05-19_lf_rms_vs_depth_scratch.png)
+
 ## Model
 
 ### Covariance
