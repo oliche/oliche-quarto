@@ -13,7 +13,7 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: analyses/
+      - href: index.qmd
         text: Analyses
     right:
       - icon: github
@@ -26,7 +26,7 @@ execute:
 
 format:
   html:
-    theme: cosmo
+    theme: minty
     toc: true
     toc-depth: 3
     code-fold: true
