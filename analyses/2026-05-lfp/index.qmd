@@ -24,7 +24,7 @@ NP1 always used external referencing.
 NP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank.
 In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.
 
-![Matched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png){width=70%}
+![Matched channel locations for datasets 002 (left) and 003 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png){width=70%}
 
 ## Preprocessing - Cross-correlation Evaluation
 
@@ -42,7 +42,11 @@ Each raw snippet goes through the following ordered stages:
 | `csd2_denoise` | 2nd-order CSD on `cadzow`|
 
 
-![Signal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.](figures/preprocessing_xcor_004.png)
+![Signal traces and normalised cross-correlogram for dataset 002. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.](figures/preprocessing_xcor_002.png)
+
+![Same for dataset 003.](figures/preprocessing_xcor_003.png)
+
+![Same for dataset 004.](figures/preprocessing_xcor_004.png)
 
 ![Same for dataset 005.](figures/preprocessing_xcor_005.png)
 
@@ -50,6 +54,10 @@ Each raw snippet goes through the following ordered stages:
 ## Power spectral density
 
 PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).
+
+![PSD — dataset 002. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_002.png)
+
+![PSD — dataset 003. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_003.png)
 
 ![PSD — dataset 004. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_004.png)
 
