@@ -46,6 +46,7 @@ categories: [tag1, tag2]
 - **Figures:** save explicitly to `figures/` and reference with `![caption](figures/foo.png)`.
   Do NOT rely on `plt.show()` inline — `.gitignore` blocks `*_files/` so Quarto's default
   `index_files/figure-html/` output path is ignored by git and the image won't deploy.
+  `analyses/*/figures/` is also gitignored — images are tracked only via `_site/` after rendering.
   Pattern:
   ```python
   #| output: false
@@ -73,13 +74,14 @@ project:
 ### 4. Render and check
 
 ```bash
-quarto render
+quarto render analyses/<yyyy-mm-slug>/index.qmd
 open _site/analyses/<yyyy-mm-slug>/index.html
 ```
 
 ### 5. Commit and push
 
-Stage source + freeze cache + built site:
+`analyses/*/figures/` is gitignored — figures are tracked exclusively via `_site/` after rendering.
+Stage source + freeze cache + built site (which now contains the images):
 
 ```bash
 git add analyses/<yyyy-mm-slug>/ _freeze/analyses/<yyyy-mm-slug>/ _site/ _quarto.yml
@@ -88,6 +90,19 @@ git push -u origin analysis/<slug>
 ```
 
 Then open a PR or merge to `main`. GitHub Actions deploys `_site/` directly to Pages — no CI build step.
+
+### Updating figures on an existing page
+
+After saving new figures locally and updating the `.qmd`:
+
+```bash
+quarto render analyses/<yyyy-mm-slug>/index.qmd
+git add _site/analyses/<yyyy-mm-slug>/ analyses/<yyyy-mm-slug>/index.qmd
+git commit -m "Update <slug> figures"
+git push
+```
+
+Do **not** stage `analyses/<yyyy-mm-slug>/figures/` — it is gitignored and the images live in `_site/`.
 
 ## Gotchas
 
