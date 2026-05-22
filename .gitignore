@@ -225,3 +225,6 @@ __marimo__/
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Analysis figures — images live in _site/*/figures/ (committed) not in source tree
+analyses/*/figures/

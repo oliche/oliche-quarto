@@ -232,7 +232,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="figures/channel_locations.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>Matched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.</figcaption>
+<figcaption>Matched channel locations for datasets 004 Shallow NP2 (left) and 005 Deep NP2 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.</figcaption>
 </figure>
 </div>
 </section>
@@ -279,8 +279,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
+<p><img src="figures/preprocessing_xcor_002.png" class="img-fluid figure-img"></p>
+<figcaption>Signal traces and normalised cross-correlogram for dataset 002. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/preprocessing_xcor_003.png" class="img-fluid figure-img"></p>
+<figcaption>Same for dataset 003.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
 <p><img src="figures/preprocessing_xcor_004.png" class="img-fluid figure-img"></p>
-<figcaption>Signal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.</figcaption>
+<figcaption>Same for dataset 004.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
@@ -293,6 +305,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="power-spectral-density" class="level2">
 <h2 class="anchored" data-anchor-id="power-spectral-density">Power spectral density</h2>
 <p>PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/psd_dataset_002.png" class="img-fluid figure-img"></p>
+<figcaption>PSD — dataset 002. Left: NP1 matched channels. Right: NP2.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/psd_dataset_003.png" class="img-fluid figure-img"></p>
+<figcaption>PSD — dataset 003. Left: NP1 matched channels. Right: NP2.</figcaption>
+</figure>
+</div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="figures/psd_dataset_004.png" class="img-fluid figure-img"></p>
@@ -790,7 +814,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>NP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank.</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.</span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="al">![Matched channel locations for datasets 004 (left) and 005 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png)</span>{width=70%}</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="al">![Matched channel locations for datasets 004 Shallow NP2 (left) and 005 Deep NP2 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png)</span>{width=70%}</span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Preprocessing - Cross-correlation Evaluation</span></span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
@@ -808,21 +832,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`csd2_denoise`</span> <span class="pp">|</span> 2nd-order CSD on <span class="in">`cadzow`</span><span class="pp">|</span></span>
 <span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="al">![Signal traces and normalised cross-correlogram for dataset 004. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.](figures/preprocessing_xcor_004.png)</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="al">![Signal traces and normalised cross-correlogram for dataset 002. Each row is one preprocessing stage; right panels show the xcorr within ±200 ms.](figures/preprocessing_xcor_002.png)</span></span>
 <span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for dataset 005.](figures/preprocessing_xcor_005.png)</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for dataset 003.](figures/preprocessing_xcor_003.png)</span></span>
 <span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="fu">## Power spectral density</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for dataset 004.](figures/preprocessing_xcor_004.png)</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for dataset 005.](figures/preprocessing_xcor_005.png)</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 004. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_004.png)</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="fu">## Power spectral density</span></span>
 <span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 005. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_005.png)</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>PSD curves for all matched channels (30 s epoch, 30 kHz → 2.5 kHz LF band).</span>
 <span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>Both probes show similar spectral profiles. The 50 Hz mains harmonic is visible but moderate.</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 002. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_002.png)</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 003. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_003.png)</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 004. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_004.png)</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="al">![PSD — dataset 005. Left: NP1 matched channels. Right: NP2.](figures/psd_dataset_005.png)</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>Both probes show similar spectral profiles. The 50 Hz mains harmonic is visible but moderate.</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

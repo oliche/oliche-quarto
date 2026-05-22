@@ -24,7 +24,7 @@ NP1 always used external referencing.
 NP1 has 384 channels in a checkerboard pattern (two interleaved columns); NP2.4 has 96 channels arranged in four straight columns on a single shank.
 In experiments 1-4 the lower channels of NP2 recorded. Then for experiments 5-7, NP2 was driven down and higher channels were selected to be recorded.
 
-![Matched channel locations for datasets 002 (left) and 003 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png){width=70%}
+![Matched channel locations for datasets 004 Shallow NP2 (left) and 005 Deep NP2 (right). NP1 channels (blue) and the depth-aligned NP2 channels (orange) are overlaid on a common y-axis.](figures/channel_locations.png){width=70%}
 
 ## Preprocessing - Cross-correlation Evaluation
 
