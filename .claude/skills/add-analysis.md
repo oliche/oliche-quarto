@@ -46,7 +46,6 @@ categories: [tag1, tag2]
 - **Figures:** save explicitly to `figures/` and reference with `![caption](figures/foo.png)`.
   Do NOT rely on `plt.show()` inline — `.gitignore` blocks `*_files/` so Quarto's default
   `index_files/figure-html/` output path is ignored by git and the image won't deploy.
-  `analyses/*/figures/` is also gitignored — images are tracked only via `_site/` after rendering.
   Pattern:
   ```python
   #| output: false
@@ -80,8 +79,7 @@ open _site/analyses/<yyyy-mm-slug>/index.html
 
 ### 5. Commit and push
 
-`analyses/*/figures/` is gitignored — figures are tracked exclusively via `_site/` after rendering.
-Stage source + freeze cache + built site (which now contains the images):
+Stage source figures, freeze cache, and built site:
 
 ```bash
 git add analyses/<yyyy-mm-slug>/ _freeze/analyses/<yyyy-mm-slug>/ _site/ _quarto.yml
@@ -102,7 +100,7 @@ git commit -m "Update <slug> figures"
 git push
 ```
 
-Do **not** stage `analyses/<yyyy-mm-slug>/figures/` — it is gitignored and the images live in `_site/`.
+Stage both `analyses/<yyyy-mm-slug>/figures/` and `_site/analyses/<yyyy-mm-slug>/` — figures are tracked in both locations.
 
 ## Gotchas
 
