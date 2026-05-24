@@ -1,7 +1,16 @@
 """
 
 >>> sshfs fedora:/mnt/s0 /mnt/fedora
->>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' fedora:/mnt/s0/Data/2026_np1np2/./001/ fedora:/mnt/s0/Data/2026_np1np2/./004/ fedora:/mnt/s0/Data/2026_np1np2/./005/ /datadisk/Data/2026_np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./001/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./002/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./003/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./004/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./005/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./006/ /datadisk/Data/2026/np1np2/
+>>> rsync -az --relative --include='*/' --include='*.lf.*' --exclude='*' broker-fedora:/mnt/s0/Data/2026_np1np2/./007/ /datadisk/Data/2026/np1np2/
+
+
+
 """
 # %%
 import addcopyfighandler
@@ -92,10 +101,10 @@ def get_lf_file(root_path, number, probe_type):
 
 
 # %% Display probe locations
-number = 4
-fig, axs = plt.subplots(1, 2, figsize=(6, 10), sharey=True, sharex=True)
+NUMBERS = [4, 5]
+fig, axs = plt.subplots(1, 2, figsize=(7, 12), sharey=True, sharex=True)
 
-for i, number in enumerate([4, 5]):
+for i, number in enumerate(NUMBERS):
     sr_np1 = spikeglx.Reader(get_lf_file(root_path, number, 'NP1'))
     sr_np2 = spikeglx.Reader(get_lf_file(root_path, number, 'NP2'))
 
@@ -114,7 +123,7 @@ if output_fig_path:
 # df_datasets = read_csv_datasets(root_path)
 sample_slice = slice(30_000, int(30_000 * 30))
 # shank 2 has the highest correlation
-for i, number in enumerate([4, 5]):
+for i, number in enumerate(NUMBERS):
     # sr  = spikeglx.Reader(df_datasets.loc['4_NP1_external'].full_path_ap)
     # plot_psd_log(sr[30_000: int(30_000 * 30), :].T, sr.fs, title='4_NP1_external')
 
@@ -148,70 +157,70 @@ for i, number in enumerate([4, 5]):
 from viewephys.gui import viewephys
 import ibldsp.cadzow
 t0 = 50
-number = 5
-sample_slice = slice(int(sr_np1.fs * t0), int(sr_np1.fs * (t0 + 20)))
-# shank 2 has the highest correlation
+for number in NUMBERS:
+    sample_slice = slice(int(sr_np1.fs * t0), int(sr_np1.fs * (t0 + 20)))
+    # shank 2 has the highest correlation
 
-sr_np1 = spikeglx.Reader(get_lf_file(root_path, number, 'NP1'))
-sr_np2 = spikeglx.Reader(get_lf_file(root_path, number, 'NP2'))
+    sr_np1 = spikeglx.Reader(get_lf_file(root_path, number, 'NP1'))
+    sr_np2 = spikeglx.Reader(get_lf_file(root_path, number, 'NP2'))
 
-def preprocessing(raw, sr, k_filter=None):
-    # remove DC offset
-    # raw = raw - np.mean(raw, axis=1)[:, np.newaxis]
-    data = {}
-    data['bandpass'] = ibldsp.voltage.destripe_lfp(
-        raw, fs=sr.fs, channel_labels=None, neuropixel_version=np.floor(sr.major_version), h=sr.geometry, k_filter=None)
-    data['car'] = data['bandpass'] - np.mean(data['bandpass'], axis=0)
-    # Compute Current Source Density (CSD) to identify current sources and sinks
-    data['csd1'] = ibldsp.voltage.current_source_density(data['bandpass'], h=sr.geometry, scale=False, n=1)
-    data['csd2'] = ibldsp.voltage.current_source_density(data['bandpass'], h=sr.geometry, scale=False, n=2)
-    # Apply Cadzow denoising using probe geometry information
-    # This performs spatiotemporal denoising based on low-rank approximation
-    data['cadzow'] = ibldsp.cadzow.cadzow_np1(data['bandpass'], fs=sr.fs, fmax=200, rank=4, h=sr.geometry)
-    # Compute Current Source Density (CSD) to identify current sources and sinks
-    data['csd1_denoise'] = ibldsp.voltage.current_source_density(data['cadzow'], h=sr.geometry, scale=False, n=1)
-    data['csd2_denoise'] = ibldsp.voltage.current_source_density(data['cadzow'], h=sr.geometry, scale=False, n=2)
-    return data
+    def preprocessing(raw, sr, k_filter=None):
+        # remove DC offset
+        # raw = raw - np.mean(raw, axis=1)[:, np.newaxis]
+        data = {}
+        data['bandpass'] = ibldsp.voltage.destripe_lfp(
+            raw, fs=sr.fs, channel_labels=None, neuropixel_version=np.floor(sr.major_version), h=sr.geometry, k_filter=None)
+        data['car'] = data['bandpass'] - np.mean(data['bandpass'], axis=0)
+        # Compute Current Source Density (CSD) to identify current sources and sinks
+        data['csd1'] = ibldsp.voltage.current_source_density(data['bandpass'], h=sr.geometry, scale=False, n=1)
+        data['csd2'] = ibldsp.voltage.current_source_density(data['bandpass'], h=sr.geometry, scale=False, n=2)
+        # Apply Cadzow denoising using probe geometry information
+        # This performs spatiotemporal denoising based on low-rank approximation
+        data['cadzow'] = ibldsp.cadzow.cadzow_np1(data['bandpass'], fs=sr.fs, fmax=200, rank=4, h=sr.geometry)
+        # Compute Current Source Density (CSD) to identify current sources and sinks
+        data['csd1_denoise'] = ibldsp.voltage.current_source_density(data['cadzow'], h=sr.geometry, scale=False, n=1)
+        data['csd2_denoise'] = ibldsp.voltage.current_source_density(data['cadzow'], h=sr.geometry, scale=False, n=2)
+        return data
 
-# concatenate the np1 and np2 datasets in the display
-stages_order = ['bandpass', 'car', 'cadzow', 'csd1', 'csd1_denoise', 'csd2', 'csd2_denoise']
+    # concatenate the np1 and np2 datasets in the display
+    stages_order = ['bandpass', 'car', 'cadzow', 'csd1', 'csd1_denoise', 'csd2', 'csd2_denoise']
 
-eqc = {}
-data_np1 = preprocessing(sr_np1[sample_slice, :-1].T, sr_np1)
-data_np2 = preprocessing(sr_np2[sample_slice, :-1].T, sr_np2)
+    eqc = {}
+    data_np1 = preprocessing(sr_np1[sample_slice, :-1].T, sr_np1)
+    data_np2 = preprocessing(sr_np2[sample_slice, :-1].T, sr_np2)
 
 
-np_ch2 = 40
-ch_np1 = idx_np1[np.argmin(np.abs(
-    sr_np1.geometry['y'][idx_np1] - (intercept + slope * sr_np2.geometry['y'][np_ch2])
-))]
+    np_ch2 = 40
+    ch_np1 = idx_np1[np.argmin(np.abs(
+        sr_np1.geometry['y'][idx_np1] - (intercept + slope * sr_np2.geometry['y'][np_ch2])
+    ))]
 
-stages = stages_order
-t = np.arange(data_np1[stages[0]].shape[1]) / sr_np1.fs
-lag_max = int(0.2 * sr_np1.fs)
+    stages = stages_order
+    t = np.arange(data_np1[stages[0]].shape[1]) / sr_np1.fs
+    lag_max = int(0.2 * sr_np1.fs)
 
-fig, axes = plt.subplots(len(stages), 2, figsize=(22, 3 * len(stages)),
-                         sharex='col', gridspec_kw={'width_ratios': [5, 1]})
-for i, stage in enumerate(stages):
-    sig1 = data_np1[stage][ch_np1, :]
-    sig2 = data_np2[stage][np_ch2, :]
-    axes[i, 0].plot(t, sig1, label=f'NP1 ch {ch_np1}')
-    axes[i, 0].plot(t, sig2, label=f'NP2 ch {np_ch2}')
-    axes[i, 0].set(ylabel=stage)
-    axes[i, 0].legend(loc='upper right')
-    lags = correlation_lags(len(sig1), len(sig2))
-    xcorr = correlate(sig1, sig2) / np.sqrt(np.sum(sig1 ** 2) * np.sum(sig2 ** 2))
-    mask = np.abs(lags) <= lag_max
-    axes[i, 1].plot(lags[mask] / sr_np1.fs * 1e3, xcorr[mask])
-    axes[i, 1].axvline(0, color='k', lw=0.5)
-    axes[i, 1].set(ylim=(-.2, 1))
-axes[0, 0].set(title=f'dataset {number:03d}', xlim=[15, 20])
-axes[0, 1].set(title='Normalized X-Cor')
-axes[-1, 0].set(xlabel='Time (s)')
-axes[-1, 1].set(xlabel='Lag (ms)')
-fig.tight_layout()
-if output_fig_path:
-    fig.savefig(output_fig_path / f'preprocessing_xcor_{number:03d}.png')
+    fig, axes = plt.subplots(len(stages), 2, figsize=(22, 3 * len(stages)),
+                             sharex='col', gridspec_kw={'width_ratios': [5, 1]})
+    for i, stage in enumerate(stages):
+        sig1 = data_np1[stage][ch_np1, :]
+        sig2 = data_np2[stage][np_ch2, :]
+        axes[i, 0].plot(t, sig1, label=f'NP1 ch {ch_np1}')
+        axes[i, 0].plot(t, sig2, label=f'NP2 ch {np_ch2}')
+        axes[i, 0].set(ylabel=stage)
+        axes[i, 0].legend(loc='upper right')
+        lags = correlation_lags(len(sig1), len(sig2))
+        xcorr = correlate(sig1, sig2) / np.sqrt(np.sum(sig1 ** 2) * np.sum(sig2 ** 2))
+        mask = np.abs(lags) <= lag_max
+        axes[i, 1].plot(lags[mask] / sr_np1.fs * 1e3, xcorr[mask])
+        axes[i, 1].axvline(0, color='k', lw=0.5)
+        axes[i, 1].set(ylim=(-.2, 1))
+    axes[0, 0].set(title=f'dataset {number:03d}', xlim=[15, 20])
+    axes[0, 1].set(title='Normalized X-Cor')
+    axes[-1, 0].set(xlabel='Time (s)')
+    axes[-1, 1].set(xlabel='Lag (ms)')
+    fig.tight_layout()
+    if output_fig_path:
+        fig.savefig(output_fig_path / f'preprocessing_xcor_{number:03d}.png')
 
 # %% View ephys
 for stage in stages_order:
