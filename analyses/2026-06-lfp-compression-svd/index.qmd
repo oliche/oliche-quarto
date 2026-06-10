@@ -84,9 +84,7 @@ Median ε values (and range across 11 PIDs) that select each evaluated rank:
 ## Conclusions
 
 - **SVD-adapt (ε-sweep) matches plain SVD quality**: noise-floor threshold recovers the same ranks as the manual sweep and is fully automatic.
-- **SVD-adapt-CR24-WP is the recommended compression**: CR≈240 at SNR > 10 dB — roughly 15× improvement over SVD alone with minimal additional artefact. This would shrink the BWM dataset from ~1.2 Tb to ~5 Gb.
-- **Lower initial SVD CR is generally better for combined quality**: CR24-WP outperforms CR48-WP at matched total CRs, because more spatial information is retained in stage 1.
-- **Residual quality is preserved**: SVD-based residuals remain spatially incoherent at all tested CRs, avoiding the structured spectral artefacts seen in transform-only methods (see Prior context section above).
+- **Visually all compressions degrade above CR128**
 
 ## Appendix: Per-insertion results
 
