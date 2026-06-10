@@ -6,6 +6,7 @@ project:
     - analyses/2026-05-lfp/index.qmd
     - analyses/2026-05-EA-boundaries/index.qmd
     - analyses/2026-05-car-rms/index.qmd
+    - analyses/2026-06-lfp-compression-svd/index.qmd
 
 website:
   title: "Analysis Hub"
@@ -32,3 +33,4 @@ format:
     code-fold: true
     code-tools: true
     highlight-style: github
+    lightbox: true
