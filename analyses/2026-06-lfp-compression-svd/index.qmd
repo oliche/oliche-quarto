@@ -13,7 +13,7 @@ Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone.
 After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming.
 The goal is to identify a lossy compression strategy that reduces this further.
 
-**Practical recommendation: SVD-adapt-CR32-WP4.** Setting the SVD stage to CR≈32 (rank≈12) and WP keep_frac ≈ 0.25 gives a total CR≈128 with SNR > 10 dB.
+**Practical recommendation: SVD-adapt-CR32-WP4.** Setting the SVD stage to CR≈32 (rank≈12, epsilon≈48) and WP keep_frac ≈ 0.25 gives a total CR≈128 with SNR > 10 dB.
 **This would shrink the dataset to ~9.6 Gb.**
 
 
@@ -34,7 +34,7 @@ All methods were benchmarked on the Cadzow-denoised snippets so residuals reflec
 | Method | Principle | CR formula | Sweep |
 |---|---|---|---|
 | **SVD** | Truncated SVD of the nc×ns matrix; store the top-r singular triplets. Exploits spatial correlations across channels. | nc·ns / (r·(nc+ns)) | r ∈ {1,2,4,8,16,32,64,96} |
-| **SVD-adapt** | SVD with noise-floor-driven rank selection: keep SVs above ε × median(lower half of singular values). ε is swept to cover a wide CR range. | nc·ns / (r_adapt·(nc+ns)) | ε ∈ logspace(10⁴, 10⁻¹, 30) |
+| **SVD-adapt** | SVD with adaptive rank selection: retain singular values where $s_k > \varepsilon \cdot \sigma_0$, with $\sigma_0 = \text{median}(\text{lower half of } s)$ as the noise-floor estimate. $\varepsilon$ is a dimensionless multiplier — equivalently, the minimum signal-to-noise-floor ratio $s_k / \sigma_0$ required to keep a component. $\varepsilon$ is swept to cover a wide CR range. | nc·ns / (r_adapt·(nc+ns)) | ε ∈ logspace(10⁴, 10⁻¹, 30) |
 | **SVD-adapt-CR24-WP** | Two-stage: SVD at rank→CR≈24, then db4 wavelet-packet thresholding on the r temporal rows of Vh. | CR24 / f | f ∈ {0.005…0.50} |
 | **SVD-adapt-CR32-WP** | As above, SVD stage targeting CR≈32. | CR32 / f | f ∈ {0.005…0.50} |
 | **SVD-adapt-CR48-WP** | As above, SVD stage targeting CR≈48. | CR48 / f | f ∈ {0.005…0.50} |
@@ -66,7 +66,20 @@ SVD/SVD-adapt residuals are spatially incoherent across all CRs. SVD-adapt-WP re
 
 ## SVD spectrum and ε calibration
 
-![Left: SVD-adapt ε threshold (dimensionless) vs rank for each of the 11 PIDs. Right: singular value at each rank (µV), with the per-PID noise floor shown as a dashed horizontal line. Top x-axis gives the corresponding compression ratio.](figures/2026-06-10_epsilon_vs_rank.png)
+![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$ — the signal-to-noise-floor ratio of the $r$-th singular value — vs rank (bottom axis, 1–96). This is the $\varepsilon$ that would select exactly rank $r$. Right: singular value $s_r$ (µV) vs rank, with the per-PID noise floor $\sigma_0$ shown as a dashed horizontal line. The secondary top axis shows the **compression ratio** at each rank.](figures/2026-06-10_epsilon_vs_rank.png)
+
+Median ε values (and range across 11 PIDs) that select each evaluated rank:
+
+| Rank | ε median | ε range |
+|-----:|--------:|:--------|
+| 1 | 4073 | 2772–4697 |
+| 2 | 2252 | 1540–2898 |
+| 4 | 909 | 574–1240 |
+| 8 | 461 | 255–584 |
+| 16 | 155 | 89–207 |
+| 32 | 47 | 22–73 |
+| 64 | 10 | 4–22 |
+| 96 | 4 | 1–10 |
 
 ## Conclusions
 
@@ -208,7 +221,11 @@ Only the top-$f$ fraction of coefficients by magnitude are retained, giving an o
 
 $$\text{CR}_{\text{total}} = \frac{n_c \, n_s}{r(n_c + n_s)} \cdot \frac{1}{f}$$
 
-**SVD-adapt (ε-sweep)** uses the noise-floor threshold $\varepsilon \cdot \text{median}(\text{lower half of } s)$ to select rank automatically; sweeping $\varepsilon$ from $10^4$ to $10^{-1}$ traces out the full CR curve.
+**SVD-adapt (ε-sweep)** selects rank automatically using:
+
+$$\sigma_0 = \text{median}(s_{\lfloor r/2 \rfloor + 1}, \ldots, s_r), \qquad r^* = \max\{k : s_k > \varepsilon \cdot \sigma_0\}$$
+
+Here $\sigma_0$ is the noise-floor estimate (median of the lower half of the full singular value spectrum), and $\varepsilon$ is a dimensionless threshold — the minimum signal-to-noise-floor ratio $s_k / \sigma_0$ required to retain a component. Equivalently, $\varepsilon(r) = s_r / \sigma_0$ is the $\varepsilon$ that would select exactly rank $r$ (as shown in the calibration figure). Sweeping $\varepsilon$ from $10^4$ (keep only the dominant component) down to $10^{-1}$ (keep almost everything) traces out the full CR curve.
 
 **Reconstruction** reverses the two stages: reconstruct each wavelet-compressed row, then reassemble $\hat{X} = U_r \, \text{diag}(s_r) \, \hat{V}_r^\top$.
 :::
