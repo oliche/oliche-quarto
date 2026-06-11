@@ -14,20 +14,14 @@
    ---
    ```
 3. Write your analysis below the front matter (markdown + code cells)
-4. Render and publish:
-   ```bash
-   quarto render
-   git add -A && git commit -m "Add <analysis-name>" && git push
-   ```
-   Only analyses whose source has changed are re-executed (outputs are cached in `_freeze/`).
-   GitHub Actions picks up the pre-built `_site/` and deploys it automatically.
+4. Render and publish — **always from the project root:**
 
-   To render a single analysis without touching the rest:
-   ```bash
-   quarto render analyses/2026-05-neuron-tuning/
-   ```
+   - [ ] `quarto render` — re-renders all pages with a consistent CSS; unchanged notebooks use cached outputs (`_freeze/`) so this is fast
+   - [ ] `git add _site/ && git commit -m "Add <analysis-name>" && git push`
 
-> Preview while writing: `quarto preview` starts a live-reload server at http://localhost:5851/
+   > While writing, use `quarto preview` (project root) for live reload. Run `quarto render` once before committing to sync all pages.
+
+   > **Avoid** `quarto render analyses/my-page/` — rendering a single page in isolation can update the shared bootstrap CSS hash without updating the other pages, breaking their styles on GitHub. A pre-commit hook will catch this if it happens.
 
 ## Publishing to GitHub Pages
 
