@@ -598,6 +598,323 @@ def plot_compression_gallery(snippets, pid, residual=False):
     print(f'{pid}: {"residuals" if residual else "gallery"} saved → {fig_path}')
 
 
+EPSILONS_GALLERY  = [150, 300, 450, 750]   # SVD-adapt ε: rank = #{sv > ε·σ_noise}
+ALPHAS_GALLERY    = [0, 12, 24, 32, 48, 64, 96]
+WP_WAVELET_GALLERY = 'db4'
+WP_MAXLEVEL_GALLERY = 5
+
+
+def _svd_noise_floor(sv):
+    """Median of the lower half of non-trivial singular values."""
+    sv_nz = sv[sv > sv[0] * 1e-4]
+    tail = sv_nz[sv_nz.size // 2:] if sv_nz.size else sv
+    return float(np.nanmedian(tail)) if tail.size else float(sv[0])
+
+
+def _count_wp_slots_gallery(ns):
+    """Total leaf WP coefficients for a signal of length ns (db4, level 5)."""
+    wp = pywt.WaveletPacket(data=np.zeros(ns), wavelet=WP_WAVELET_GALLERY,
+                            maxlevel=WP_MAXLEVEL_GALLERY)
+    return sum(len(node.data) for node in wp.get_level(WP_MAXLEVEL_GALLERY, 'natural'))
+
+
+def reconstruct_adaptive_wp(snip, cr_svd_target, alpha):
+    """
+    Reconstruct snippet: SVD at rank from cr_svd_target, then adaptive WP at threshold alpha.
+
+    Parameters
+    ----------
+    snip : ndarray (nc, ns), float32
+    cr_svd_target : float
+        Target SVD-stage compression ratio; rank is rounded to nearest integer.
+    alpha : float
+        WP threshold multiplier; 0 → pure SVD (no WP).
+
+    Returns
+    -------
+    x_hat : ndarray (nc, ns), float32
+    cr_svd : float   Actual SVD-stage CR.
+    cr_wp  : float   WP-stage CR (1.0 when alpha=0).
+    cr_total : float Combined CR.
+    """
+    nc, ns = snip.shape
+    r = max(1, round(nc * ns / (cr_svd_target * (nc + ns))))
+    x = snip.astype(np.float64)
+    U, sv, Vh = np.linalg.svd(x, full_matrices=False)
+
+    cr_svd_actual = nc * ns / (r * (nc + ns))
+
+    if alpha == 0:
+        x_hat = ((U[:, :r] * sv[:r]) @ Vh[:r, :]).astype(np.float32)
+        return x_hat, cr_svd_actual, 1.0, cr_svd_actual
+
+    sigma_noise = _svd_noise_floor(sv)
+    n_wp_slots  = _count_wp_slots_gallery(ns)
+
+    Vh_hat = np.zeros((r, ns))
+    n_kept = 0
+    for k in range(r):
+        tau_k = alpha * sigma_noise / (sv[k] + 1e-40)
+        wp = pywt.WaveletPacket(data=Vh[k], wavelet=WP_WAVELET_GALLERY,
+                                maxlevel=WP_MAXLEVEL_GALLERY)
+        nodes = wp.get_level(WP_MAXLEVEL_GALLERY, 'natural')
+        for node in nodes:
+            mask = np.abs(node.data) >= tau_k
+            n_kept += int(mask.sum())
+            node.data = node.data * mask
+        Vh_hat[k] = wp.reconstruct(update=True)[:ns]
+
+    x_hat = np.nan_to_num(
+        ((U[:, :r] * sv[:r]) @ Vh_hat).astype(np.float32),
+        nan=0.0, posinf=0.0, neginf=0.0,
+    )
+    cr_wp    = (r * n_wp_slots) / max(n_kept, 1)
+    cr_total = cr_svd_actual * cr_wp
+    return x_hat, cr_svd_actual, cr_wp, cr_total
+
+
+def reconstruct_adaptive_wp_eps(snip, eps, alpha):
+    """
+    Reconstruct snippet: rank selected by eps × noise_floor threshold, then WP at alpha.
+
+    Parameters
+    ----------
+    snip : ndarray (nc, ns), float32
+    eps : float
+        SVD-adapt threshold multiplier; rank = #{k : sv[k] > eps · σ_noise}.
+    alpha : float
+        WP threshold multiplier; 0 → pure SVD (no WP).
+
+    Returns
+    -------
+    x_hat : ndarray (nc, ns), float32
+    r : int             Rank selected by eps.
+    cr_svd : float      Actual SVD-stage CR.
+    cr_wp : float       WP-stage CR (1.0 when alpha=0).
+    cr_total : float    Combined CR.
+    """
+    nc, ns = snip.shape
+    x = snip.astype(np.float64)
+    U, sv, Vh = np.linalg.svd(x, full_matrices=False)
+    sigma_noise = _svd_noise_floor(sv)
+    r = max(1, int(np.sum(sv > eps * sigma_noise)))
+    cr_svd_actual = nc * ns / (r * (nc + ns))
+
+    if alpha == 0:
+        x_hat = ((U[:, :r] * sv[:r]) @ Vh[:r, :]).astype(np.float32)
+        return x_hat, r, cr_svd_actual, 1.0, cr_svd_actual
+
+    n_wp_slots = _count_wp_slots_gallery(ns)
+    Vh_hat = np.zeros((r, ns))
+    n_kept = 0
+    for k in range(r):
+        tau_k = alpha * sigma_noise / (sv[k] + 1e-40)
+        wp = pywt.WaveletPacket(data=Vh[k], wavelet=WP_WAVELET_GALLERY,
+                                maxlevel=WP_MAXLEVEL_GALLERY)
+        nodes = wp.get_level(WP_MAXLEVEL_GALLERY, 'natural')
+        for node in nodes:
+            mask = np.abs(node.data) >= tau_k
+            n_kept += int(mask.sum())
+            node.data = node.data * mask
+        Vh_hat[k] = wp.reconstruct(update=True)[:ns]
+
+    x_hat = np.nan_to_num(
+        ((U[:, :r] * sv[:r]) @ Vh_hat).astype(np.float32),
+        nan=0.0, posinf=0.0, neginf=0.0,
+    )
+    cr_wp    = (r * n_wp_slots) / max(n_kept, 1)
+    cr_total = cr_svd_actual * cr_wp
+    return x_hat, r, cr_svd_actual, cr_wp, cr_total
+
+
+def plot_adaptive_wp_gallery(snippets, pid, residual=False):
+    """
+    LFP gallery on a SVD-ε × WP-α grid.
+
+    Rows: EPSILONS_GALLERY — SVD-adapt ε values; rank r is derived per snippet
+          from r = #{sv > ε · σ_noise}, so the actual CR_SVD is labelled in each row.
+    Cols: ALPHAS_GALLERY threshold multipliers (α=0 = pure SVD reference).
+    Each cell is labelled with r, achieved CRs, RMSE (µV), and SNR (dB).
+
+    Parameters
+    ----------
+    snippets : list of ndarray, each (nc, ns), float32
+    pid : str
+    residual : bool
+        If True display original − reconstruction instead of reconstruction.
+    """
+    snip = snippets[0]
+    nc, ns = snip.shape
+    orig = snip[:, :DISPLAY_NS]
+    rms_ch = np.sqrt(np.mean(snip.astype(np.float64) ** 2, axis=-1))
+    vmax = VMAX_GALLERY
+    kind_str = 'residual' if residual else 'reconstruction'
+
+    n_rows, n_cols = len(EPSILONS_GALLERY), len(ALPHAS_GALLERY)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols * 4.2, n_rows * 3.2))
+    fig.suptitle(f'{pid}  —  SVD-ε × WP-α {kind_str}', fontsize=12)
+
+    for j, alpha in enumerate(ALPHAS_GALLERY):
+        axes[0, j].set_title('SVD only  (α = 0)' if alpha == 0 else f'α = {alpha}', fontsize=11)
+
+    for i, eps in enumerate(EPSILONS_GALLERY):
+        row_ylabel_set = False
+        for j, alpha in enumerate(ALPHAS_GALLERY):
+            ax = axes[i, j]
+            x_hat, r, cr_svd_actual, cr_wp, cr_total = reconstruct_adaptive_wp_eps(
+                snip, eps, alpha,
+            )
+            panel = (orig - x_hat[:, :DISPLAY_NS]) if residual else x_hat[:, :DISPLAY_NS]
+            _lf_imshow(ax, panel, vmax=vmax)
+
+            err = snip.astype(np.float64) - x_hat.astype(np.float64)
+            rmse_ch = np.sqrt(np.mean(err ** 2, axis=-1))
+            rmse_uv = float(np.median(rmse_ch)) * 1e6
+            snr_db  = float(20.0 * np.log10(np.median(rms_ch) / max(np.median(rmse_ch), 1e-12)))
+
+            if alpha == 0:
+                label = (f'r={r}  CR_SVD={cr_svd_actual:.0f}\n'
+                         f'{rmse_uv:.1f} µV  {snr_db:.1f} dB')
+            else:
+                label = (f'r={r}  SVD×{cr_svd_actual:.0f}\n'
+                         f'WP×{cr_wp:.1f}  Tot={cr_total:.0f}\n'
+                         f'{rmse_uv:.1f} µV  {snr_db:.1f} dB')
+            ax.text(0.03, 0.97, label, transform=ax.transAxes,
+                    fontsize=8, va='top', ha='left', color='k',
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, lw=0))
+
+            if not row_ylabel_set:
+                axes[i, 0].set_ylabel(
+                    f'ε = {eps}',
+                    fontsize=10, rotation=90, labelpad=4, va='center',
+                )
+                row_ylabel_set = True
+
+    # Shared colorbar
+    import matplotlib.colors as mcolors
+    import matplotlib.cm as mplcm
+    norm = mcolors.Normalize(vmin=-vmax, vmax=vmax)
+    sm = mplcm.ScalarMappable(cmap='RdBu_r', norm=norm)
+    sm.set_array([])
+    fig.subplots_adjust(top=0.93, bottom=0.06)
+    cbar_ax = fig.add_axes([0.25, 0.015, 0.50, 0.012])
+    cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
+    ticks = np.linspace(-vmax, vmax, 5)
+    cbar.set_ticks(ticks)
+    cbar.set_ticklabels([f'{t * 1e6:.0f}' for t in ticks])
+    cbar.set_label('µV', labelpad=2)
+
+    suffix = '_residual' if residual else ''
+    fname = f'2026-06-12_adaptive_wp_gallery_{pid}{suffix}.png'
+    for d in [FIGURE_DIR, QUARTO_FIGURE_DIR]:
+        if d.exists():
+            fig.savefig(d.joinpath(fname), dpi=120)
+    plt.close(fig)
+    print(f'{pid}: adaptive-WP {kind_str} gallery saved → {fname}')
+
+
+FLAGSHIP_PID = 'dab512bd-a02d-4c1f-8dbc-9155a163efc0'
+
+
+def plot_adaptive_wp_gallery_csd(snippets, pid, residual=False):
+    """
+    CSD gallery on a SVD-ε × WP-α grid — same layout as plot_adaptive_wp_gallery.
+
+    Displays current source density (ibldsp.voltage.current_source_density) of the
+    reconstructed LFP.  Called only for the flagship PID (notable CSD structure).
+    The vmax is set from the 99th percentile of the original CSD so all panels share
+    a consistent scale.
+
+    Parameters
+    ----------
+    snippets : list of ndarray, each (nc, ns), float32
+    pid : str
+    residual : bool
+        If True display CSD(original) − CSD(reconstruction); otherwise CSD(reconstruction).
+    """
+    from ibldsp.voltage import current_source_density
+    import neuropixel
+
+    snip = snippets[0]
+    nc, ns = snip.shape
+    orig = snip[:, :DISPLAY_NS]
+
+    h = neuropixel.trace_header(version=1)
+    h = {k: v[:nc] for k, v in h.items()}
+
+    csd_orig_full = current_source_density(orig, h)
+    csd_orig = np.nan_to_num(csd_orig_full, nan=0.0)
+    vmax = float(np.nanpercentile(np.abs(csd_orig), 99))
+    rms_csd_ch = np.sqrt(np.mean(csd_orig ** 2, axis=-1))  # per-channel CSD RMS for SNR
+
+    kind_str = 'CSD residual' if residual else 'CSD'
+
+    n_rows, n_cols = len(EPSILONS_GALLERY), len(ALPHAS_GALLERY)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols * 4.2, n_rows * 3.2))
+    fig.suptitle(f'{pid}  —  SVD-ε × WP-α {kind_str}', fontsize=12)
+
+    for j, alpha in enumerate(ALPHAS_GALLERY):
+        axes[0, j].set_title('SVD only  (α = 0)' if alpha == 0 else f'α = {alpha}', fontsize=11)
+
+    for i, eps in enumerate(EPSILONS_GALLERY):
+        row_ylabel_set = False
+        for j, alpha in enumerate(ALPHAS_GALLERY):
+            ax = axes[i, j]
+            x_hat, r, cr_svd_actual, cr_wp, cr_total = reconstruct_adaptive_wp_eps(
+                snip, eps, alpha,
+            )
+            csd_hat = np.nan_to_num(
+                current_source_density(x_hat[:, :DISPLAY_NS], h), nan=0.0,
+            )
+            panel = (csd_orig - csd_hat) if residual else csd_hat
+            _lf_imshow(ax, panel, vmax=vmax)
+
+            csd_err_ch = np.sqrt(np.mean((csd_orig - csd_hat) ** 2, axis=-1))
+            rmse_csd = float(np.nanmedian(csd_err_ch))
+            rms_csd  = float(np.nanmedian(rms_csd_ch))
+            snr_db   = float(20.0 * np.log10(rms_csd / max(rmse_csd, 1e-40)))
+            rmse_str = f'{rmse_csd:.2e}'
+
+            if alpha == 0:
+                label = (f'r={r}  CR_SVD={cr_svd_actual:.0f}\n'
+                         f'RMSE={rmse_str}  {snr_db:.1f} dB')
+            else:
+                label = (f'r={r}  SVD×{cr_svd_actual:.0f}\n'
+                         f'WP×{cr_wp:.1f}  Tot={cr_total:.0f}\n'
+                         f'RMSE={rmse_str}  {snr_db:.1f} dB')
+            ax.text(0.03, 0.97, label, transform=ax.transAxes,
+                    fontsize=8, va='top', ha='left', color='k',
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, lw=0))
+
+            if not row_ylabel_set:
+                axes[i, 0].set_ylabel(
+                    f'ε = {eps}',
+                    fontsize=10, rotation=90, labelpad=4, va='center',
+                )
+                row_ylabel_set = True
+
+    import matplotlib.colors as mcolors
+    import matplotlib.cm as mplcm
+    norm = mcolors.Normalize(vmin=-vmax, vmax=vmax)
+    sm = mplcm.ScalarMappable(cmap='RdBu_r', norm=norm)
+    sm.set_array([])
+    fig.subplots_adjust(top=0.93, bottom=0.06)
+    cbar_ax = fig.add_axes([0.25, 0.015, 0.50, 0.012])
+    cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
+    ticks = np.linspace(-vmax, vmax, 5)
+    cbar.set_ticks(ticks)
+    cbar.set_ticklabels([f'{t:.2e}' for t in ticks])
+    cbar.set_label('A/m$^3$', labelpad=2)
+
+    suffix = '_residual' if residual else ''
+    fname = f'2026-06-12_adaptive_wp_gallery_csd_{pid}{suffix}.png'
+    for d in [FIGURE_DIR, QUARTO_FIGURE_DIR]:
+        if d.exists():
+            fig.savefig(d.joinpath(fname), dpi=120)
+    plt.close(fig)
+    print(f'{pid}: adaptive-WP CSD {kind_str} gallery saved → {fname}')
+
+
 def plot_aggregate_figure():
     """
     Single aggregate figure: all 6 methods, averaged across PIDs.
@@ -654,6 +971,144 @@ def plot_aggregate_figure():
     fig.savefig(fig_path, dpi=150)
     plt.close(fig)
     print(f'Aggregate figure saved → {fig_path}')
+
+
+def plot_adaptive_aggregate_figure():
+    """
+    Aggregate RMSE/SNR vs total CR for the adaptive SVD-ε + WP-α parameter sweep.
+
+    One curve per ε in EPSILONS_GALLERY; rank r is derived per snippet from
+    r = #{sv > ε · σ_noise}.  Each curve sweeps ALPHAS_GALLERY.
+    Saves PNG to FIGURE_DIR and QUARTO_FIGURE_DIR.
+    """
+    import warnings
+    palette = sns.color_palette('viridis', n_colors=len(EPSILONS_GALLERY))
+
+    n_eps   = len(EPSILONS_GALLERY)
+    n_alpha = len(ALPHAS_GALLERY)
+    acc_cr   = [[[] for _ in range(n_alpha)] for _ in range(n_eps)]
+    acc_rmse = [[[] for _ in range(n_alpha)] for _ in range(n_eps)]
+    acc_snr  = [[[] for _ in range(n_alpha)] for _ in range(n_eps)]
+    acc_r    = [[] for _ in range(n_eps)]    # rank per PID, for legend label
+
+    n_wp_slots_cache = {}
+    n_loaded = 0
+
+    for pid in pids:
+        snippet_files = [ROOT_OUTPUT.joinpath(pid, f'cadzow_denoised_{i}.npy') for i in range(3)]
+        if not all(f.exists() for f in snippet_files):
+            continue
+        snippets = [np.load(f) for f in snippet_files]
+        n_loaded += 1
+        nc, ns = snippets[0].shape
+
+        if ns not in n_wp_slots_cache:
+            n_wp_slots_cache[ns] = _count_wp_slots_gallery(ns)
+        n_wp_slots = n_wp_slots_cache[ns]
+
+        svds = [np.linalg.svd(s.astype(np.float64), full_matrices=False) for s in snippets]
+        rms_ch = np.mean([np.sqrt(np.mean(s.astype(np.float64) ** 2, axis=-1))
+                          for s in snippets], axis=0)
+
+        for i, eps in enumerate(EPSILONS_GALLERY):
+            # rank derived from ε per snippet, averaged across snippets
+            r_vals = [max(1, int(np.sum(sv > eps * _svd_noise_floor(sv)))) for _, sv, _ in svds]
+            r = max(1, int(np.round(np.mean(r_vals))))
+            cr_svd_actual = nc * ns / (r * (nc + ns))
+            acc_r[i].append(r)
+
+            for j, alpha in enumerate(ALPHAS_GALLERY):
+                rmse_sum = np.zeros(nc)
+                n_kept_total = 0
+
+                for (U, sv, Vh), snip in zip(svds, snippets):
+                    sigma_noise = _svd_noise_floor(sv)
+
+                    if alpha == 0:
+                        x_hat = ((U[:, :r] * sv[:r]) @ Vh[:r, :]).astype(np.float32)
+                        n_kept_total += r * n_wp_slots
+                    else:
+                        Vh_hat = np.zeros((r, ns))
+                        n_kept = 0
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', RuntimeWarning)
+                            for k in range(r):
+                                tau_k = alpha * sigma_noise / (sv[k] + 1e-40)
+                                wp = pywt.WaveletPacket(
+                                    data=Vh[k], wavelet=WP_WAVELET_GALLERY,
+                                    maxlevel=WP_MAXLEVEL_GALLERY,
+                                )
+                                nodes = wp.get_level(WP_MAXLEVEL_GALLERY, 'natural')
+                                for node in nodes:
+                                    mask = np.abs(node.data) >= tau_k
+                                    n_kept += int(mask.sum())
+                                    node.data = node.data * mask
+                                Vh_hat[k] = wp.reconstruct(update=True)[:ns]
+                        x_hat = np.nan_to_num(
+                            ((U[:, :r] * sv[:r]) @ Vh_hat).astype(np.float32),
+                            nan=0.0, posinf=0.0, neginf=0.0,
+                        )
+                        n_kept_total += n_kept
+
+                    err = snip.astype(np.float64) - x_hat.astype(np.float64)
+                    rmse_sum += np.sqrt(np.mean(err ** 2, axis=-1))
+
+                rmse_ch = rmse_sum / len(snippets)
+                n_kept_avg = n_kept_total / len(snippets)
+                cr_wp    = (r * n_wp_slots) / max(n_kept_avg, 1) if alpha > 0 else 1.0
+                cr_total = cr_svd_actual * cr_wp
+
+                rmse_med = float(np.median(rmse_ch))
+                snr_med  = float(20.0 * np.log10(np.median(rms_ch) / max(rmse_med, 1e-12)))
+
+                acc_cr[i][j].append(cr_total)
+                acc_rmse[i][j].append(rmse_med)
+                acc_snr[i][j].append(snr_med)
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig.suptitle(
+        f'Adaptive SVD-ε + WP-α — aggregate RMSE/SNR  (n={n_loaded} PIDs, median over channels)',
+        fontsize=12,
+    )
+
+    y_offsets = [10, -15, 10, -15]
+
+    for i, (eps, color, dy) in enumerate(zip(EPSILONS_GALLERY, palette, y_offsets)):
+        cr_vals   = np.array([float(np.mean(acc_cr[i][j]))   for j in range(n_alpha)])
+        rmse_vals = np.array([float(np.mean(acc_rmse[i][j])) for j in range(n_alpha)]) * 1e6
+        snr_vals  = np.array([float(np.mean(acc_snr[i][j]))  for j in range(n_alpha)])
+        r_med     = int(np.median(acc_r[i]))
+        cr_med    = float(np.mean(acc_cr[i][0]))   # α=0 point = pure SVD CR
+
+        lbl = f'ε = {eps}  (r ≈ {r_med}, CR_SVD ≈ {cr_med:.0f})'
+        axes[0].loglog(cr_vals, rmse_vals, '-o', color=color, lw=2, ms=6, label=lbl)
+        axes[1].semilogx(cr_vals, snr_vals, '-o', color=color, lw=2, ms=6, label=lbl)
+
+        for cr, rmse, snr, alpha in zip(cr_vals, rmse_vals, snr_vals, ALPHAS_GALLERY):
+            a_lbl = 'SVD' if alpha == 0 else f'α={alpha}'
+            axes[0].annotate(a_lbl, (cr, rmse), textcoords='offset points',
+                             xytext=(4, dy), fontsize=7, color=color, alpha=0.9)
+            axes[1].annotate(a_lbl, (cr, snr), textcoords='offset points',
+                             xytext=(4, dy), fontsize=7, color=color, alpha=0.9)
+
+    for ax, ylabel, title in zip(axes, ['RMSE (µV)', 'SNR (dB)'], ['RMSE', 'SNR']):
+        ax.set_xscale('log')
+        ax.set_xlabel('Compression ratio', fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=12)
+        ax.set_title(title, fontsize=12)
+        ax.tick_params(labelsize=10)
+        ax.grid(True, which='both', alpha=0.3)
+
+    axes[0].legend(fontsize=10, loc='upper left')
+    axes[1].legend(fontsize=10, loc='upper right')
+
+    fig.tight_layout()
+    fname = '2026-06-12_adaptive_wp_aggregate.png'
+    for d in [FIGURE_DIR, QUARTO_FIGURE_DIR]:
+        if d.exists():
+            fig.savefig(d.joinpath(fname), dpi=150)
+    plt.close(fig)
+    print(f'Adaptive aggregate figure saved → {fname}')
 
 
 def plot_epsilon_vs_rank():
@@ -886,10 +1341,13 @@ for pid in pids:
                  cr_svd=cr_svd, eps_adapt=eps_adapt)
         print(f'{pid}: cache saved → {cache_file}')
 
-    plot_compression_gallery(snippets, pid)
-    plot_compression_gallery(snippets, pid, residual=True)
+    plot_adaptive_wp_gallery(snippets, pid)
+    plot_adaptive_wp_gallery(snippets, pid, residual=True)
+    if pid == FLAGSHIP_PID:
+        plot_adaptive_wp_gallery_csd(snippets, pid)
+        plot_adaptive_wp_gallery_csd(snippets, pid, residual=True)
 
 # %%
-plot_aggregate_figure()
+plot_adaptive_aggregate_figure()
 plot_epsilon_vs_rank()
 plot_gap_threshold_vs_rank()

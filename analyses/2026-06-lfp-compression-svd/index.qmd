@@ -13,8 +13,8 @@ Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone.
 After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming.
 The goal is to identify a lossy compression strategy that reduces this further.
 
-**Practical recommendation: SVD-adapt-CR32-WP4.** Setting the SVD stage to CR≈32 (rank≈12, epsilon≈48) and WP keep_frac ≈ 0.25 gives a total CR≈128 with SNR > 10 dB.
-**This would shrink the dataset to ~9.6 Gb.**
+**Practical recommendation: SVD + WP (ε≈150, α≈32) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.**
+**This would shrink the 936-hour BWM dataset to ~9.6 Gb.**
 
 
 ## Pre-processing pipeline
@@ -31,13 +31,10 @@ All methods were benchmarked on the Cadzow-denoised snippets so residuals reflec
 
 ## Compression methods
 
-| Method | Principle | CR formula | Sweep |
+| Method | Principle | CR formula | Parameters |
 |---|---|---|---|
-| **SVD** | Truncated SVD of the nc×ns matrix; store the top-r singular triplets. Exploits spatial correlations across channels. | nc·ns / (r·(nc+ns)) | r ∈ {1,2,4,8,16,32,64,96} |
-| **SVD-adapt** | SVD with adaptive rank selection: retain singular values where $s_k > \varepsilon \cdot \sigma_0$, with $\sigma_0 = \text{median}(\text{lower half of } s)$ as the noise-floor estimate. $\varepsilon$ is a dimensionless multiplier — equivalently, the minimum signal-to-noise-floor ratio $s_k / \sigma_0$ required to keep a component. $\varepsilon$ is swept to cover a wide CR range. | nc·ns / (r_adapt·(nc+ns)) | ε ∈ logspace(10⁴, 10⁻¹, 30) |
-| **SVD-adapt-CR24-WP** | Two-stage: SVD at rank→CR≈24, then db4 wavelet-packet thresholding on the r temporal rows of Vh. | CR24 / f | f ∈ {0.005…0.50} |
-| **SVD-adapt-CR32-WP** | As above, SVD stage targeting CR≈32. | CR32 / f | f ∈ {0.005…0.50} |
-| **SVD-adapt-CR48-WP** | As above, SVD stage targeting CR≈48. | CR48 / f | f ∈ {0.005…0.50} |
+| **SVD-adapt** | First-stage: truncated SVD with adaptive rank: retain components where $s_k > \varepsilon \cdot \sigma_0$, with $\sigma_0 = \text{median}(\text{lower half of } s)$ as the noise-floor estimate. $\varepsilon$ is swept to cover the full CR range. | $n_c n_s / (r_\varepsilon(n_c+n_s))$ | ε ∈ logspace(10⁴, 10⁻¹, 30) |
+| **WP** | Second-stage: db4 wavelet-packet adaptive thresholding on the $r$ temporal rows of $V_r^\top$. Per-component threshold $\tau_k = \alpha \sigma_0 / \sigma_k$ ensures uniform error contribution across all ranks. | $\text{CR}_\text{SVD} \times \text{CR}_\text{WP}$ | ε (SVD stage), α (WP stage) |
 
 ## Metrics
 
@@ -49,22 +46,12 @@ Aggregated as median over channels, then mean over 11 PIDs.
 
 ### Aggregate benchmark (11 PIDs)
 
-![Aggregate compression quality. Left: median RMSE (µV) vs CR; right: median SNR (dB) vs CR. Shaded band: 25th–75th percentile over 11 insertions.](figures/2026-06-09_compression_aggregate.png)
+![Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point.](figures/2026-06-12_adaptive_wp_aggregate.png)
 
-SVD and SVD-adapt (ε-sweep) track each other closely — the noise-floor threshold recovers the same ranks as the fixed sweep and is fully automatic.
-All SVD-adapt-WP variants extend usable CR well beyond the pure SVD plateau; lower initial CR (tighter SVD stage) generally delivers better quality at any given combined CR.
+Each curve sweeps α from 0 (single stage SVD) through 64 (aggressive WP thresholding).
+All curves eventually converge from CR≈100 (α≈24), meaning the wavepack is eventually catching up.
 
-### Reconstruction and residual galleries
-
-![Reconstruction gallery for PID dab512bd. Rows: 5 methods; columns: target CR (1–1000×). Fixed colour scale.](figures/2026-06-09_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-SVD and SVD-adapt retain coherent spatial structure to CR=100; WP variants extend clean reconstruction to CR=300–1000.
-
-![Residual gallery (original − reconstruction). Same layout and colour scale.](figures/2026-06-09_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
-
-SVD/SVD-adapt residuals are spatially incoherent across all CRs. SVD-adapt-WP residuals show mild wavelet-domain artefacts at extreme CRs (> 300×).
-
-## SVD spectrum and ε calibration
+### SVD spectrum and ε calibration
 
 ![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$ — the signal-to-noise-floor ratio of the $r$-th singular value — vs rank (bottom axis, 1–96). This is the $\varepsilon$ that would select exactly rank $r$. Right: singular value $s_r$ (µV) vs rank, with the per-PID noise floor $\sigma_0$ shown as a dashed horizontal line. The secondary top axis shows the **compression ratio** at each rank.](figures/2026-06-10_epsilon_vs_rank.png)
 
@@ -81,23 +68,63 @@ Median ε values (and range across 11 PIDs) that select each evaluated rank:
 | 64 | 10 | 4–22 |
 | 96 | 4 | 1–10 |
 
-## Conclusions
+### Adaptive WP threshold calibration
 
-- **SVD-adapt (ε-sweep) matches plain SVD quality**: noise-floor threshold recovers the same ranks as the manual sweep and is fully automatic.
-- **Visually all compressions degrade above CR128**
+After SVD truncation at rank $r$, each temporal component $V_k$ (a row of $V_r^\top$, unit-L2-norm) is wavelet-packet compressed with a per-component hard threshold:
+
+$$\tau_k = \frac{\alpha \cdot \sigma_0}{\sigma_k}$$
+
+where $\sigma_0$ is the same SVD noise floor used for ε-based rank selection, $\sigma_k$ is the singular value of component $k$, and $\alpha$ is a single global multiplier.
+The threshold ensures every discarded coefficient contributes less than $\alpha \cdot \sigma_0$ — uniform across all components regardless of their amplitude.
+
+- Dominant components (large $\sigma_k$) receive a small threshold → many WP coefficients retained.
+- Weak components (small $\sigma_k$) receive a large threshold → only the coarsest WP structure kept.
+
+$$\text{CR}_\text{total} = \text{CR}_\text{SVD} \times \text{CR}_\text{WP}, \qquad \text{CR}_\text{WP} = \frac{r \cdot n_\text{WP\,slots}}{n_\text{kept}}$$
+
+![α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings.](figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png)
+
+### Parameter sweep gallery (SVD-ε × WP-α)
+
+Each cell applies SVD-adapt at threshold ε (which selects rank $r$ from the snippet's own SV spectrum), then adaptive WP at threshold α.
+Rows sweep ε ∈ {150, 300, 450, 750}; the resulting rank $r$ and CR_SVD are labelled per row and per cell.
+Columns sweep α ∈ {0, 12, 24, 32, 48, 64, 96}; α=0 is pure-SVD reference.
+Total CR cells show **median (min–max)** across the 11 benchmark insertions.
+
+| ε   | r med | CR_SVD med | α=0 | α=12 | α=24 | α=32 | α=48 | α=64 | α=96 |
+|----:|------:|-----------:|----:|-----:|-----:|-----:|-----:|-----:|-----:|
+| 150 | 16 | 16 | 16 (14–23) | 50 (41–71) | 94 (76–135) | 125 (104–183) | 204 (175–313) | 299 (235–486) | 538 (361–956) |
+| 300 | 10 | 25 | 25 (21–42) | 53 (45–87) | 98 (77–144) | 127 (106–188) | 205 (176–315) | 301 (236–488) | 538 (361–956) |
+| 450 |  8 | 32 | 32 (28–63) | 65 (53–107) | 105 (83–156) | 136 (110–197) | 212 (180–326) | 304 (239–495) | 538 (361–956) |
+| 750 |  5 | 51 | 51 (42–126) | 88 (70–184) | 126 (97–233) | 156 (126–275) | 231 (195–393) | 322 (259–556) | 550 (369–1003) |
+
+*(Exact r, CR, RMSE and SNR for the gallery PID (dab512bd) are labelled in each cell.)*
+
+![SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB).](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
+
+![Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
+
+### CSD gallery (PID dab512bd)
+
+Same ε × α grid as above, but displaying the **current source density** (second spatial finite difference, scaled by tissue conductivity σ = 1/3 S m⁻¹) of the reconstructed LFP.
+CSD emphasises the laminar sink/source structure and is more sensitive to spatial smearing than the raw LFP.
+
+![CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
+
+![CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
 
 ## Appendix: Per-insertion results
 
-Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery for each of the 11 benchmark insertions.
+Cadzow denoising and SVD-ε × WP-α adaptive gallery for each of the 11 benchmark insertions.
 
 ::: {.callout-note collapse="true" appearance="minimal"}
 ## PID 1a276285
 
 ![Cadzow denoising — PID 1a276285.](figures/2026-06-06_cadzow_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)
 
-![Compression gallery — PID 1a276285.](figures/2026-06-09_compression_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)
 
-![Residual gallery — PID 1a276285.](figures/2026-06-09_compression_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png)
+![Adaptive residual gallery — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -105,9 +132,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID 1e104bf4.](figures/2026-06-06_cadzow_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)
 
-![Compression gallery — PID 1e104bf4.](figures/2026-06-09_compression_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)
 
-![Residual gallery — PID 1e104bf4.](figures/2026-06-09_compression_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png)
+![Adaptive residual gallery — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -115,9 +142,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID 6638cfb3.](figures/2026-06-06_cadzow_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)
 
-![Compression gallery — PID 6638cfb3.](figures/2026-06-09_compression_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)
 
-![Residual gallery — PID 6638cfb3.](figures/2026-06-09_compression_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png)
+![Adaptive residual gallery — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -125,9 +152,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID 749cb2b7.](figures/2026-06-06_cadzow_749cb2b7-e57e-4453-a794-f6230e4d0226.png)
 
-![Compression gallery — PID 749cb2b7.](figures/2026-06-09_compression_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png)
 
-![Residual gallery — PID 749cb2b7.](figures/2026-06-09_compression_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png)
+![Adaptive residual gallery — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -135,9 +162,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID d7ec0892.](figures/2026-06-06_cadzow_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)
 
-![Compression gallery — PID d7ec0892.](figures/2026-06-09_compression_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)
 
-![Residual gallery — PID d7ec0892.](figures/2026-06-09_compression_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png)
+![Adaptive residual gallery — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -145,9 +172,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID da8dfec1.](figures/2026-06-06_cadzow_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)
 
-![Compression gallery — PID da8dfec1.](figures/2026-06-09_compression_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)
 
-![Residual gallery — PID da8dfec1.](figures/2026-06-09_compression_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png)
+![Adaptive residual gallery — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -155,9 +182,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID dab512bd.](figures/2026-06-06_cadzow_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
 
-![Compression gallery — PID dab512bd.](figures/2026-06-09_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
 
-![Residual gallery — PID dab512bd.](figures/2026-06-09_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
+![Adaptive residual gallery — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -165,9 +192,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID dc7e9403.](figures/2026-06-06_cadzow_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)
 
-![Compression gallery — PID dc7e9403.](figures/2026-06-09_compression_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)
 
-![Residual gallery — PID dc7e9403.](figures/2026-06-09_compression_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png)
+![Adaptive residual gallery — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -175,9 +202,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID e8f9fba4.](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
 
-![Compression gallery — PID e8f9fba4.](figures/2026-06-09_compression_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
 
-![Residual gallery — PID e8f9fba4.](figures/2026-06-09_compression_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png)
+![Adaptive residual gallery — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -185,9 +212,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID eebcaf65.](figures/2026-06-06_cadzow_eebcaf65-7fa4-4118-869d-a084e84530e2.png)
 
-![Compression gallery — PID eebcaf65.](figures/2026-06-09_compression_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png)
 
-![Residual gallery — PID eebcaf65.](figures/2026-06-09_compression_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png)
+![Adaptive residual gallery — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -195,9 +222,9 @@ Pre-processing (Cadzow denoising), reconstruction gallery, and residual gallery 
 
 ![Cadzow denoising — PID fe380793.](figures/2026-06-06_cadzow_fe380793-8035-414e-b000-09bfe5ece92a.png)
 
-![Compression gallery — PID fe380793.](figures/2026-06-09_compression_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png)
+![Adaptive gallery (SVD-ε × WP-α) — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png)
 
-![Residual gallery — PID fe380793.](figures/2026-06-09_compression_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png)
+![Adaptive residual gallery — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
@@ -228,20 +255,59 @@ Here $\sigma_0$ is the noise-floor estimate (median of the lower half of the ful
 **Reconstruction** reverses the two stages: reconstruct each wavelet-compressed row, then reassemble $\hat{X} = U_r \, \text{diag}(s_r) \, \hat{V}_r^\top$.
 :::
 
+
 ::: {.callout-note collapse="true" appearance="minimal"}
-## Prior context: transform methods
+## WP coefficient selection: per-coefficient error thresholding
 
-Before focusing on SVD variants, we benchmarked six approaches: SVD, Wavelet Packets (WP), DCT, DCT-δ, STFT, and SVD+WP.
-SVD consistently outperformed all transform-only methods at every compression ratio.
-The figure below shows the full comparison; the current analysis refines and extends only the SVD family.
+**Setup.**
+After SVD truncation at rank $r$, each retained temporal component is a row $V_k \in \mathbb{R}^{n_s}$ of $V_r^\top$ with unit $\ell_2$-norm ($\|V_k\|_2 = 1$, since $V$ is orthonormal).
+The full reconstruction contribution of component $k$ to $X$ is $s_k U_k V_k^\top$, whose Frobenius norm is $s_k$.
 
-![Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout.](figures/2026-06-06_compression_aggregate.png)
+**Wavelet-packet decomposition.**
+Each $V_k$ is decomposed into $n_\text{WP}$ coefficients $\{w_{kj}\}$ via a full db4 wavelet-packet tree at level 5
+(for $n_s = 750$, $n_\text{WP} = 960$).
+Because the WP transform is orthogonal, $\sum_j w_{kj}^2 = \|V_k\|_2^2 = 1$.
 
-![Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
+**Per-component hard threshold.**
+For each component $k$, a threshold is set as
 
-![Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
+$$\tau_k = \frac{\alpha \cdot \sigma_0}{s_k}$$
+
+and coefficient $w_{kj}$ is retained only if $|w_{kj}| \geq \tau_k$; otherwise it is set to zero:
+
+$$\tilde{w}_{kj} = w_{kj} \cdot \mathbf{1}\!\left[|w_{kj}| \geq \tau_k\right]$$
+
+**Per-coefficient error guarantee.**
+Zeroing $w_{kj}$ changes the reconstruction by $s_k \, U_k \cdot \delta v_{kj}^\top$, where $\delta v_{kj}$ is the inverse-WP basis vector for coefficient $j$ with unit norm.
+The resulting Frobenius error contribution is
+
+$$s_k \cdot |w_{kj}| \;<\; s_k \cdot \tau_k \;=\; \alpha \cdot \sigma_0$$
+
+*Every discarded coefficient, in every component, contributes less than $\alpha \cdot \sigma_0$ to the reconstruction error* — uniformly across all ranks.
+This is the same absolute noise-floor reference $\sigma_0$ used by the SVD stage, so the two thresholds speak the same language.
+
+**Compression ratio.**
+The WP stage CR is the ratio of total available coefficient slots to those retained:
+
+$$\text{CR}_\text{WP} = \frac{r \cdot n_\text{WP}}{\#\{(k,j) : s_k |w_{kj}| \geq \alpha\sigma_0\}}$$
+
+**Behaviour across the component spectrum.**
+
+For a component with singular value $s_k = q \cdot \varepsilon \cdot \sigma_0$ (where $q \geq 1$, since only components above the SVD threshold are retained), the WP threshold becomes
+
+$$\tau_k = \frac{\alpha}{q \cdot \varepsilon}$$
+
+- **Dominant components** ($q \gg 1$, $s_k \gg \varepsilon\sigma_0$): $\tau_k$ is small, many WP coefficients survive — the component's full temporal structure is preserved with only fine-scale details discarded.
+- **Marginal components** ($q \approx 1$, $s_k \approx \varepsilon\sigma_0$): $\tau_k \approx \alpha/\varepsilon$.  If $\alpha/\varepsilon$ exceeds the largest WP coefficient magnitude of $V_k$ (empirically 0.05–0.2 for LFP), the entire component is zeroed.  This is consistent behaviour: the component was weakly significant spatially *and* has no concentrated temporal structure, so it genuinely carries little information.
+
+This component-level zeroing is not a design flaw — it is the natural outcome of applying a uniform per-coefficient error threshold to components with flat (noise-like) temporal spectra.
+In practice, at the recommended operating point ($\varepsilon \approx 150$, $\alpha \approx 32$, $\alpha/\varepsilon \approx 0.21$), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.
+
+**Relationship to the SVD threshold.**
+The two parameters are not independent: when $\alpha/\varepsilon > \max_j |w_{r,j}|$ (the largest WP coefficient of the weakest retained component), WP overrides the SVD rank selection.
+The curves in the aggregate figure converge at high $\alpha$ because all $\varepsilon$ settings end up keeping the same dominant components once $\alpha$ is large enough to purge the weaker ones.
+The non-redundant operating region is $\alpha/\varepsilon \lesssim 0.1$, where WP compresses temporal structure within every kept component without discarding any of them entirely.
 :::
-
 
 ::: {.callout-note collapse="true" appearance="minimal"}
 ## Cadzow denoising with adaptive rank and imputation
@@ -260,8 +326,24 @@ Rather than applying SVD to the full time × channel matrix, the algorithm works
 **Outlier imputation (`ppca_k`)**: after the first rank-$r$ projection, channels deviating by more than $\text{median} + k \cdot \text{MAD}$ are replaced by their model prediction; the SVD is repeated on the cleaned data.
 :::
 
+
+
 ::: {.callout-note collapse="true" appearance="minimal"}
-## Gap-criterion rank selection (discarded)
+## Prior context: transform methods
+
+Before focusing on SVD variants, we benchmarked six approaches: SVD, Wavelet Packets (WP), DCT, DCT-δ, STFT, and SVD+WP.
+SVD consistently outperformed all transform-only methods at every compression ratio.
+The figure below shows the full comparison; the current analysis refines and extends only the SVD family.
+
+![Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout.](figures/2026-06-06_compression_aggregate.png)
+
+![Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
+
+![Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
+:::
+
+::: {.callout-note collapse="true" appearance="minimal"}
+## Prior-context: Gap-criterion rank selection (discarded)
 
 We investigated an alternative rank-selection criterion based on the largest relative drop in the singular value spectrum (the "gap"):
 
