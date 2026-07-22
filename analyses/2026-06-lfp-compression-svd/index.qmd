@@ -13,7 +13,7 @@ Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone.
 After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming.
 The goal is to identify a lossy compression strategy that reduces this further.
 
-**Practical recommendation: SVD + WP (ε≈150, α≈32) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.**
+**Practical recommendation: SVD + WP (ε≈150, α≈28) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.**
 **This would shrink the 936-hour BWM dataset to ~9.6 Gb.**
 
 
@@ -79,6 +79,10 @@ The threshold ensures every discarded coefficient contributes less than $\alpha 
 
 - Dominant components (large $\sigma_k$) receive a small threshold → many WP coefficients retained.
 - Weak components (small $\sigma_k$) receive a large threshold → only the coarsest WP structure kept.
+
+**Choosing the operating point.** $\alpha$ and $\varepsilon$ are calibrated on the 11-PID benchmark (figure below): the recommended $\varepsilon \approx 150$, $\alpha \approx 28$ sits where CR is maximised while RMSE stays below ~25 µV, and the tight spread of the α-sweep curves across insertions confirms the pair generalises without per-recording tuning.
+
+**Minimum retained coefficients (survival floor).** Because each $V_k$ has unit norm, its WP coefficients have a fixed magnitude ceiling ($\max_j|w_{kj}| \approx 0.2\text{–}0.4$). When even the *dominant* component is weak relative to the noise floor — $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$ — the threshold $\tau_0$ exceeds every coefficient and the entire snippet is zeroed, silently discarding real low-amplitude LFP. A **survival floor** removes this failure mode: the dominant component ($k=0$) always keeps its $n_\text{min}=64$ largest-magnitude coefficients, so a retained chunk can never reconstruct to exact zero. Higher-SNR recordings are bit-for-bit unchanged (their dominant row already keeps far more than $n_\text{min}$), and saturation-muted spans — which enter the codec as all-zero — still reconstruct to zero regardless of the floor.
 
 $$\text{CR}_\text{total} = \text{CR}_\text{SVD} \times \text{CR}_\text{WP}, \qquad \text{CR}_\text{WP} = \frac{r \cdot n_\text{WP\,slots}}{n_\text{kept}}$$
 
@@ -301,12 +305,18 @@ $$\tau_k = \frac{\alpha}{q \cdot \varepsilon}$$
 - **Marginal components** ($q \approx 1$, $s_k \approx \varepsilon\sigma_0$): $\tau_k \approx \alpha/\varepsilon$.  If $\alpha/\varepsilon$ exceeds the largest WP coefficient magnitude of $V_k$ (empirically 0.05–0.2 for LFP), the entire component is zeroed.  This is consistent behaviour: the component was weakly significant spatially *and* has no concentrated temporal structure, so it genuinely carries little information.
 
 This component-level zeroing is not a design flaw — it is the natural outcome of applying a uniform per-coefficient error threshold to components with flat (noise-like) temporal spectra.
-In practice, at the recommended operating point ($\varepsilon \approx 150$, $\alpha \approx 32$, $\alpha/\varepsilon \approx 0.21$), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.
+In practice, at the recommended operating point ($\varepsilon \approx 150$, $\alpha \approx 28$, $\alpha/\varepsilon \approx 0.19$), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.
 
 **Relationship to the SVD threshold.**
 The two parameters are not independent: when $\alpha/\varepsilon > \max_j |w_{r,j}|$ (the largest WP coefficient of the weakest retained component), WP overrides the SVD rank selection.
 The curves in the aggregate figure converge at high $\alpha$ because all $\varepsilon$ settings end up keeping the same dominant components once $\alpha$ is large enough to purge the weaker ones.
 The non-redundant operating region is $\alpha/\varepsilon \lesssim 0.1$, where WP compresses temporal structure within every kept component without discarding any of them entirely.
+
+**Survival floor on the dominant component.**
+Purging *weak* components (above) is benign. The pathological case is when the same mechanism zeroes the *dominant* component $k=0$: this happens on low-SNR recordings where $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$, at which point $\tau_0$ exceeds every coefficient of $V_0$, $\hat V_r^\top = 0$, and the chunk reconstructs to exact zero — destroying genuine low-amplitude LFP.
+To bound this, the dominant component always retains its $n_\text{min}=64$ largest-magnitude WP coefficients regardless of $\tau_0$:
+$$\#\{j : \tilde w_{0j} \neq 0\} \geq \min(n_\text{min},\, n_\text{WP}).$$
+The floor is applied only to $k=0$, so weaker components still vanish (preserving CR), and it is a no-op on healthy recordings, whose dominant row already keeps $\gg n_\text{min}$ coefficients — leaving their reconstruction bit-for-bit identical. A genuinely silent input (e.g. a saturation-muted span) has $s_0 = 0$ hence $U_r\,\text{diag}(s_r) = 0$, so it still reconstructs to zero and the floor cannot fabricate signal.
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
