@@ -1,3 +1,10 @@
+# Large per-PID result dumps (extracted from .tar.gz archives on datadisk; the
+# tarballs there are the source of truth, not these extracted directories)
+analyses/2026-07-lfp-encoders/results_bwm*/
+
+# macOS
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
