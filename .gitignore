@@ -238,3 +238,5 @@ __marimo__/
 
 # Local data caches (large, regeneratable — not for git)
 analyses/*/cache/
+
+**/*.quarto_ipynb
