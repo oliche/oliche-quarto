@@ -1,73 +1,70 @@
-# Multi-Channel Neuropixel LFP Pre-Processing Pipeline
+# EA Boundaries — LFP Landmark Detection
 
 ## Context
 
-in addition to our atlas it would also be useful to supply the community with a set of landmarks - specific places in the brain where there is a sharp transition in predicted features that scientists can use to help determine their location(the DG-thalamus LFP landmark from the repro-ephys paper is a nice example of this.)
+Find sharp transitions in ephys features across brain-region boundaries that scientists can use as anatomical landmarks (e.g. the DG–thalamus LFP landmark from repro-ephys). Reference: [repro-ephys fig 3b](https://elifesciences.org/articles/100840#fig3).
 
-we could search for more such landmarks by brute force: for each region boundary (could start with cosmos and if it works try beryl next): find all penetrations that go through this region boundary  for each ephys feature: make a plot like fig 3b of the repro-ephys paper (https://elifesciences.org/articles/100840#fig3) run a t-test (or similar) to see if there is a sharp transition across the boundary
-if yes (and there are enough penetrations and the effect size is large enough) then add this to the list of landmarks to report (or sort the landmarks by p-value)
+## Completed steps
 
-and then collect the resulting features into a collection of supplemental figures that we could check and then add to the paper to document our claims about these landmarks.
-
-we could also check the results against some known cases - eg the void-cortex transition, DG-thalamus, white matter to gray matter, ventricle to non-ventricle, etc. we can also do some data splitting / xvalidation to further check the results + make sure the suggested landmarks are real + useful.
-
-## Plan
-
-1. Load the ephys-atlas channel features using this skill: /home/olivier/PycharmProjects/EphysAtlas/paper-ephys-atlas/.claude/skills/load-channel-features-dataframe.md 
-2. At the Cosmos level, create a matrix of the counts of the number of transitions across the region boundaries. Channels are first aggregated by depth (axial_um) within each probe — taking the modal Cosmos_id across channels at the same depth — before transitions between adjacent depth levels are detected. The matrix is directional: rows = lower region (deeper, small axial_um), columns = upper region (shallower, large axial_um). `root` (id=997) is split into three subclasses using `Allen_id`: fiber tracts (id=1009), ventricular systems / VS (id=73), and the unlabeled remainder (root). Use `regions.subtree(1009)['id']` and `regions.subtree(73)['id']` to build the membership sets.
-3. Display the matrix as a heatmap, burn the diagonal and choose the dynamic color range optimized for the off-diagonal terms
-4. Look for sharp transitions for each the boundaries in the matrix, above a certain threshold to determine
-5. Document the findings in displays
-
-## Checkpoints
-
-### Cosmos transition count matrix — vintage 2026_W12
-`figures/cosmos_transition_matrix_2026_W12.csv` — 15×15 directional count matrix (rows = lower region, columns = upper region). Load with:
+### 1. Cosmos transition matrix — vintage 2026_W24
+`figures/cosmos_transition_matrix_2026_W24.csv` — 15×15 directional count matrix.
+Interior root/void/fiber-tracts/VS labels replaced by nearest valid label (NNI); 21,435 positions replaced. Probe extremities preserved.
 ```python
-import pandas as pd
-count_matrix = pd.read_csv('figures/cosmos_transition_matrix_2026_W12.csv', index_col=0)
+count_matrix = pd.read_csv('figures/cosmos_transition_matrix_2026_W24.csv', index_col=0)
 ```
-Not trivial to recompute: requires downloading/reading the full features parquet (~380k channels) and re-running the depth-aggregation + transition detection pipeline.
 
-### Feature t-test scan + cross-validation + depth profile plots — vintage 2026_W21
+### 2. PSD/CSD dimensionality reduction
+`psd_pca_dataframe(df, n_components_psd=2, n_components_csd=2)` from `ephysatlas.features` (implemented in `ibleatools/src/ephysatlas/features.py`).
+- **PSD group** (7 features): `rms_lf` + `psd_{lfp,delta,theta,alpha,beta,gamma}` → `psd_pc0, psd_pc1`
+- **CSD group** (14 features): `rms_lf_csd`, `psd_{…}_csd`, `rms_lf_csd_diff1`, `psd_{…}_csd_diff1` → `csd_pc0, csd_pc1`
 
-Steps 4–6 completed (2026-05-23) using vintage **2026_W21** (383,232 channels, 43 features, MIN_TRANSITIONS=16).
+Original PSD/CSD columns are **dropped**; 33 features remain for downstream analysis.
 
-Outputs:
-- `figures/boundary_feature_stats.csv` — one row per (boundary, feature), full dataset
-- `figures/boundary_cv_results.csv` — 50/50 probe-split CV results per candidate
-- `figures/landmark_crossval.png` — CV scatter plot (fold A vs fold B Cohen's d)
-- `figures/landmark_<from>_to_<to>.png` — one multi-feature depth profile per boundary
+### 3. Depth profile figures
+`figures/profiles_<from>_to_<to>.png` — generated for all 15 transitions with count ≥ 50.
+Pipeline: load → PCA → `compute_boundary_feature_stats()` → top-6 features by Cohen's d → `plot_boundary_feature_profiles(window_um=1000, sort='depth')`.
 
-**47 landmark candidates** (Cohen's d > 0.8, Bonferroni p < 0.01), 7 unique boundaries, **44/47 replicate** in 50/50 probe-split CV:
+## Completed — boundary classifier (`boundary_classifier.py`)
 
-| Boundary | Best feature | Cohen's d | n trans | n probes | Replicated |
-|---|---|---|---|---|---|
-| TH → HPF | trough_val | **1.42** | 19 | 19 | Yes (all 29 features) |
-| TH → root | trough_val | 1.27 | 94 | 92 | Yes |
-| void_fluid → Isocortex | peak_val | 0.93 | 42 | 40 | Yes |
-| HB → VS | trough_val | 0.90 | 60 | 55 | Yes |
-| TH → VS | peak_val | 0.86 | 28 | 23 | No (n too small: ~11/fold) |
-| HPF → fiber tracts | trough_val | 0.85 | 343 | 305 | Yes |
-| MB → root | trough_val | 0.82 | 66 | 64 | Yes |
+- `HistGradientBoostingClassifier` (GB only — LR/RF dropped), 4-fold stratified CV.
+- 26 features, 18 transitions (≥32 insertions), 1714 samples. Overall accuracy **47.1%** vs null ~9.3% (p=0.0099).
+- Outputs: confusion matrix, permutation importance heatmaps, SHAP per-class heatmaps, null distribution plot, accuracy CSV.
+- Coronal + sagittal brain section plots with auto-best AP/ML per pair, Allen-colour boundary contours (done — see below).
 
-**TH → HPF** is the strongest landmark and almost certainly the DG-thalamus boundary from the repro-ephys paper — it shows up across waveform, LFP power, and CSD features.
+## Completed — Allen colours on boundary contours
 
-Plot design: depth on y-axis centred at 0 (boundary), narrow Allen-atlas-colour region strip on left, one column per significant feature (up to 6), shared y-axis. Inspired by `ephysatlas/reveal.py:figure_01_features_with_histology_columns`.
+`plot_boundary_sections` / `plot_sagittal_boundary_sections` draw `from_acr`/`to_acr` contours in the region's actual Allen hex colour (`regions.hexcolor[...]`), `linewidths=3`, dashed for `to_acr`. Legend `Line2D` colours match.
 
-**Next session — display improvements (step 5 figures):**
+## Completed — encoding-volume ceiling validation (`boundary_classifier_volume.py`)
 
-The multi-feature depth profile figures (`landmark_<from>_to_<to>.png`) work but need polish:
+Same mean-diff-vector + GB pipeline, but trained on **synthetic virtual probes**: a 200 µm AP/ML grid sampled directly from the brainwide encoding volume (no measured data). 26 transitions (broader set than the 18 real ones — includes `void_fluid`/CSF crossings). **94.5% accuracy, 93.8% balanced accuracy** — confirms the ~47% real-data ceiling is a noise floor, not an information floor.
+Companion scripts: `run_plot_vp_profiles.py` (volume counterpart of Step 2 depth profiles), `run_plot_vp_top_view.py` (probe-grid top view + `vp_transition_matrix.png`).
 
-1. **`tight_layout` warning**: `sharey=True` axes are not compatible with `fig.tight_layout()`. Switch to `fig.subplots_adjust()` or use `constrained_layout=True` at figure creation instead.
-2. **Missing data on one side**: for HPF→fiber tracts and MB→root the upper (superficial) region side shows no feature curve — because fiber tracts / root have no spiking activity and features are NaN. Options: shade those bins grey, add a note, or only plot the side that has data.
-3. **x-axis label crowding**: feature names with underscores replaced by `\n` sometimes still crowd (e.g. long CSD feature names in TH→HPF). Consider rotating labels 45° or abbreviating.
-4. **TH→HPF has 29+ significant features** but we cap at 6 columns. Consider a second figure or a summary strip (e.g. heatmap of Cohen's d per feature) for the full feature set.
-5. **Region colour for "root"** (id=997) renders white — add a distinct grey fallback for id=997 in `_CUSTOM_COLORS`.
-6. **Quarto page**: write `index.qmd` documenting the method, the count matrix, the landmark table, and embedding the figures.
+## Completed — depth-resolved interpretability (`boundary_mlp_ig.py`)
 
-## General Instructions
+GPU MLP on the full depth profile per crossing (50 depth positions × 26 features = 1300-d input), 4-fold CV, Captum Integrated Gradients for per-class (depth × feature) attribution. Outputs in `figures/ig/`: `ig_class_signatures.png`, `ig_depth_profile.png`, `ig_feature_importance.png`, `ig_attributions.pkl`. Complements the SHAP fingerprints (which collapse depth) with a spatially-resolved view.
 
-Use the following skills: 
-- /Users/olivier/Documents/ibl-ai-agent/skills/ibl-anatomy
-- /Users/olivier/PycharmProjects/ephys-atlas/paper-ephys-atlas/.claude/skills
+## Completed — heatmap profiles: measured vs encoding volume
+
+**Scripts:** `run_plot_heatmap_profiles.py` and `run_plot_volume_profiles.py`
+**Output:** `figures/heatmap_profiles/`
+- `heatmap_{pair}_{ap|ml|rastermap}.png` — measured channel features
+- `vol_{pair}_{ap|ml|rastermap}.png` — encoding volume predictions
+
+Both use the **same** `EphysPsdPCA` fit (cached in `cache/psd_pca_2026_W24.pkl`) on 7 PSD + 7 CSD non-diff1 features, so `psd_pc0/pc1` and `csd_pc0/pc1` are on identical axes.
+The measured parquet (`cache/df_2026_W24.parquet`) was regenerated with this volume-compatible PCA (drops 7 diff1 CSD features vs previous version).
+Features shown in fixed order (`sort_features=False`): `psd_pc0, psd_pc1, csd_pc0, csd_pc1, rms_ap, spike_count, aperiodic_offset, aperiodic_exponent`.
+Rastermap sort order is shared between measured/volume (same cache hash).
+
+**Key utilities in `boundaries_utils.py`:**
+- `load_or_fit_psd_pca()` — fits and caches the shared PCA
+- `load_or_build_pca_df()` — builds/caches the post-PCA measured feature df
+- `build_volume_feature_df()` — vectorised volume lookup at channel xyz, applies same PCA
+- `plot_boundary_feature_profiles(..., sort_features=False)` — fixed feature order for comparisons
+
+## Next steps
+
+- **SLIC supervoxel segmentation** (`slic_segmentation.py`) — unsupervised 3-D SLIC clustering of the encoding volume, checking whether boundaries emerge without labels. Exploratory: single overview figure (`figures/slic_supervoxels_overview.png`), no quantitative overlap/purity metric against Cosmos boundaries yet — needed before this is report-worthy.
+- **Atlas-coverage QC panels** (`run_plot_atlas_coverage_slices.py`, `run_plot_slice_panels.py`) — coronal/sagittal per-feature slices with virtual-probe overlays and recording-coverage masks, in `figures/slice_panels/`. Generated but only lightly referenced in `index.qmd`; consider promoting to a full appendix section.
+- `debug_mask.py` / `view_encoding_volume.py` are QC/dev scratch tools (brain-mask diagnostics, interactive volume viewer) — not report material, safe to leave untracked or delete once the mask issue they were diagnosing is confirmed resolved.
+- `psd_pca_study.py` was rewritten independently of `index.qmd`'s Step 3 figure and its output filenames no longer matched (`psd_pca_04_scatter_cosmos.png` was missing from `figures/`, orphaned from the current script). Fixed by regenerating that exact figure from the cached `cache/df_2026_W24.parquet` + `cache/psd_pca_2026_W24.pkl` (no re-download needed). If `psd_pca_study.py` is run again, reconcile its new filenames (`psd_pca_0{1..4}_*_comparison.png`) with the qmd reference, or update the qmd to point at its outputs directly.

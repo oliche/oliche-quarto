@@ -224,4 +224,10 @@ __marimo__/
 *.freeze
 
 /.quarto/
-**/*.quarto_ipynb
+**/*.quarto_ipynb*
+
+# macOS
+.DS_Store
+
+# Local data caches (large, regeneratable — not for git)
+analyses/*/cache/

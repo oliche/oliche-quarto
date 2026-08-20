@@ -59,6 +59,53 @@ df_depth = (
     .sort_values(['pid', 'axial_um'])
 )
 
+# Nearest-neighbour interpolation of interior root/void channels.
+# Channels labelled root (997) or void-type regions that sit between two real
+# brain regions cause spurious A→root→B double-hops.  Replace them with the
+# nearest valid label along the probe.  Channels at the probe extremities
+# (before the first or after the last valid label) are left unchanged so that
+# surface transitions (e.g. void_fluid→Isocortex) are preserved.
+INTERP_IDS = frozenset(
+    cid for cid, acr in id2acr.items()
+    if any(kw in acr.lower() for kw in ('root', 'void', 'fiber', 'vs'))
+)
+print(f"Interpolating interior labels for IDs: {INTERP_IDS}")
+
+# Nearest-neighbour interpolation — fully vectorised.
+# df_depth is sorted by (pid, axial_um).
+ids = df_depth['Cosmos_refined_id'].values.copy().astype(float)
+pids = df_depth['pid'].values
+bad = np.isin(ids, list(INTERP_IDS))
+
+# Null out bad positions so we can use pandas ffill/bfill within probes
+df_fill = pd.DataFrame({'pid': pids, 'ids': np.where(bad, np.nan, ids)})
+ids_ff = df_fill.groupby('pid')['ids'].ffill().values   # forward fill within probe
+ids_bf = df_fill.groupby('pid')['ids'].bfill().values   # backward fill within probe
+
+# Distance to the nearest valid position (index distance, same probe)
+pos = np.arange(len(ids))
+df_pos = pd.DataFrame({'pid': pids, 'pos': np.where(bad, np.nan, pos.astype(float))})
+pos_ff = df_pos.groupby('pid')['pos'].ffill().values    # index of last valid before i
+pos_bf = df_pos.groupby('pid')['pos'].bfill().values    # index of next valid after i
+dist_prev = pos - pos_ff   # distance to previous valid (NaN if none in this probe)
+dist_next = pos_bf - pos   # distance to next valid (NaN if none in this probe)
+
+# Interior bad: both sides have a valid neighbour → pick nearer one.
+# Extremity bad (only one side filled) → keep original label.
+interior = bad & ~np.isnan(ids_ff) & ~np.isnan(ids_bf)
+use_ff = interior & (dist_prev <= dist_next)
+use_bf = interior & (dist_prev > dist_next)
+
+new_ids = ids.copy()
+new_ids[use_ff] = ids_ff[use_ff]
+new_ids[use_bf] = ids_bf[use_bf]
+
+orig_ids = df_depth['Cosmos_refined_id'].values.copy()
+df_depth = df_depth.copy()
+df_depth['Cosmos_refined_id'] = new_ids.astype(int)
+n_interp = (df_depth['Cosmos_refined_id'].values != orig_ids).sum()
+print(f"Interpolated {n_interp:,} interior depth positions")
+
 # Detect transitions between adjacent depth levels (shallow → deep = upper → lower)
 next_cosmos = df_depth.groupby('pid')['Cosmos_refined_id'].shift(-1)
 mask = next_cosmos.notna() & (next_cosmos != df_depth['Cosmos_refined_id'])
@@ -77,10 +124,26 @@ count_matrix.columns = [id2acr[i] for i in cosmos_ids]
 
 print(count_matrix)
 
-# %% Heatmap of the transition count matrix
-output_fig_path = Path.home().joinpath('Documents', 'oliche-quarto', 'analyses', '2026-05-EA-boundaries', 'figures')
+output_fig_path = Path.home().joinpath('Documents', 'PYTHON', 'oliche-quarto', 'analyses', '2026-05-EA-boundaries', 'figures')
 output_fig_path.mkdir(exist_ok=True)
+count_matrix.to_csv(output_fig_path.joinpath(f'cosmos_transition_matrix_{VINTAGE}.csv'))
+print(f"Saved transition matrix CSV for {VINTAGE}")
 
+# %% Graph of high-count transitions
+from boundaries_utils import plot_transition_graph
+
+fig = plot_transition_graph(
+    count_matrix,
+    brain_atlas,
+    min_count=50,
+    vintage=VINTAGE,
+    output_fig_path=output_fig_path,
+)
+if fig is not None:
+    plt.show()
+    plt.close(fig)
+
+# %% Heatmap of the transition count matrix
 # Burn the diagonal: set to NaN so it renders as a distinct color
 plot_matrix = count_matrix.astype(float).values.copy()
 np.fill_diagonal(plot_matrix, np.nan)
@@ -451,3 +514,39 @@ fig.savefig(fig_dir_home.joinpath(fig_name_cv), dpi=150)
 fig.savefig(output_fig_path.joinpath('landmark_crossval.png'), dpi=150)
 plt.close()
 print(f"Saved {fig_name_cv}")
+
+# %% Step 5b: Three probe-sort versions of feature-profile figures (AP, ML, Rastermap)
+from boundaries_utils import (
+    compute_feature_vlims,
+    plot_boundary_feature_profiles,
+)
+
+feature_vlims, feature_scaler, scaler_features = compute_feature_vlims(
+    df_features, return_scaler=True
+)
+rastermap_cache_dir = output_fig_path.joinpath('rastermap_cache')
+rastermap_cache_dir.mkdir(exist_ok=True)
+
+for from_acr, to_acr in landmark_pairs:
+    for sort_mode in ('ap', 'ml', 'rastermap'):
+        fig = plot_boundary_feature_profiles(
+            df_features,
+            brain_atlas,
+            from_acr,
+            to_acr,
+            df_results=df_results,
+            window_um=1500,
+            max_probes=150,
+            feature_vlims=feature_vlims,
+            sort=sort_mode,
+            feature_scaler=(feature_scaler, scaler_features),
+            cache_dir=rastermap_cache_dir,
+        )
+        if fig is not None:
+            slug = f'{from_acr}_to_{to_acr}'
+            out_path = output_fig_path.joinpath(f'profiles_{slug}_{sort_mode}.png')
+            fig.savefig(out_path, dpi=150)
+            plt.close(fig)
+            print(f"  Saved profiles_{slug}_{sort_mode}.png")
+
+print(f"Done — {len(landmark_pairs)} boundaries × 3 sort modes.")
