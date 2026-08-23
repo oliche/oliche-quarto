@@ -2,11 +2,12 @@
   {
     "listing": "/index.html",
     "items": [
-      "/analyses/2026-05-EA-boundaries/index.html",
+      "/analyses/2026-08-lfpack-sync-issues/index.html",
       "/analyses/2026-07-lfp-encoders/index.html",
       "/analyses/2026-06-lfp-compression-svd/index.html",
       "/analyses/2026-05-car-rms/index.html",
-      "/analyses/2026-05-lfp/index.html"
+      "/analyses/2026-05-lfp/index.html",
+      "/analyses/2026-05-EA-boundaries/index.html"
     ]
   }
 ]

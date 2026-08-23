@@ -8,6 +8,7 @@ project:
     - analyses/2026-05-car-rms/index.qmd
     - analyses/2026-06-lfp-compression-svd/index.qmd
     - analyses/2026-07-lfp-encoders/index.qmd
+    - analyses/2026-08-lfpack-sync-issues/index.qmd
 
 website:
   title: "Analysis Hub"

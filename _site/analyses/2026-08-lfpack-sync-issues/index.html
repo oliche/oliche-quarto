@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Olivier Winter">
+<meta name="dcterms.date" content="2026-08-20">
+<meta name="description" content="Re-derivation and classification of raw-pulse sync defects across 20 probes flagged in lfpack#8, with per-probe extraction-time residual plots.">
+
+<title>lfpack Sync Residual Audit – Analysis Hub</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-997f3bee8414e4416227c4bdeef383f8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script type="module" src="../../site_libs/quarto-ojs/quarto-ojs-runtime.js"></script>
+<link href="../../site_libs/quarto-ojs/quarto-ojs.css" rel="stylesheet">
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Analysis Hub</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Analyses</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/oliche"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#diagnosis" id="toc-diagnosis" class="nav-link" data-scroll-target="#diagnosis">Diagnosis</a></li>
+  <li><a href="#per-probe-results" id="toc-per-probe-results" class="nav-link" data-scroll-target="#per-probe-results">Per-probe results</a></li>
+  <li><a href="#extraction-residual-plots-all-20-probes" id="toc-extraction-residual-plots-all-20-probes" class="nav-link" data-scroll-target="#extraction-residual-plots-all-20-probes">Extraction residual plots, all 20 probes</a></li>
+  <li><a href="#fixes" id="toc-fixes" class="nav-link" data-scroll-target="#fixes">Fixes</a></li>
+  <li><a href="#reissue-results" id="toc-reissue-results" class="nav-link" data-scroll-target="#reissue-results">Re-issue: computed corrected knots, pending Alyx patch</a></li>
+  <li><a href="#appendix-raw-ap-evidence-at-the-4aab0f45-burst" id="toc-appendix-raw-ap-evidence-at-the-4aab0f45-burst" class="nav-link" data-scroll-target="#appendix-raw-ap-evidence-at-the-4aab0f45-burst">Appendix: raw AP evidence at the 4aab0f45 burst</a></li>
+  <li><a href="#appendix-raw-ap-evidence-at-the-f2ea7211-duplicate_burst" id="toc-appendix-raw-ap-evidence-at-the-f2ea7211-duplicate_burst" class="nav-link" data-scroll-target="#appendix-raw-ap-evidence-at-the-f2ea7211-duplicate_burst">Appendix: raw AP evidence at the f2ea7211 duplicate_burst</a></li>
+  <li><a href="#code-references" id="toc-code-references" class="nav-link" data-scroll-target="#code-references">Code references</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">lfpack Sync Residual Audit</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+  <div class="quarto-categories">
+    <div class="quarto-category">electrophysiology</div>
+    <div class="quarto-category">synchronization</div>
+    <div class="quarto-category">QC</div>
+    <div class="quarto-category">Neuropixels</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Re-derivation and classification of raw-pulse sync defects across 20 probes flagged in lfpack#8, with per-probe extraction-time residual plots.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Olivier Winter </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 20, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p><a href="https://github.com/int-brain-lab/lfpack/issues/8">lfpack#8</a> flagged 20 probes with NaN or high-residual nidq sync. All 20 were re-derived from raw <code>_spikeglx_sync.{channels,polarities,times}</code> fronts and re-run through <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py"><code>ibllib.ephys.sync_probes</code></a> to tell genuine pulse-train defects from extraction artefacts. Only the small raw sync-front datasets were downloaded — never the raw <code>.cbin</code>/<code>.ch</code> binaries.</p>
+</section>
+<section id="diagnosis" class="level2">
+<h2 class="anchored" data-anchor-id="diagnosis">Diagnosis</h2>
+<p>20 pids collapse to 12 sessions. Four raw-pulse pathologies account for 11 probes; the rest are within ordinary hardware tolerance. Residuals are the single global-affine check (see verification note below).</p>
+<ul>
+<li><strong><code>dropped_edges</code></strong> (5 probes / 3 sessions, 9-76s residual) — one channel’s rate sustainedly halves partway through (usually the last ~10-15%) while the other channel keeps ticking normally. <code>367e94f6</code>; <code>4836a465</code>+<code>d0046384</code> (same session, identical onset); <code>7967a14e</code>+<code>ad597f5f</code> (same session).</li>
+<li><strong><code>duplicate_burst</code></strong> (3 probes / 2 sessions) — a bounced/double-triggered edge adds spurious near-simultaneous edges. On <strong>nidq</strong> for <code>0b8ea3ec</code>+<code>a5f2ec22</code> (6 extra edges, ~1.5s residual); on the <strong>probe</strong> channel for <code>f2ea7211</code> (2 extra edges 33μs apart, ~0.8s residual).</li>
+<li><strong><code>single_edge_glitch</code></strong> (2 probes / 2 sessions) — one isolated mistimed edge in the last ~1% of the recording, cadence reverts immediately after. <code>b2746c16</code> (139ms early, 154ms residual; sibling probe <code>c09b3c18</code> unaffected, confirming probe-local) and <code>81f0087b</code> (12ms early, 12ms residual).</li>
+<li><strong><code>irregular_3A_reference</code></strong> (1 probe) — <code>0fed7207</code>, pre-2020 3A with no <code>wiring.json</code>. <code>version3A()</code>’s hardcoded frame2ttl-before-right_camera precedence locked onto <code>frame2ttl</code> — an unreliable per-pulse reference, not merely a bursty one — while a correctly-wired <code>right_camera</code> line (a ~150Hz hardware clock, matching exactly on both probes) sat unused. A genuine, fixable reference-channel selection bug, not an inherent behavioural-reference limit — see <a href="#fixes">Fixes</a>.</li>
+<li><strong><code>clean</code></strong> (9 probes / 6 sessions, 1-4ms max residual) — ordinary crystal-oscillator drift. <strong>Exception:</strong> <code>4aab0f45</code> (1.2-1.3ms median, above the rest of this bucket) — a genuine saturation-linked permanent step, see <a href="#appendix-raw-ap-evidence-at-the-4aab0f45-burst">Appendix</a>.</li>
+</ul>
+<p>None of these trip <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L117"><code>version3B()</code></a>’s only integrity check (<code>np.isclose(rtol=0.1)</code> on gross pulse count) — and when a probe’s spacing already fails the 150ppm burst check, it falls back to <code>type='exact'</code>, whose QC is tautological (interpolates through its own build points, residual ~0), silently passing tens-of-seconds-scale defects. <code>version3A()</code> has no analogous check at all — it always uses <code>type='smooth'</code> with no data-driven fallback, so committing to the wrong reference channel produces no warning short of eyeballing the residual.</p>
+<p><strong>Verification:</strong> residual computed two ways per probe — from the Alyx-registered <code>sync.timestamps</code> and from re-running <code>version3A()</code>/<code>version3B()</code> on raw fronts. All matched. So every defect above is reproducible from raw pulses today, not a stale extraction artefact.</p>
+</section>
+<section id="per-probe-results" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="per-probe-results">Per-probe results</h2>
+<p>Click a column header to sort.</p>
+<div class="column-page">
+<div class="cell">
+<details class="code-fold hidden">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb1" data-startfrom="65" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 64;"><span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"per_probe_results.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold hidden">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb2" data-startfrom="70" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 69;"><span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(data<span class="op">,</span> {</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"pid"</span><span class="op">,</span> <span class="st">"eid"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"version"</span><span class="op">,</span> <span class="st">"diagnosis"</span><span class="op">,</span> <span class="st">"slope"</span><span class="op">,</span> <span class="st">"intercept"</span><span class="op">,</span> <span class="st">"max_residual_ms"</span><span class="op">,</span> <span class="st">"median_residual_ms"</span>]<span class="op">,</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">max_residual_ms</span><span class="op">:</span> <span class="st">"max residual (ms)"</span><span class="op">,</span> <span class="dt">median_residual_ms</span><span class="op">:</span> <span class="st">"median residual (ms)"</span>}<span class="op">,</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">260</span><span class="op">,</span> <span class="dt">eid</span><span class="op">:</span> <span class="dv">260</span><span class="op">,</span> <span class="dt">diagnosis</span><span class="op">:</span> <span class="dv">180</span>}<span class="op">,</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>  <span class="co">// no internal vertical scroll: default maxHeight is sized for Inputs.table's own default `rows`</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>  <span class="co">// option (~11), not our data length (max 20) or this theme's actual (taller-than-default) row</span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>  <span class="co">// height -- a generous fixed cap comfortably covers all 20 rows without wasted space, since the</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>  <span class="co">// table auto-sizes to content up to maxHeight.</span></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">1000</span></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-2" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="extraction-residual-plots-all-20-probes" class="level2">
+<h2 class="anchored" data-anchor-id="extraction-residual-plots-all-20-probes">Extraction residual plots, all 20 probes</h2>
+<p>Two panels per probe, same order as the table above (worst <code>dropped_edges</code> first, <code>clean</code> last).</p>
+<p><strong>Top — residual:</strong> <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L181"><code>sync_probe_front_times</code></a>’s own plot (raw + smoothed residual + the interpolation knots baked into <code>sync.timestamps</code>), samples at 30kHz vs.&nbsp;session time. <code>type=exact</code> when the 150ppm burst check fails (tautological QC, see Diagnosis); otherwise <code>type=smooth</code>.</p>
+<p><strong>Bottom — inter-pulse interval:</strong> raw <code>np.diff</code> of consecutive rising edges (ms) for probe (blue) vs.&nbsp;reference (orange), same time axis as the residual panel. Rising edges only (matches <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L275"><code>_check_diff_3b</code></a>) — falling edges would add a fast duty-cycle alternation that’d dominate the plot.</p>
+<p>E.g. <code>4836a465</code>: both channels flat at 1.0s for ~2003s; the reference stays there, the probe jumps to a sustained 2.0s for the final ~164s (83 doubled intervals) — the <code>dropped_edges</code> mechanism. <code>2adc4f5d</code>/<code>0d59e3a1</code> (4aab0f45): flat except one single-sample dip at t≈1021s — the shared-line micro-burst covered in the <a href="#appendix-raw-ap-evidence-at-the-4aab0f45-burst">Appendix</a> below.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>4836a465 — dropped_edges (probe), median 2553.0 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_4836a465.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="figures/residual_4836a465.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>d0046384 — dropped_edges (probe), median 2539.7 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_d0046384.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="figures/residual_d0046384.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>367e94f6 — dropped_edges (probe), median 2642.9 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_367e94f6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="figures/residual_367e94f6.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>7967a14e — dropped_edges (probe), median 45.5 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_7967a14e.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="figures/residual_7967a14e.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>ad597f5f — dropped_edges (probe), median 45.3 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_ad597f5f.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="figures/residual_ad597f5f.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>0fed7207 — irregular_3A_reference, median 952.5 ms (pre-fix; see <a href="#fixes">Fixes</a>)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_0fed7207.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="figures/residual_0fed7207.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>0b8ea3ec — duplicate_burst (ref), median 692.5 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_0b8ea3ec.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="figures/residual_0b8ea3ec.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>a5f2ec22 — duplicate_burst (ref), median 692.5 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_a5f2ec22.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="figures/residual_a5f2ec22.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>f2ea7211 — duplicate_burst (probe), median 107.4 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_f2ea7211.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="figures/residual_f2ea7211.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>b2746c16 — single_edge_glitch (probe), median 0.3 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_b2746c16.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="figures/residual_b2746c16.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>81f0087b — single_edge_glitch (probe), median 0.1 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_81f0087b.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="figures/residual_81f0087b.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>e6402305 — clean, median 0.5 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_e6402305.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12"><img src="figures/residual_e6402305.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>2adc4f5d — clean, median 1.3 ms (see Appendix below)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_2adc4f5d.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="figures/residual_2adc4f5d.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>0d59e3a1 — clean, median 1.2 ms (see Appendix below)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_0d59e3a1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14"><img src="figures/residual_0d59e3a1.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>5c63d860 — clean, median 0.2 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_5c63d860.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15"><img src="figures/residual_5c63d860.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>b543e81e — clean, median 0.2 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_b543e81e.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16"><img src="figures/residual_b543e81e.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>53ecbf4f — clean, median 0.2 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_53ecbf4f.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17"><img src="figures/residual_53ecbf4f.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>735fa61d — clean, median 0.4 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_735fa61d.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18"><img src="figures/residual_735fa61d.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-19-contents" aria-controls="callout-19" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>c09b3c18 — clean, median 0.0 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-19" class="callout-19-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_c09b3c18.png" class="lightbox" data-gallery="quarto-lightbox-gallery-19"><img src="figures/residual_c09b3c18.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>5999eeca — clean, median 0.3 ms
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><a href="figures/residual_5999eeca.png" class="lightbox" data-gallery="quarto-lightbox-gallery-20"><img src="figures/residual_5999eeca.png" class="img-fluid"></a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="fixes" class="level2">
+<h2 class="anchored" data-anchor-id="fixes">Fixes</h2>
+<p>Simpler than originally scoped, now that raw-AP verification (below) has settled which anomalies are genuine and which are corrupted reads. Two pieces of work, not a per-class matrix:</p>
+<ol type="1">
+<li><strong>Re-issue the registered <code>_spikeglx_*.timestamps.npy</code> dataset</strong> for four classes: three where the front-detection/extraction was genuinely fooled by a corrupted pulse — <code>dropped_edges</code>, <code>single_edge_glitch</code>, <code>duplicate_burst</code> — and <code>irregular_3A_reference</code>, where the extractor locked onto the wrong reference channel (see table below). For every other class — <code>clean</code> (including the <code>4aab0f45</code>-style shared cross-probe burst, confirmed to be a genuine permanent step in the clock-to-nidq relationship, and the ordinary per-probe jitter) — <strong>the registered dataset is already fine; no re-issue needed.</strong></li>
+<li><strong>lfpack needs to support non-linear timestamp interpolation.</strong> <a href="https://github.com/int-brain-lab/sdsc-slurms/blob/3b192952d45aaef9e5fbc1df7a02f8327f6dda35/2026-06-lfpack/attach_ibl_metadata.py#L108"><code>compute_sync()</code></a> currently re-derives a single global affine (<code>t0_sync</code>/<code>fs_sync</code>) from scratch. That’s a universal fix, not a per-class patch: even a fully correct dataset (any ordinary clean session, or <code>4aab0f45</code> as it already stands) gets mis-represented by one straight line once there’s a genuine step or non-linear drift anywhere in it. Once this is in place, lfpack automatically benefits from every dataset re-issued in (1) and correctly represents every dataset that was already fine — no per-class lfpack-side logic needed at all.</li>
+</ol>
+<p><code>sync_probes.py</code> (the extractor) stays out of scope — these are corrections to already-extracted/ registered data, not extraction-code changes. (<code>version3A()</code>’s frame2ttl precedence is a real extractor bug, but checked by max residual across the 1099 ephys-atlas insertions: no other 3A probe shows this pattern, so <code>0fed7207</code> looks like an isolated instance — patching the extractor itself remains separate follow-up work regardless.) Detection is a rate-agnostic per-channel check (compare each inter-pulse-interval diff to the local/running median, tolerant across 0.1–100 Hz) rather than a magnitude threshold on the affine residual — see Diagnosis above for why a fixed threshold can’t work. Detecting an anomaly doesn’t automatically mean correcting it: it can turn out to be a real, permanent change the fit should honor rather than a corrupted reading to strip out — the two raw-AP appendices below are what settled that question for the two cases checked.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Failure class</th>
+<th>Registered dataset</th>
+<th>Patch</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dropped_edges</code> (probe, end-of-recording rate-doubling — AP stream keeps running tens of seconds past nidq’s last pulse, sync channel free-runs at ~2x nominal rate with onset <em>preceding</em> nidq dry-off, a power-down-style electrical transient)</td>
+<td>Re-issue</td>
+<td>Truncate at onset, then append one synthetic terminal anchor point computed from the trusted-region’s fitted line, placed at the end of the AP recording — so <code>interp1d</code>’s <code>fill_value='extrapolate'</code> boundary reflects the smoothed session-wide rate instead of the noisy last real interval.</td>
+</tr>
+<tr class="even">
+<td><code>duplicate_burst</code> (ref or probe — a bounced/double-triggered edge; confirmed via raw AP on <code>f2ea7211</code> to coincide with the channel hitting the ADC’s own full-scale ceiling, ±77mV against an ordinary ~30-65μV baseline — a genuine saturation artefact, not a plain comparator/front-detection quirk)</td>
+<td>Re-issue</td>
+<td>Drop both duplicate timestamps (don’t try to infer which is real); insert one synthetic timestamp at the midpoint of the neighboring valid pulses — minimizes squared deviation from the expected local period, doesn’t depend on either bogus value.</td>
+</tr>
+<tr class="odd">
+<td><code>single_edge_glitch</code> (probe, isolated mistimed edge in the last ~1% of the recording, cadence reverts immediately after)</td>
+<td>Re-issue</td>
+<td>Same as <code>dropped_edges</code>: truncate at the glitch onset, append one synthetic terminal anchor point on the trusted-region fit line.</td>
+</tr>
+<tr class="even">
+<td>Shared cross-probe micro-burst (<code>4aab0f45</code>-style; confirmed via raw AP + a pre-/post-event affine comparison to be a genuine <strong>permanent</strong> step, ~5.6–6.2ms, flat for the remaining ~1000s of the recording)</td>
+<td>Fine as-is</td>
+<td>None — a misread single edge would have self-corrected on the next pulse; this doesn’t, and the existing non-linear correction already bakes in the real step.</td>
+</tr>
+<tr class="odd">
+<td><code>clean</code>, including same-window-but-offset-timing cross-probe micro-anomalies</td>
+<td>Fine as-is</td>
+<td>None. Current hypothesis for the offset-timing pattern: non-simultaneous timing across probes rules out a shared-line cause, pointing to independent per-probe clock instability — real but local, faithfully represented already. Not re-checked with the raw-AP method (no independent landmark available the way saturation gave one for the two cases above).</td>
+</tr>
+<tr class="even">
+<td><code>irregular_3A_reference</code> (<code>0fed7207</code>, pre-2020 3A, no <code>wiring.json</code>; <code>version3A()</code>’s frame2ttl-then-right_camera precedence commits to frame2ttl as soon as it’s detected on both probes <em>at all</em>, never checking which channel is actually the better reference — see Diagnosis above for why that’s the wrong call here)</td>
+<td>Re-issue</td>
+<td>Re-run the probe01-vs-probe00 fit with <code>right_camera</code> in place of <code>frame2ttl</code>; residual drops from max 35s / median several-hundred-ms to max 0.04ms / median 0.01ms — no synthetic points, no truncation, just the correct reference channel.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="reissue-results" class="level2">
+<h2 class="anchored" data-anchor-id="reissue-results">Re-issue: computed corrected knots, pending Alyx patch</h2>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Not yet pushed to Alyx.</strong> <a href="reissue_sync.py"><code>reissue_sync.py</code></a> computes each corrected <code>[sample, time]</code> array locally and writes it to <code>reissue_output/{pid[:8]}_{probe}_sync.timestamps.npy</code> (same 2-column convention as <code>sync_probes._save_timestamps_npy</code>) — it never calls <code>ibllib.oneibl.patcher.*.patch_dataset()</code>. This table is the review artifact before that call is made against the live, shared Alyx dataset.</p>
+</div>
+</div>
+<p><strong>Before</strong> = residual of the <em>currently-registered</em> <code>sync.timestamps</code> (via <code>SpikeSortingLoader</code>, same method as the <a href="#per-probe-results">Per-probe results</a> table above). <strong>After</strong> = residual of the corrected knot array’s own interpolant against the genuine (non-synthetic) front times it was built from — not a fresh global-affine refit across all knots, which for the <code>dropped_edges</code>/ <code>single_edge_glitch</code> fix would be dominated by the appended terminal anchor’s extrapolation leverage rather than fit quality. For probes using <code>type='exact'</code> (raw fronts kept verbatim as knots) this recovers the same near-zero residual noted as tautological in <a href="#diagnosis">Diagnosis</a> — it’s confirming the trusted input satisfies the production tolerance check (<code>qc</code>), not an independent accuracy claim.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>pid</th>
+<th>probe</th>
+<th>diagnosis</th>
+<th style="text-align: right;">max before (ms)</th>
+<th style="text-align: right;">median before (ms)</th>
+<th style="text-align: right;">max after (ms)</th>
+<th style="text-align: right;">median after (ms)</th>
+<th>qc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>367e94f6</code></td>
+<td>probe00</td>
+<td>dropped_edges</td>
+<td style="text-align: right;">69506.6</td>
+<td style="text-align: right;">2642.9</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>4836a465</code></td>
+<td>probe00</td>
+<td>dropped_edges</td>
+<td style="text-align: right;">76360.9</td>
+<td style="text-align: right;">2553.0</td>
+<td style="text-align: right;">0.050</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>d0046384</code></td>
+<td>probe01</td>
+<td>dropped_edges</td>
+<td style="text-align: right;">76182.1</td>
+<td style="text-align: right;">2539.7</td>
+<td style="text-align: right;">0.050</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>7967a14e</code></td>
+<td>probe01</td>
+<td>dropped_edges</td>
+<td style="text-align: right;">9006.2</td>
+<td style="text-align: right;">45.5</td>
+<td style="text-align: right;">0.052</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>ad597f5f</code></td>
+<td>probe00</td>
+<td>dropped_edges</td>
+<td style="text-align: right;">8985.5</td>
+<td style="text-align: right;">45.3</td>
+<td style="text-align: right;">0.052</td>
+<td style="text-align: right;">0.016</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>b2746c16</code></td>
+<td>probe01</td>
+<td>single_edge_glitch</td>
+<td style="text-align: right;">154.1</td>
+<td style="text-align: right;">0.31</td>
+<td style="text-align: right;">0.051</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>81f0087b</code></td>
+<td>probe00</td>
+<td>single_edge_glitch</td>
+<td style="text-align: right;">12.3</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>0b8ea3ec</code></td>
+<td>probe00</td>
+<td>duplicate_burst (nidq)</td>
+<td style="text-align: right;">1455.4</td>
+<td style="text-align: right;">692.5</td>
+<td style="text-align: right;">0.050</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>a5f2ec22</code></td>
+<td>probe01</td>
+<td>duplicate_burst (nidq)</td>
+<td style="text-align: right;">1455.4</td>
+<td style="text-align: right;">692.5</td>
+<td style="text-align: right;">0.056</td>
+<td style="text-align: right;">0.017</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>f2ea7211</code></td>
+<td>probe00</td>
+<td>duplicate_burst (probe)</td>
+<td style="text-align: right;">781.1</td>
+<td style="text-align: right;">107.4</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>0fed7207</code></td>
+<td>probe01</td>
+<td>irregular_3A_reference</td>
+<td style="text-align: right;">4994.6</td>
+<td style="text-align: right;">952.5</td>
+<td style="text-align: right;">0.036</td>
+<td style="text-align: right;">0.010</td>
+<td>PASS</td>
+</tr>
+</tbody>
+</table>
+<p>All 11 collapse from the 8-76s/tens-to-hundreds-of-ms defective range down to 0.00-0.06ms — matching the <code>clean</code> bucket’s 0.01-0.1ms range — and each corrected fit passes <code>sync_probe_front_times</code>’s own production tolerance check.</p>
+<p>Two refinements surfaced during implementation, both narrowing the fix beyond this page’s original per-class description rather than contradicting it:</p>
+<ul>
+<li><strong><code>duplicate_burst</code></strong> — the “insert one synthetic midpoint front” step (Fixes table above) only fires when the two bounding valid fronts actually imply a lost pulse (<code>round(gap / nominal_period) - 1 &gt;= 1</code>). For both <code>duplicate_burst</code> cases here (<code>0b8ea3ec</code>/ <code>a5f2ec22</code>’s shared nidq burst, and <code>f2ea7211</code>’s probe-side burst), the bounding fronts already sit ~1 nominal period apart once correctly located — the burst was pure noise inside an otherwise-ordinary gap, so no pulse was actually lost and no synthetic front is inserted for either case, just the anomalous fronts dropped.</li>
+<li><strong><code>dropped_edges</code></strong> (<code>367e94f6</code>, and separately <code>81f0087b</code>’s <code>single_edge_glitch</code>) — the “trusted” pre-onset region itself contained a few small, non-contiguous individual-pulse timing anomalies a couple of seconds before the main truncation point. The onset-detection now scans the preceding 50 intervals and trims back further when it finds one, rather than truncating at just the immediately-adjacent anomaly.</li>
+</ul>
+<p>All fixes call only the low-level <code>sync_probes.sync_probe_front_times()</code>, never the file-writing <code>version3A()</code>/<code>version3B()</code> wrappers — nothing in the local ONE cache is touched, so the before/after comparison above can’t have contaminated itself.</p>
+<p><strong>Next step, pending your review of this table:</strong> patch each probe’s registered <code>sync.timestamps.npy</code> via <code>ibllib.oneibl.patcher.Patcher.patch_dataset()</code> (backend depends on this Alyx instance’s configured patcher — <code>SSHPatcher</code>/<code>FTPPatcher</code>/<code>S3Patcher</code>/<code>GlobusPatcher</code>). This mutates the canonical IBL-registered dataset, consumed by every downstream pipeline, not just lfpack/ephys-atlas — needs explicit go-ahead, probe by probe or as a batch.</p>
+</section>
+<section id="appendix-raw-ap-evidence-at-the-4aab0f45-burst" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-raw-ap-evidence-at-the-4aab0f45-burst">Appendix: raw AP evidence at the 4aab0f45 burst</h2>
+<p>The <code>4aab0f45</code> sawtooth — a clean ramp, an abrupt ~190-sample (6.3ms) jump, then the same ramp again — was first identified from the <code>2adc4f5d</code>/<code>0d59e3a1</code> extraction-time residual plots above, from front-time diffs alone. To check what’s actually happening on the probe at that instant, the raw AP band was streamed directly from S3 for both probes, ±1s around the burst (nidq t≈1020.92s) — undestriped and destriped — using <a href="view_sync_event.py"><code>view_sync_event.py</code></a> (this directory, reusable across cases via its CONFIG block) and <a href="https://github.com/int-brain-lab/viewephys"><code>viewephys</code></a>. Displayed in real physical units (volts, <code>a_scalar=1</code> — <code>viewephys</code>‘s default silently redisplays in µV, which makes it easy to misjudge a saturation level against the ADC’s actual voltage range). Gain is auto-computed and shared within each processing type (one common gain across both probes’ raw panels, one across both destriped panels) so raw and destriped are each an apples-to-apples comparison across probes, though not against each other (raw and destriped sit on very different amplitude scales, so forcing one gain across both just washes out whichever panel it wasn’t computed from).</p>
+<p>The top axis overlays every digital sync bit that toggles in this window, stacked and colour-coded: <strong>red</strong> is <code>imec_sync</code> — per each probe’s own <code>wiring.json</code>, the <em>only</em> bit actually wired on the probe’s digital word — and <strong>gray</strong> is every other bit, which floats unconnected on the probe file (only nidq carries the full camera/frame2ttl/audio digital map). <code>imec_sync</code> runs a clean, regular square wave straight through the burst (its ~4-5ms single-interval deviation there is invisible at this timescale); the floating bits are dead flat except for a tight noise burst exactly coincident with the raw saturation band on both probes — a third, independent line of evidence for a shared electrical transient, beyond the cross-probe timing match and the saturation itself.</p>
+<p>Raw (undestriped): every channel rails to the same saturated band simultaneously, right at the burst — not a per-channel or per-region effect, but a full-array common-mode event:</p>
+<div class="quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/4aab0f45_burst_probe00_raw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-21" title="probe00 (2adc4f5d), raw AP."><img src="figures/4aab0f45_burst_probe00_raw.png" class="img-fluid figure-img" alt="probe00 (2adc4f5d), raw AP."></a></p>
+<figcaption>probe00 (2adc4f5d), raw AP.</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/4aab0f45_burst_probe01_raw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-22" title="probe01 (0d59e3a1), raw AP."><img src="figures/4aab0f45_burst_probe01_raw.png" class="img-fluid figure-img" alt="probe01 (0d59e3a1), raw AP."></a></p>
+<figcaption>probe01 (0d59e3a1), raw AP.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p>Destriped: the spatial referencing removes most of the common-mode saturation, which is why the defect is easy to miss in the extraction-time residual and only shows up as a small sawtooth:</p>
+<div class="quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/4aab0f45_burst_probe00_destriped.png" class="lightbox" data-gallery="quarto-lightbox-gallery-23" title="probe00 (2adc4f5d), destriped AP."><img src="figures/4aab0f45_burst_probe00_destriped.png" class="img-fluid figure-img" alt="probe00 (2adc4f5d), destriped AP."></a></p>
+<figcaption>probe00 (2adc4f5d), destriped AP.</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/4aab0f45_burst_probe01_destriped.png" class="lightbox" data-gallery="quarto-lightbox-gallery-24" title="probe01 (0d59e3a1), destriped AP."><img src="figures/4aab0f45_burst_probe01_destriped.png" class="img-fluid figure-img" alt="probe01 (0d59e3a1), destriped AP."></a></p>
+<figcaption>probe01 (0d59e3a1), destriped AP.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p>Every channel saturating at once, on both probes, at the exact instant of the shared burst, is consistent with an electrical saturation event on a line common to both probes (e.g.&nbsp;a shared power or reference rail) rather than independent per-probe noise — stronger evidence than the timing coincidence alone, though still one session’s worth of it.</p>
+</section>
+<section id="appendix-raw-ap-evidence-at-the-f2ea7211-duplicate_burst" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-raw-ap-evidence-at-the-f2ea7211-duplicate_burst">Appendix: raw AP evidence at the f2ea7211 duplicate_burst</h2>
+<p>The same check applied to <code>f2ea7211</code> (<code>duplicate_burst</code>, probe channel): raw AP streamed ±1s around the anomalous edge cluster (probe-local t≈1955.46s — a 58.3ms short gap, a 33.3μs micro-gap, then a 434.9ms gap, not the single clean double-trigger the “2 extra edges 33μs apart” summary suggests), same method and units as above.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/f2ea7211_dupburst_raw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-25" title="probe00 (f2ea7211), raw AP — the vertical band lands exactly on the anomalous-edge cluster in the top-axis imec_sync trace."><img src="figures/f2ea7211_dupburst_raw.png" class="img-fluid figure-img" style="width:70.0%" alt="probe00 (f2ea7211), raw AP — the vertical band lands exactly on the anomalous-edge cluster in the top-axis imec_sync trace."></a></p>
+<figcaption>probe00 (f2ea7211), raw AP — the vertical band lands exactly on the anomalous-edge cluster in the top-axis <code>imec_sync</code> trace.</figcaption>
+</figure>
+</div>
+<p>Every channel hits almost exactly <strong>±0.077V</strong> in that band — this is this probe’s ADC bipolar full-scale ceiling itself (±32767 counts × 2.34375μV/count ≈ ±76.8mV), pegged at both rails simultaneously, the textbook signature of hard clipping: the true underlying signal exceeded the ADC’s input range and was clamped at its representable limit. Ordinary AP-band signal here sits around 30-65μV (see the “raw stats” baseline printed by the script) — three orders of magnitude below the clipped value. Unambiguous confirmation that the raw sample values themselves are corrupted at that instant, not merely that a threshold-crossing was mistimed. The destriped view isn’t informative here (both the auto-gain and destriping’s own referencing are themselves distorted by an outlier this extreme) so it’s omitted.</p>
+<p>This settles the question the case was checked for: it’s a genuine electrical/ADC-saturation artefact coincident with the bad edges, not a plain comparator/front-detection quirk with otherwise-valid data underneath — the same signature as the <code>4aab0f45</code> shared burst, just far more extreme (full-scale clipping vs.&nbsp;a sub-mV excursion).</p>
+</section>
+<section id="code-references" class="level2">
+<h2 class="anchored" data-anchor-id="code-references">Code references</h2>
+<ul>
+<li><strong><a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py"><code>ibllib/ephys/sync_probes.py</code></a></strong> (branch <code>pyproject-migration</code>) — extraction code under diagnosis, out of scope for the fixes above: <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L48"><code>version3A</code></a>, <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L117"><code>version3B</code></a>, <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L181"><code>sync_probe_front_times</code></a>, <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L275"><code>_check_diff_3b</code></a>.</li>
+<li><strong><a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py"><code>brainbox/io/one.py</code></a></strong> — <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L591"><code>SpikeSortingLoader</code></a>, <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L1021"><code>_get_probe_info</code></a> (builds the <code>interp1d(fill_value='extrapolate')</code> this analysis’ long-term fix patches), <a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L1053"><code>samples2times</code></a>.</li>
+<li><strong><a href="https://github.com/int-brain-lab/sdsc-slurms/blob/3b192952d45aaef9e5fbc1df7a02f8327f6dda35/2026-06-lfpack/attach_ibl_metadata.py#L108"><code>attach_ibl_metadata.py::compute_sync()</code></a></strong> — the short-term lfpack fix target.</li>
+<li><strong><a href="https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/tests/integration/test_ephys_synchronization.py"><code>test_ephys_synchronization.py</code></a></strong> — existing <code>version3A</code>/<code>version3B</code> coverage, must keep passing (extractor is out of scope, but this is the tripwire if that changes).</li>
+<li><code>sync_investigation.py</code> (this directory) — the full re-derivation, classification, and figure-generation pipeline used for this analysis. <strong>Not yet pushed</strong> (local-only branch <code>analysis/lfpack-sync-issues</code> in <code>oliche-quarto</code>) — link to add once pushed.</li>
+</ul>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script type="ojs-module-contents">
+eyJjb250ZW50cyI6W3sibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMSIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6ImRhdGEgPSBGaWxlQXR0YWNobWVudChcInBlcl9wcm9iZV9yZXN1bHRzLmNzdlwiKS5jc3Yoe3R5cGVkOiB0cnVlfSlcbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMiIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6IklucHV0cy50YWJsZShkYXRhLCB7XG4gIGNvbHVtbnM6IFtcInBpZFwiLCBcImVpZFwiLCBcInByb2JlXCIsIFwidmVyc2lvblwiLCBcImRpYWdub3Npc1wiLCBcInNsb3BlXCIsIFwiaW50ZXJjZXB0XCIsIFwibWF4X3Jlc2lkdWFsX21zXCIsIFwibWVkaWFuX3Jlc2lkdWFsX21zXCJdLFxuICBoZWFkZXI6IHttYXhfcmVzaWR1YWxfbXM6IFwibWF4IHJlc2lkdWFsIChtcylcIiwgbWVkaWFuX3Jlc2lkdWFsX21zOiBcIm1lZGlhbiByZXNpZHVhbCAobXMpXCJ9LFxuICB3aWR0aDoge3BpZDogMjYwLCBlaWQ6IDI2MCwgZGlhZ25vc2lzOiAxODB9LFxuICAvLyBubyBpbnRlcm5hbCB2ZXJ0aWNhbCBzY3JvbGw6IGRlZmF1bHQgbWF4SGVpZ2h0IGlzIHNpemVkIGZvciBJbnB1dHMudGFibGUncyBvd24gZGVmYXVsdCBgcm93c2BcbiAgLy8gb3B0aW9uICh+MTEpLCBub3Qgb3VyIGRhdGEgbGVuZ3RoIChtYXggMjApIG9yIHRoaXMgdGhlbWUncyBhY3R1YWwgKHRhbGxlci10aGFuLWRlZmF1bHQpIHJvd1xuICAvLyBoZWlnaHQgLS0gYSBnZW5lcm91cyBmaXhlZCBjYXAgY29tZm9ydGFibHkgY292ZXJzIGFsbCAyMCByb3dzIHdpdGhvdXQgd2FzdGVkIHNwYWNlLCBzaW5jZSB0aGVcbiAgLy8gdGFibGUgYXV0by1zaXplcyB0byBjb250ZW50IHVwIHRvIG1heEhlaWdodC5cbiAgbWF4SGVpZ2h0OiAxMDAwXG59KVxuIn1dfQ==
+</script>
+<script type="module">
+if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }
+window._ojs.paths.runtimeToDoc = "../../analyses/2026-08-lfpack-sync-issues";
+window._ojs.paths.runtimeToRoot = "../..";
+window._ojs.paths.docToRoot = "../..";
+window._ojs.selfContained = false;
+window._ojs.runtime.interpretFromScriptTags();
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "lfpack Sync Residual Audit"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Re-derivation and classification of raw-pulse sync defects across 20 probes flagged in lfpack#8, with per-probe extraction-time residual plots."</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-08-20"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [electrophysiology, synchronization, QC, Neuropixels]</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">lfpack#8</span><span class="co">](https://github.com/int-brain-lab/lfpack/issues/8)</span> flagged 20 probes with NaN or</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>high-residual nidq sync. All 20 were re-derived from raw</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="in">`_spikeglx_sync.{channels,polarities,times}`</span> fronts and re-run through</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`ibllib.ephys.sync_probes`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py)</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>to tell genuine pulse-train defects from extraction artefacts. Only the small raw sync-front</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>datasets were downloaded — never the raw <span class="in">`.cbin`</span>/<span class="in">`.ch`</span> binaries.</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">## Diagnosis</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>20 pids collapse to 12 sessions. Four raw-pulse pathologies account for 11 probes; the rest are</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>within ordinary hardware tolerance. Residuals are the single global-affine check (see verification</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>note below).</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`dropped_edges`** (5 probes / 3 sessions, 9-76s residual) — one channel's rate sustainedly</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  halves partway through (usually the last ~10-15%) while the other channel keeps ticking</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  normally. <span class="in">`367e94f6`</span>; <span class="in">`4836a465`</span>+<span class="in">`d0046384`</span> (same session, identical onset); <span class="in">`7967a14e`</span>+<span class="in">`ad597f5f`</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  (same session).</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`duplicate_burst`** (3 probes / 2 sessions) — a bounced/double-triggered edge adds spurious</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  near-simultaneous edges. On **nidq** for <span class="in">`0b8ea3ec`</span>+<span class="in">`a5f2ec22`</span> (6 extra edges, ~1.5s residual);</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  on the **probe** channel for <span class="in">`f2ea7211`</span> (2 extra edges 33μs apart, ~0.8s residual).</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`single_edge_glitch`** (2 probes / 2 sessions) — one isolated mistimed edge in the last ~1% of</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  the recording, cadence reverts immediately after. <span class="in">`b2746c16`</span> (139ms early, 154ms residual;</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  sibling probe <span class="in">`c09b3c18`</span> unaffected, confirming probe-local) and <span class="in">`81f0087b`</span> (12ms early, 12ms</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  residual).</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`irregular_3A_reference`** (1 probe) — <span class="in">`0fed7207`</span>, pre-2020 3A with no <span class="in">`wiring.json`</span>.</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  <span class="in">`version3A()`</span>'s hardcoded frame2ttl-before-right_camera precedence locked onto <span class="in">`frame2ttl`</span> — an</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  unreliable per-pulse reference, not merely a bursty one — while a correctly-wired <span class="in">`right_camera`</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  line (a ~150Hz hardware clock, matching exactly on both probes) sat unused. A genuine, fixable</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  reference-channel selection bug, not an inherent behavioural-reference limit — see</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">Fixes</span><span class="co">](#fixes)</span>.</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`clean`** (9 probes / 6 sessions, 1-4ms max residual) — ordinary crystal-oscillator drift.</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  **Exception:** <span class="in">`4aab0f45`</span> (1.2-1.3ms median, above the rest of this bucket) — a genuine</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  saturation-linked permanent step, see <span class="co">[</span><span class="ot">Appendix</span><span class="co">](#appendix-raw-ap-evidence-at-the-4aab0f45-burst)</span>.</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>None of these trip</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`version3B()`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L117)</span>'s</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>only integrity check (<span class="in">`np.isclose(rtol=0.1)`</span> on gross pulse count) — and when a probe's spacing</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>already fails the 150ppm burst check, it falls back to <span class="in">`type='exact'`</span>, whose QC is tautological</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>(interpolates through its own build points, residual ~0), silently passing tens-of-seconds-scale</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>defects. <span class="in">`version3A()`</span> has no analogous check at all — it always uses <span class="in">`type='smooth'`</span> with no</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>data-driven fallback, so committing to the wrong reference channel produces no warning short of</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>eyeballing the residual.</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>**Verification:** residual computed two ways per probe — from the Alyx-registered</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="in">`sync.timestamps`</span> and from re-running <span class="in">`version3A()`</span>/<span class="in">`version3B()`</span> on raw fronts. All matched. So every defect</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>above is reproducible from raw pulses today, not a stale extraction artefact.</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## Per-probe results</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>Click a column header to sort.</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>::: {.column-page}</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"per_probe_results.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(data<span class="op">,</span> {</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"pid"</span><span class="op">,</span> <span class="st">"eid"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"version"</span><span class="op">,</span> <span class="st">"diagnosis"</span><span class="op">,</span> <span class="st">"slope"</span><span class="op">,</span> <span class="st">"intercept"</span><span class="op">,</span> <span class="st">"max_residual_ms"</span><span class="op">,</span> <span class="st">"median_residual_ms"</span>]<span class="op">,</span></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">max_residual_ms</span><span class="op">:</span> <span class="st">"max residual (ms)"</span><span class="op">,</span> <span class="dt">median_residual_ms</span><span class="op">:</span> <span class="st">"median residual (ms)"</span>}<span class="op">,</span></span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">260</span><span class="op">,</span> <span class="dt">eid</span><span class="op">:</span> <span class="dv">260</span><span class="op">,</span> <span class="dt">diagnosis</span><span class="op">:</span> <span class="dv">180</span>}<span class="op">,</span></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>  <span class="co">// no internal vertical scroll: default maxHeight is sized for Inputs.table's own default `rows`</span></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  <span class="co">// option (~11), not our data length (max 20) or this theme's actual (taller-than-default) row</span></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  <span class="co">// height -- a generous fixed cap comfortably covers all 20 rows without wasted space, since the</span></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>  <span class="co">// table auto-sizes to content up to maxHeight.</span></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">1000</span></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="fu">## Extraction residual plots, all 20 probes</span></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>Two panels per probe, same order as the table above (worst <span class="in">`dropped_edges`</span> first, <span class="in">`clean`</span> last).</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>**Top — residual:**</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`sync_probe_front_times`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L181)</span>'s</span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>own plot (raw + smoothed residual + the interpolation knots baked into <span class="in">`sync.timestamps`</span>), samples</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>at 30kHz vs. session time. <span class="in">`type=exact`</span> when the 150ppm burst check fails (tautological QC, see</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>Diagnosis); otherwise <span class="in">`type=smooth`</span>.</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>**Bottom — inter-pulse interval:** raw <span class="in">`np.diff`</span> of consecutive rising edges (ms) for probe (blue)</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>vs. reference (orange), same time axis as the residual panel. Rising edges only (matches</span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`_check_diff_3b`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L275)</span>) —</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>falling edges would add a fast duty-cycle alternation that'd dominate the plot.</span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>E.g. <span class="in">`4836a465`</span>: both channels flat at 1.0s for ~2003s; the reference stays there, the probe jumps</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>to a sustained 2.0s for the final ~164s (83 doubled intervals) — the <span class="in">`dropped_edges`</span> mechanism.</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a><span class="in">`2adc4f5d`</span>/<span class="in">`0d59e3a1`</span> (4aab0f45): flat except one single-sample dip at t≈1021s — the shared-line</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>micro-burst covered in the <span class="co">[</span><span class="ot">Appendix</span><span class="co">](#appendix-raw-ap-evidence-at-the-4aab0f45-burst)</span> below.</span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4836a465 — dropped_edges (probe), median 2553.0 ms</span></span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_4836a465.png)</span></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a><span class="fu">## d0046384 — dropped_edges (probe), median 2539.7 ms</span></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_d0046384.png)</span></span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a><span class="fu">## 367e94f6 — dropped_edges (probe), median 2642.9 ms</span></span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_367e94f6.png)</span></span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7967a14e — dropped_edges (probe), median 45.5 ms</span></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_7967a14e.png)</span></span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a><span class="fu">## ad597f5f — dropped_edges (probe), median 45.3 ms</span></span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_ad597f5f.png)</span></span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0fed7207 — irregular_3A_reference, median 952.5 ms (pre-fix; see [Fixes](#fixes))</span></span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_0fed7207.png)</span></span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0b8ea3ec — duplicate_burst (ref), median 692.5 ms</span></span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_0b8ea3ec.png)</span></span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## a5f2ec22 — duplicate_burst (ref), median 692.5 ms</span></span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_a5f2ec22.png)</span></span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## f2ea7211 — duplicate_burst (probe), median 107.4 ms</span></span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_f2ea7211.png)</span></span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## b2746c16 — single_edge_glitch (probe), median 0.3 ms</span></span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_b2746c16.png)</span></span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a><span class="fu">## 81f0087b — single_edge_glitch (probe), median 0.1 ms</span></span>
+<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_81f0087b.png)</span></span>
+<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a><span class="fu">## e6402305 — clean, median 0.5 ms</span></span>
+<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_e6402305.png)</span></span>
+<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2adc4f5d — clean, median 1.3 ms (see Appendix below)</span></span>
+<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_2adc4f5d.png)</span></span>
+<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0d59e3a1 — clean, median 1.2 ms (see Appendix below)</span></span>
+<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_0d59e3a1.png)</span></span>
+<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5c63d860 — clean, median 0.2 ms</span></span>
+<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_5c63d860.png)</span></span>
+<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a><span class="fu">## b543e81e — clean, median 0.2 ms</span></span>
+<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_b543e81e.png)</span></span>
+<span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-189"><a href="#cb3-189" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-190"><a href="#cb3-190" aria-hidden="true" tabindex="-1"></a><span class="fu">## 53ecbf4f — clean, median 0.2 ms</span></span>
+<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_53ecbf4f.png)</span></span>
+<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## 735fa61d — clean, median 0.4 ms</span></span>
+<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_735fa61d.png)</span></span>
+<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a><span class="fu">## c09b3c18 — clean, median 0.0 ms</span></span>
+<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_c09b3c18.png)</span></span>
+<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5999eeca — clean, median 0.3 ms</span></span>
+<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/residual_5999eeca.png)</span></span>
+<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fixes</span></span>
+<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a>Simpler than originally scoped, now that raw-AP verification (below) has settled which anomalies</span>
+<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a>are genuine and which are corrupted reads. Two pieces of work, not a per-class matrix:</span>
+<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Re-issue the registered `_spikeglx_*.timestamps.npy` dataset** for four classes: three where</span>
+<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a>   the front-detection/extraction was genuinely fooled by a corrupted pulse — <span class="in">`dropped_edges`</span>,</span>
+<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a>   <span class="in">`single_edge_glitch`</span>, <span class="in">`duplicate_burst`</span> — and <span class="in">`irregular_3A_reference`</span>, where the extractor</span>
+<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a>   locked onto the wrong reference channel (see table below). For every other class — <span class="in">`clean`</span></span>
+<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a>   (including the <span class="in">`4aab0f45`</span>-style shared cross-probe burst, confirmed to be a genuine permanent</span>
+<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a>   step in the clock-to-nidq relationship, and the ordinary per-probe jitter) — **the registered</span>
+<span id="cb3-220"><a href="#cb3-220" aria-hidden="true" tabindex="-1"></a>   dataset is already fine; no re-issue needed.**</span>
+<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**lfpack needs to support non-linear timestamp interpolation.**</span>
+<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a>   <span class="co">[</span><span class="ot">`compute_sync()`</span><span class="co">](https://github.com/int-brain-lab/sdsc-slurms/blob/3b192952d45aaef9e5fbc1df7a02f8327f6dda35/2026-06-lfpack/attach_ibl_metadata.py#L108)</span></span>
+<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a>   currently re-derives a single global affine (<span class="in">`t0_sync`</span>/<span class="in">`fs_sync`</span>) from scratch. That's a</span>
+<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a>   universal fix, not a per-class patch: even a fully correct dataset (any ordinary clean session,</span>
+<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a>   or <span class="in">`4aab0f45`</span> as it already stands) gets mis-represented by one straight line once there's a</span>
+<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a>   genuine step or non-linear drift anywhere in it. Once this is in place, lfpack automatically</span>
+<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a>   benefits from every dataset re-issued in (1) and correctly represents every dataset that was</span>
+<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a>   already fine — no per-class lfpack-side logic needed at all.</span>
+<span id="cb3-229"><a href="#cb3-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a><span class="in">`sync_probes.py`</span> (the extractor) stays out of scope — these are corrections to already-extracted/</span>
+<span id="cb3-231"><a href="#cb3-231" aria-hidden="true" tabindex="-1"></a>registered data, not extraction-code changes. (<span class="in">`version3A()`</span>'s frame2ttl precedence is a real</span>
+<span id="cb3-232"><a href="#cb3-232" aria-hidden="true" tabindex="-1"></a>extractor bug, but checked by max residual across the 1099 ephys-atlas insertions: no other 3A</span>
+<span id="cb3-233"><a href="#cb3-233" aria-hidden="true" tabindex="-1"></a>probe shows this pattern, so <span class="in">`0fed7207`</span> looks like an isolated instance — patching the extractor</span>
+<span id="cb3-234"><a href="#cb3-234" aria-hidden="true" tabindex="-1"></a>itself remains separate follow-up work regardless.) Detection is a rate-agnostic per-channel check</span>
+<span id="cb3-235"><a href="#cb3-235" aria-hidden="true" tabindex="-1"></a>(compare each inter-pulse-interval diff to the local/running median, tolerant across 0.1–100 Hz)</span>
+<span id="cb3-236"><a href="#cb3-236" aria-hidden="true" tabindex="-1"></a>rather than a magnitude threshold on the affine residual — see Diagnosis above for why a fixed</span>
+<span id="cb3-237"><a href="#cb3-237" aria-hidden="true" tabindex="-1"></a>threshold can't work. Detecting an anomaly doesn't automatically mean correcting it: it can turn</span>
+<span id="cb3-238"><a href="#cb3-238" aria-hidden="true" tabindex="-1"></a>out to be a real, permanent change the fit should honor rather than a corrupted reading to strip</span>
+<span id="cb3-239"><a href="#cb3-239" aria-hidden="true" tabindex="-1"></a>out — the two raw-AP appendices below are what settled that question for the two cases checked.</span>
+<span id="cb3-240"><a href="#cb3-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-241"><a href="#cb3-241" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Failure class <span class="pp">|</span> Registered dataset <span class="pp">|</span> Patch <span class="pp">|</span></span>
+<span id="cb3-242"><a href="#cb3-242" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb3-243"><a href="#cb3-243" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`dropped_edges`</span> (probe, end-of-recording rate-doubling — AP stream keeps running tens of seconds past nidq's last pulse, sync channel free-runs at ~2x nominal rate with onset *preceding* nidq dry-off, a power-down-style electrical transient) <span class="pp">|</span> Re-issue <span class="pp">|</span> Truncate at onset, then append one synthetic terminal anchor point computed from the trusted-region's fitted line, placed at the end of the AP recording — so <span class="in">`interp1d`</span>'s <span class="in">`fill_value='extrapolate'`</span> boundary reflects the smoothed session-wide rate instead of the noisy last real interval. <span class="pp">|</span></span>
+<span id="cb3-244"><a href="#cb3-244" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`duplicate_burst`</span> (ref or probe — a bounced/double-triggered edge; confirmed via raw AP on <span class="in">`f2ea7211`</span> to coincide with the channel hitting the ADC's own full-scale ceiling, ±77mV against an ordinary ~30-65μV baseline — a genuine saturation artefact, not a plain comparator/front-detection quirk) <span class="pp">|</span> Re-issue <span class="pp">|</span> Drop both duplicate timestamps (don't try to infer which is real); insert one synthetic timestamp at the midpoint of the neighboring valid pulses — minimizes squared deviation from the expected local period, doesn't depend on either bogus value. <span class="pp">|</span></span>
+<span id="cb3-245"><a href="#cb3-245" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`single_edge_glitch`</span> (probe, isolated mistimed edge in the last ~1% of the recording, cadence reverts immediately after) <span class="pp">|</span> Re-issue <span class="pp">|</span> Same as <span class="in">`dropped_edges`</span>: truncate at the glitch onset, append one synthetic terminal anchor point on the trusted-region fit line. <span class="pp">|</span></span>
+<span id="cb3-246"><a href="#cb3-246" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Shared cross-probe micro-burst (<span class="in">`4aab0f45`</span>-style; confirmed via raw AP + a pre-/post-event affine comparison to be a genuine **permanent** step, ~5.6–6.2ms, flat for the remaining ~1000s of the recording) <span class="pp">|</span> Fine as-is <span class="pp">|</span> None — a misread single edge would have self-corrected on the next pulse; this doesn't, and the existing non-linear correction already bakes in the real step. <span class="pp">|</span></span>
+<span id="cb3-247"><a href="#cb3-247" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`clean`</span>, including same-window-but-offset-timing cross-probe micro-anomalies <span class="pp">|</span> Fine as-is <span class="pp">|</span> None. Current hypothesis for the offset-timing pattern: non-simultaneous timing across probes rules out a shared-line cause, pointing to independent per-probe clock instability — real but local, faithfully represented already. Not re-checked with the raw-AP method (no independent landmark available the way saturation gave one for the two cases above). <span class="pp">|</span></span>
+<span id="cb3-248"><a href="#cb3-248" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`irregular_3A_reference`</span> (<span class="in">`0fed7207`</span>, pre-2020 3A, no <span class="in">`wiring.json`</span>; <span class="in">`version3A()`</span>'s frame2ttl-then-right_camera precedence commits to frame2ttl as soon as it's detected on both probes *at all*, never checking which channel is actually the better reference — see Diagnosis above for why that's the wrong call here) <span class="pp">|</span> Re-issue <span class="pp">|</span> Re-run the probe01-vs-probe00 fit with <span class="in">`right_camera`</span> in place of <span class="in">`frame2ttl`</span>; residual drops from max 35s / median several-hundred-ms to max 0.04ms / median 0.01ms — no synthetic points, no truncation, just the correct reference channel. <span class="pp">|</span></span>
+<span id="cb3-249"><a href="#cb3-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-250"><a href="#cb3-250" aria-hidden="true" tabindex="-1"></a><span class="fu">## Re-issue: computed corrected knots, pending Alyx patch {#reissue-results}</span></span>
+<span id="cb3-251"><a href="#cb3-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-252"><a href="#cb3-252" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning}</span>
+<span id="cb3-253"><a href="#cb3-253" aria-hidden="true" tabindex="-1"></a>**Not yet pushed to Alyx.** <span class="co">[</span><span class="ot">`reissue_sync.py`</span><span class="co">](reissue_sync.py)</span> computes each corrected</span>
+<span id="cb3-254"><a href="#cb3-254" aria-hidden="true" tabindex="-1"></a><span class="in">`[sample, time]`</span> array locally and writes it to <span class="in">`reissue_output/{pid[:8]}_{probe}_sync.timestamps.npy`</span></span>
+<span id="cb3-255"><a href="#cb3-255" aria-hidden="true" tabindex="-1"></a>(same 2-column convention as <span class="in">`sync_probes._save_timestamps_npy`</span>) — it never calls</span>
+<span id="cb3-256"><a href="#cb3-256" aria-hidden="true" tabindex="-1"></a><span class="in">`ibllib.oneibl.patcher.*.patch_dataset()`</span>. This table is the review artifact before that call is</span>
+<span id="cb3-257"><a href="#cb3-257" aria-hidden="true" tabindex="-1"></a>made against the live, shared Alyx dataset.</span>
+<span id="cb3-258"><a href="#cb3-258" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-259"><a href="#cb3-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-260"><a href="#cb3-260" aria-hidden="true" tabindex="-1"></a>**Before** = residual of the *currently-registered* <span class="in">`sync.timestamps`</span> (via <span class="in">`SpikeSortingLoader`</span>,</span>
+<span id="cb3-261"><a href="#cb3-261" aria-hidden="true" tabindex="-1"></a>same method as the <span class="co">[</span><span class="ot">Per-probe results</span><span class="co">](#per-probe-results)</span> table above). **After** = residual of</span>
+<span id="cb3-262"><a href="#cb3-262" aria-hidden="true" tabindex="-1"></a>the corrected knot array's own interpolant against the genuine (non-synthetic) front times it was</span>
+<span id="cb3-263"><a href="#cb3-263" aria-hidden="true" tabindex="-1"></a>built from — not a fresh global-affine refit across all knots, which for the <span class="in">`dropped_edges`</span>/</span>
+<span id="cb3-264"><a href="#cb3-264" aria-hidden="true" tabindex="-1"></a><span class="in">`single_edge_glitch`</span> fix would be dominated by the appended terminal anchor's extrapolation</span>
+<span id="cb3-265"><a href="#cb3-265" aria-hidden="true" tabindex="-1"></a>leverage rather than fit quality. For probes using <span class="in">`type='exact'`</span> (raw fronts kept verbatim as</span>
+<span id="cb3-266"><a href="#cb3-266" aria-hidden="true" tabindex="-1"></a>knots) this recovers the same near-zero residual noted as tautological in</span>
+<span id="cb3-267"><a href="#cb3-267" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Diagnosis</span><span class="co">](#diagnosis)</span> — it's confirming the trusted input satisfies the production tolerance</span>
+<span id="cb3-268"><a href="#cb3-268" aria-hidden="true" tabindex="-1"></a>check (<span class="in">`qc`</span>), not an independent accuracy claim.</span>
+<span id="cb3-269"><a href="#cb3-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-270"><a href="#cb3-270" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> pid <span class="pp">|</span> probe <span class="pp">|</span> diagnosis <span class="pp">|</span> max before (ms) <span class="pp">|</span> median before (ms) <span class="pp">|</span> max after (ms) <span class="pp">|</span> median after (ms) <span class="pp">|</span> qc <span class="pp">|</span></span>
+<span id="cb3-271"><a href="#cb3-271" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span>--:<span class="pp">|</span>--:<span class="pp">|</span>--:<span class="pp">|</span>--:<span class="pp">|---|</span></span>
+<span id="cb3-272"><a href="#cb3-272" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`367e94f6`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> dropped_edges <span class="pp">|</span> 69506.6 <span class="pp">|</span> 2642.9 <span class="pp">|</span> 0.000 <span class="pp">|</span> 0.000 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-273"><a href="#cb3-273" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`4836a465`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> dropped_edges <span class="pp">|</span> 76360.9 <span class="pp">|</span> 2553.0 <span class="pp">|</span> 0.050 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-274"><a href="#cb3-274" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`d0046384`</span> <span class="pp">|</span> probe01 <span class="pp">|</span> dropped_edges <span class="pp">|</span> 76182.1 <span class="pp">|</span> 2539.7 <span class="pp">|</span> 0.050 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-275"><a href="#cb3-275" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`7967a14e`</span> <span class="pp">|</span> probe01 <span class="pp">|</span> dropped_edges <span class="pp">|</span> 9006.2 <span class="pp">|</span> 45.5 <span class="pp">|</span> 0.052 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-276"><a href="#cb3-276" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ad597f5f`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> dropped_edges <span class="pp">|</span> 8985.5 <span class="pp">|</span> 45.3 <span class="pp">|</span> 0.052 <span class="pp">|</span> 0.016 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-277"><a href="#cb3-277" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`b2746c16`</span> <span class="pp">|</span> probe01 <span class="pp">|</span> single_edge_glitch <span class="pp">|</span> 154.1 <span class="pp">|</span> 0.31 <span class="pp">|</span> 0.051 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-278"><a href="#cb3-278" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`81f0087b`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> single_edge_glitch <span class="pp">|</span> 12.3 <span class="pp">|</span> 0.10 <span class="pp">|</span> 0.000 <span class="pp">|</span> 0.000 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-279"><a href="#cb3-279" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`0b8ea3ec`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> duplicate_burst (nidq) <span class="pp">|</span> 1455.4 <span class="pp">|</span> 692.5 <span class="pp">|</span> 0.050 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-280"><a href="#cb3-280" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`a5f2ec22`</span> <span class="pp">|</span> probe01 <span class="pp">|</span> duplicate_burst (nidq) <span class="pp">|</span> 1455.4 <span class="pp">|</span> 692.5 <span class="pp">|</span> 0.056 <span class="pp">|</span> 0.017 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-281"><a href="#cb3-281" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`f2ea7211`</span> <span class="pp">|</span> probe00 <span class="pp">|</span> duplicate_burst (probe) <span class="pp">|</span> 781.1 <span class="pp">|</span> 107.4 <span class="pp">|</span> 0.000 <span class="pp">|</span> 0.000 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-282"><a href="#cb3-282" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`0fed7207`</span> <span class="pp">|</span> probe01 <span class="pp">|</span> irregular_3A_reference <span class="pp">|</span> 4994.6 <span class="pp">|</span> 952.5 <span class="pp">|</span> 0.036 <span class="pp">|</span> 0.010 <span class="pp">|</span> PASS <span class="pp">|</span></span>
+<span id="cb3-283"><a href="#cb3-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-284"><a href="#cb3-284" aria-hidden="true" tabindex="-1"></a>All 11 collapse from the 8-76s/tens-to-hundreds-of-ms defective range down to 0.00-0.06ms —</span>
+<span id="cb3-285"><a href="#cb3-285" aria-hidden="true" tabindex="-1"></a>matching the <span class="in">`clean`</span> bucket's 0.01-0.1ms range — and each corrected fit passes</span>
+<span id="cb3-286"><a href="#cb3-286" aria-hidden="true" tabindex="-1"></a><span class="in">`sync_probe_front_times`</span>'s own production tolerance check.</span>
+<span id="cb3-287"><a href="#cb3-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-288"><a href="#cb3-288" aria-hidden="true" tabindex="-1"></a>Two refinements surfaced during implementation, both narrowing the fix beyond this page's</span>
+<span id="cb3-289"><a href="#cb3-289" aria-hidden="true" tabindex="-1"></a>original per-class description rather than contradicting it:</span>
+<span id="cb3-290"><a href="#cb3-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-291"><a href="#cb3-291" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`duplicate_burst`** — the "insert one synthetic midpoint front" step (Fixes table above) only</span>
+<span id="cb3-292"><a href="#cb3-292" aria-hidden="true" tabindex="-1"></a>  fires when the two bounding valid fronts actually imply a lost pulse</span>
+<span id="cb3-293"><a href="#cb3-293" aria-hidden="true" tabindex="-1"></a>  (<span class="in">`round(gap / nominal_period) - 1 &gt;= 1`</span>). For both <span class="in">`duplicate_burst`</span> cases here (<span class="in">`0b8ea3ec`</span>/</span>
+<span id="cb3-294"><a href="#cb3-294" aria-hidden="true" tabindex="-1"></a>  <span class="in">`a5f2ec22`</span>'s shared nidq burst, and <span class="in">`f2ea7211`</span>'s probe-side burst), the bounding fronts already</span>
+<span id="cb3-295"><a href="#cb3-295" aria-hidden="true" tabindex="-1"></a>  sit ~1 nominal period apart once correctly located — the burst was pure noise inside an</span>
+<span id="cb3-296"><a href="#cb3-296" aria-hidden="true" tabindex="-1"></a>  otherwise-ordinary gap, so no pulse was actually lost and no synthetic front is inserted for</span>
+<span id="cb3-297"><a href="#cb3-297" aria-hidden="true" tabindex="-1"></a>  either case, just the anomalous fronts dropped.</span>
+<span id="cb3-298"><a href="#cb3-298" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`dropped_edges`** (<span class="in">`367e94f6`</span>, and separately <span class="in">`81f0087b`</span>'s <span class="in">`single_edge_glitch`</span>) — the</span>
+<span id="cb3-299"><a href="#cb3-299" aria-hidden="true" tabindex="-1"></a>  "trusted" pre-onset region itself contained a few small, non-contiguous individual-pulse timing</span>
+<span id="cb3-300"><a href="#cb3-300" aria-hidden="true" tabindex="-1"></a>  anomalies a couple of seconds before the main truncation point. The onset-detection now scans</span>
+<span id="cb3-301"><a href="#cb3-301" aria-hidden="true" tabindex="-1"></a>  the preceding 50 intervals and trims back further when it finds one, rather than truncating at</span>
+<span id="cb3-302"><a href="#cb3-302" aria-hidden="true" tabindex="-1"></a>  just the immediately-adjacent anomaly.</span>
+<span id="cb3-303"><a href="#cb3-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-304"><a href="#cb3-304" aria-hidden="true" tabindex="-1"></a>All fixes call only the low-level <span class="in">`sync_probes.sync_probe_front_times()`</span>, never the</span>
+<span id="cb3-305"><a href="#cb3-305" aria-hidden="true" tabindex="-1"></a>file-writing <span class="in">`version3A()`</span>/<span class="in">`version3B()`</span> wrappers — nothing in the local ONE cache is touched, so</span>
+<span id="cb3-306"><a href="#cb3-306" aria-hidden="true" tabindex="-1"></a>the before/after comparison above can't have contaminated itself.</span>
+<span id="cb3-307"><a href="#cb3-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-308"><a href="#cb3-308" aria-hidden="true" tabindex="-1"></a>**Next step, pending your review of this table:** patch each probe's registered</span>
+<span id="cb3-309"><a href="#cb3-309" aria-hidden="true" tabindex="-1"></a><span class="in">`sync.timestamps.npy`</span> via <span class="in">`ibllib.oneibl.patcher.Patcher.patch_dataset()`</span> (backend depends on this</span>
+<span id="cb3-310"><a href="#cb3-310" aria-hidden="true" tabindex="-1"></a>Alyx instance's configured patcher — <span class="in">`SSHPatcher`</span>/<span class="in">`FTPPatcher`</span>/<span class="in">`S3Patcher`</span>/<span class="in">`GlobusPatcher`</span>). This</span>
+<span id="cb3-311"><a href="#cb3-311" aria-hidden="true" tabindex="-1"></a>mutates the canonical IBL-registered dataset, consumed by every downstream pipeline, not just</span>
+<span id="cb3-312"><a href="#cb3-312" aria-hidden="true" tabindex="-1"></a>lfpack/ephys-atlas — needs explicit go-ahead, probe by probe or as a batch.</span>
+<span id="cb3-313"><a href="#cb3-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-314"><a href="#cb3-314" aria-hidden="true" tabindex="-1"></a><span class="fu">## Appendix: raw AP evidence at the 4aab0f45 burst</span></span>
+<span id="cb3-315"><a href="#cb3-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-316"><a href="#cb3-316" aria-hidden="true" tabindex="-1"></a>The <span class="in">`4aab0f45`</span> sawtooth — a clean ramp, an abrupt ~190-sample (6.3ms) jump, then the same ramp</span>
+<span id="cb3-317"><a href="#cb3-317" aria-hidden="true" tabindex="-1"></a>again — was first identified from the <span class="in">`2adc4f5d`</span>/<span class="in">`0d59e3a1`</span> extraction-time residual plots above,</span>
+<span id="cb3-318"><a href="#cb3-318" aria-hidden="true" tabindex="-1"></a>from front-time diffs alone. To check what's actually happening on the probe at that instant, the</span>
+<span id="cb3-319"><a href="#cb3-319" aria-hidden="true" tabindex="-1"></a>raw AP band was streamed directly from S3 for both probes, ±1s around the burst</span>
+<span id="cb3-320"><a href="#cb3-320" aria-hidden="true" tabindex="-1"></a>(nidq t≈1020.92s) — undestriped and destriped — using</span>
+<span id="cb3-321"><a href="#cb3-321" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`view_sync_event.py`</span><span class="co">](view_sync_event.py)</span> (this directory, reusable across cases via its CONFIG</span>
+<span id="cb3-322"><a href="#cb3-322" aria-hidden="true" tabindex="-1"></a>block) and</span>
+<span id="cb3-323"><a href="#cb3-323" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`viewephys`</span><span class="co">](https://github.com/int-brain-lab/viewephys)</span>. Displayed in real physical units (volts,</span>
+<span id="cb3-324"><a href="#cb3-324" aria-hidden="true" tabindex="-1"></a><span class="in">`a_scalar=1`</span> — <span class="in">`viewephys`</span>'s default silently redisplays in µV, which makes it easy to misjudge a</span>
+<span id="cb3-325"><a href="#cb3-325" aria-hidden="true" tabindex="-1"></a>saturation level against the ADC's actual voltage range). Gain is auto-computed and shared within</span>
+<span id="cb3-326"><a href="#cb3-326" aria-hidden="true" tabindex="-1"></a>each processing type (one common gain across both probes' raw panels, one across both destriped</span>
+<span id="cb3-327"><a href="#cb3-327" aria-hidden="true" tabindex="-1"></a>panels) so raw and destriped are each an apples-to-apples comparison across probes, though not</span>
+<span id="cb3-328"><a href="#cb3-328" aria-hidden="true" tabindex="-1"></a>against each other (raw and destriped sit on very different amplitude scales, so forcing one gain</span>
+<span id="cb3-329"><a href="#cb3-329" aria-hidden="true" tabindex="-1"></a>across both just washes out whichever panel it wasn't computed from).</span>
+<span id="cb3-330"><a href="#cb3-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-331"><a href="#cb3-331" aria-hidden="true" tabindex="-1"></a>The top axis overlays every digital sync bit that toggles in this window, stacked and colour-coded:</span>
+<span id="cb3-332"><a href="#cb3-332" aria-hidden="true" tabindex="-1"></a>**red** is <span class="in">`imec_sync`</span> — per each probe's own <span class="in">`wiring.json`</span>, the *only* bit actually wired on the</span>
+<span id="cb3-333"><a href="#cb3-333" aria-hidden="true" tabindex="-1"></a>probe's digital word — and **gray** is every other bit, which floats unconnected on the probe file</span>
+<span id="cb3-334"><a href="#cb3-334" aria-hidden="true" tabindex="-1"></a>(only nidq carries the full camera/frame2ttl/audio digital map). <span class="in">`imec_sync`</span> runs a clean, regular</span>
+<span id="cb3-335"><a href="#cb3-335" aria-hidden="true" tabindex="-1"></a>square wave straight through the burst (its ~4-5ms single-interval deviation there is invisible at</span>
+<span id="cb3-336"><a href="#cb3-336" aria-hidden="true" tabindex="-1"></a>this timescale); the floating bits are dead flat except for a tight noise burst exactly coincident</span>
+<span id="cb3-337"><a href="#cb3-337" aria-hidden="true" tabindex="-1"></a>with the raw saturation band on both probes — a third, independent line of evidence for a shared</span>
+<span id="cb3-338"><a href="#cb3-338" aria-hidden="true" tabindex="-1"></a>electrical transient, beyond the cross-probe timing match and the saturation itself.</span>
+<span id="cb3-339"><a href="#cb3-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-340"><a href="#cb3-340" aria-hidden="true" tabindex="-1"></a>Raw (undestriped): every channel rails to the same saturated band simultaneously, right at the</span>
+<span id="cb3-341"><a href="#cb3-341" aria-hidden="true" tabindex="-1"></a>burst — not a per-channel or per-region effect, but a full-array common-mode event:</span>
+<span id="cb3-342"><a href="#cb3-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-343"><a href="#cb3-343" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
+<span id="cb3-344"><a href="#cb3-344" aria-hidden="true" tabindex="-1"></a><span class="al">![probe00 (2adc4f5d), raw AP.](figures/4aab0f45_burst_probe00_raw.png)</span></span>
+<span id="cb3-345"><a href="#cb3-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-346"><a href="#cb3-346" aria-hidden="true" tabindex="-1"></a><span class="al">![probe01 (0d59e3a1), raw AP.](figures/4aab0f45_burst_probe01_raw.png)</span></span>
+<span id="cb3-347"><a href="#cb3-347" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-348"><a href="#cb3-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-349"><a href="#cb3-349" aria-hidden="true" tabindex="-1"></a>Destriped: the spatial referencing removes most of the common-mode saturation, which is why the</span>
+<span id="cb3-350"><a href="#cb3-350" aria-hidden="true" tabindex="-1"></a>defect is easy to miss in the extraction-time residual and only shows up as a small sawtooth:</span>
+<span id="cb3-351"><a href="#cb3-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-352"><a href="#cb3-352" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
+<span id="cb3-353"><a href="#cb3-353" aria-hidden="true" tabindex="-1"></a><span class="al">![probe00 (2adc4f5d), destriped AP.](figures/4aab0f45_burst_probe00_destriped.png)</span></span>
+<span id="cb3-354"><a href="#cb3-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-355"><a href="#cb3-355" aria-hidden="true" tabindex="-1"></a><span class="al">![probe01 (0d59e3a1), destriped AP.](figures/4aab0f45_burst_probe01_destriped.png)</span></span>
+<span id="cb3-356"><a href="#cb3-356" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-357"><a href="#cb3-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-358"><a href="#cb3-358" aria-hidden="true" tabindex="-1"></a>Every channel saturating at once, on both probes, at the exact instant of the shared burst, is</span>
+<span id="cb3-359"><a href="#cb3-359" aria-hidden="true" tabindex="-1"></a>consistent with an electrical saturation event on a line common to both probes (e.g. a shared</span>
+<span id="cb3-360"><a href="#cb3-360" aria-hidden="true" tabindex="-1"></a>power or reference rail) rather than independent per-probe noise — stronger evidence than the</span>
+<span id="cb3-361"><a href="#cb3-361" aria-hidden="true" tabindex="-1"></a>timing coincidence alone, though still one session's worth of it.</span>
+<span id="cb3-362"><a href="#cb3-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-363"><a href="#cb3-363" aria-hidden="true" tabindex="-1"></a><span class="fu">## Appendix: raw AP evidence at the f2ea7211 duplicate_burst</span></span>
+<span id="cb3-364"><a href="#cb3-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-365"><a href="#cb3-365" aria-hidden="true" tabindex="-1"></a>The same check applied to <span class="in">`f2ea7211`</span> (<span class="in">`duplicate_burst`</span>, probe channel): raw AP streamed ±1s</span>
+<span id="cb3-366"><a href="#cb3-366" aria-hidden="true" tabindex="-1"></a>around the anomalous edge cluster (probe-local t≈1955.46s — a 58.3ms short gap, a 33.3μs</span>
+<span id="cb3-367"><a href="#cb3-367" aria-hidden="true" tabindex="-1"></a>micro-gap, then a 434.9ms gap, not the single clean double-trigger the "2 extra edges 33μs apart"</span>
+<span id="cb3-368"><a href="#cb3-368" aria-hidden="true" tabindex="-1"></a>summary suggests), same method and units as above.</span>
+<span id="cb3-369"><a href="#cb3-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-370"><a href="#cb3-370" aria-hidden="true" tabindex="-1"></a>![probe00 (f2ea7211), raw AP — the vertical band lands exactly on the anomalous-edge cluster in the</span>
+<span id="cb3-371"><a href="#cb3-371" aria-hidden="true" tabindex="-1"></a>top-axis <span class="in">`imec_sync`</span> trace.](figures/f2ea7211_dupburst_raw.png){width=70%}</span>
+<span id="cb3-372"><a href="#cb3-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-373"><a href="#cb3-373" aria-hidden="true" tabindex="-1"></a>Every channel hits almost exactly **±0.077V** in that band — this is this probe's ADC bipolar</span>
+<span id="cb3-374"><a href="#cb3-374" aria-hidden="true" tabindex="-1"></a>full-scale ceiling itself (±32767 counts × 2.34375μV/count ≈ ±76.8mV), pegged at both rails</span>
+<span id="cb3-375"><a href="#cb3-375" aria-hidden="true" tabindex="-1"></a>simultaneously, the textbook signature of hard clipping: the true underlying signal exceeded the</span>
+<span id="cb3-376"><a href="#cb3-376" aria-hidden="true" tabindex="-1"></a>ADC's input range and was clamped at its representable limit. Ordinary AP-band signal here sits</span>
+<span id="cb3-377"><a href="#cb3-377" aria-hidden="true" tabindex="-1"></a>around 30-65μV (see the "raw stats" baseline printed by the script) — three orders of magnitude</span>
+<span id="cb3-378"><a href="#cb3-378" aria-hidden="true" tabindex="-1"></a>below the clipped value. Unambiguous confirmation that the raw sample values themselves are</span>
+<span id="cb3-379"><a href="#cb3-379" aria-hidden="true" tabindex="-1"></a>corrupted at that instant, not merely that a threshold-crossing was mistimed. The destriped view</span>
+<span id="cb3-380"><a href="#cb3-380" aria-hidden="true" tabindex="-1"></a>isn't informative here (both the auto-gain and destriping's own referencing are themselves</span>
+<span id="cb3-381"><a href="#cb3-381" aria-hidden="true" tabindex="-1"></a>distorted by an outlier this extreme) so it's omitted.</span>
+<span id="cb3-382"><a href="#cb3-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-383"><a href="#cb3-383" aria-hidden="true" tabindex="-1"></a>This settles the question the case was checked for: it's a genuine electrical/ADC-saturation</span>
+<span id="cb3-384"><a href="#cb3-384" aria-hidden="true" tabindex="-1"></a>artefact coincident with the bad edges, not a plain comparator/front-detection quirk with</span>
+<span id="cb3-385"><a href="#cb3-385" aria-hidden="true" tabindex="-1"></a>otherwise-valid data underneath — the same signature as the <span class="in">`4aab0f45`</span> shared burst, just far more</span>
+<span id="cb3-386"><a href="#cb3-386" aria-hidden="true" tabindex="-1"></a>extreme (full-scale clipping vs. a sub-mV excursion).</span>
+<span id="cb3-387"><a href="#cb3-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-388"><a href="#cb3-388" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code references</span></span>
+<span id="cb3-389"><a href="#cb3-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-390"><a href="#cb3-390" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[`ibllib/ephys/sync_probes.py`](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py)**</span>
+<span id="cb3-391"><a href="#cb3-391" aria-hidden="true" tabindex="-1"></a>  (branch <span class="in">`pyproject-migration`</span>) — extraction code under diagnosis, out of scope for the fixes above:</span>
+<span id="cb3-392"><a href="#cb3-392" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`version3A`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L48)</span>,</span>
+<span id="cb3-393"><a href="#cb3-393" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`version3B`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L117)</span>,</span>
+<span id="cb3-394"><a href="#cb3-394" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`sync_probe_front_times`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L181)</span>,</span>
+<span id="cb3-395"><a href="#cb3-395" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`_check_diff_3b`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/ephys/sync_probes.py#L275)</span>.</span>
+<span id="cb3-396"><a href="#cb3-396" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[`brainbox/io/one.py`](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py)** —</span>
+<span id="cb3-397"><a href="#cb3-397" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`SpikeSortingLoader`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L591)</span>,</span>
+<span id="cb3-398"><a href="#cb3-398" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`_get_probe_info`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L1021)</span></span>
+<span id="cb3-399"><a href="#cb3-399" aria-hidden="true" tabindex="-1"></a>  (builds the <span class="in">`interp1d(fill_value='extrapolate')`</span> this analysis' long-term fix patches),</span>
+<span id="cb3-400"><a href="#cb3-400" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">`samples2times`</span><span class="co">](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/brainbox/io/one.py#L1053)</span>.</span>
+<span id="cb3-401"><a href="#cb3-401" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[`attach_ibl_metadata.py::compute_sync()`](https://github.com/int-brain-lab/sdsc-slurms/blob/3b192952d45aaef9e5fbc1df7a02f8327f6dda35/2026-06-lfpack/attach_ibl_metadata.py#L108)** —</span>
+<span id="cb3-402"><a href="#cb3-402" aria-hidden="true" tabindex="-1"></a>  the short-term lfpack fix target.</span>
+<span id="cb3-403"><a href="#cb3-403" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[`test_ephys_synchronization.py`](https://github.com/int-brain-lab/ibllib/blob/6215ee3f97e29b70b0953497370215774a197bb4/ibllib/tests/integration/test_ephys_synchronization.py)** —</span>
+<span id="cb3-404"><a href="#cb3-404" aria-hidden="true" tabindex="-1"></a>  existing <span class="in">`version3A`</span>/<span class="in">`version3B`</span> coverage, must keep passing (extractor is out of scope, but</span>
+<span id="cb3-405"><a href="#cb3-405" aria-hidden="true" tabindex="-1"></a>  this is the tripwire if that changes).</span>
+<span id="cb3-406"><a href="#cb3-406" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`sync_investigation.py`</span> (this directory) — the full re-derivation, classification, and</span>
+<span id="cb3-407"><a href="#cb3-407" aria-hidden="true" tabindex="-1"></a>  figure-generation pipeline used for this analysis. **Not yet pushed** (local-only branch</span>
+<span id="cb3-408"><a href="#cb3-408" aria-hidden="true" tabindex="-1"></a>  <span class="in">`analysis/lfpack-sync-issues`</span> in <span class="in">`oliche-quarto`</span>) — link to add once pushed.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Olivier Winter</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
