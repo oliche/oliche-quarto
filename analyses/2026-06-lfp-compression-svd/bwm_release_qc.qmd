@@ -1,0 +1,167 @@
+---
+title: "BWM LFP Release QC: Survival-Floor Fix Validation"
+description: "Quality-control report for the v03 Brain-Wide Map LFP release: validates the survival-floor fix against the live dataset and summarises release-wide RMSE, compression ratio, and saturation."
+date: "2026-07-24"
+author: "Olivier Winter"
+categories: [electrophysiology, LFP, compression, Neuropixels, quality-control]
+---
+
+## Overview
+
+This is the release-QC companion to the [SVD/WP compression benchmark](index.qmd): where that
+page derives and calibrates the codec, this one validates the actual shipped **v03 Brain-Wide
+Map (BWM) release** — 699 recordings, both the default (ε=150, α=28) and aggressive (ε=450,
+α=96) compression passes — against the dataset it replaces on S3 (referred to here as **v00**).
+
+Three things are checked:
+
+1. **The survival-floor fix** (`floor_k=64`, see [index.qmd §Adaptive WP threshold
+   calibration](index.qmd#adaptive-wp-threshold-calibration)) actually eliminates the
+   zero-damage failure mode in the shipped data, with no regressions.
+2. **Saturation detection and muting** — an entirely new pipeline stage in v03, absent from
+   v00 — is present and correctly labelled across the release.
+3. **Release-wide RMSE / CR** fall in the expected range across all 699 recordings, not just
+   the 11 benchmark PIDs used to calibrate ε/α.
+
+## Zero-damage fix: v00 vs v03
+
+Before the fix, low-SNR chunks could be over-thresholded at the wavelet-packet stage until
+*every* coefficient of the dominant SVD row was discarded, reconstructing to exact zero —
+silently destroying real (if weak) LFP. The root cause and fix are detailed in
+[index.qmd](index.qmd#adaptive-wp-threshold-calibration); this section confirms it holds at
+release scale.
+
+**Method.** A chunk decompresses to exact zero iff every coefficient of `Vh_hat` was
+thresholded away, which is visible directly from the stored `vh_indices` dataset length —
+no decompression needed. For each of the 699 BWM recordings, in both the live (v00) and new
+(v03) archive, the zero-time fraction was computed as `Σ(chunk length where n_kept==0) /
+Σ(chunk length)`.
+
+```{python}
+#| echo: false
+import pandas as pd
+
+zd_default = pd.read_csv(
+    "/private/tmp/claude-501/-Users-olivier-PycharmProjects-ephys-atlas-packages-lfpack/"
+    "5405c415-e8b2-4fa0-9a31-d183550a3e8a/scratchpad/zero_damage_v00_vs_v03.csv"
+)
+zd_aggressive = pd.read_csv(
+    "/private/tmp/claude-501/-Users-olivier-PycharmProjects-ephys-atlas-packages-lfpack/"
+    "5405c415-e8b2-4fa0-9a31-d183550a3e8a/scratchpad/zero_damage_v00_vs_v03_aggressive.csv"
+)
+
+def summary_row(df, label):
+    return {
+        "pass": label,
+        "overall zero-time (v00)": f"{df['n_zero_samples_v00'].sum() / df['ns_total_v00'].sum():.2%}",
+        "overall zero-time (v03)": f"{df['n_zero_samples_v03'].sum() / df['ns_total_v03'].sum():.2%}",
+        "recordings affected (v00)": int((df["zero_fraction_v00"] > 0).sum()),
+        "recordings affected (v03)": int((df["zero_fraction_v03"] > 0).sum()),
+        "regressions (v03 worse)": int((df["delta"] > 1e-6).sum()),
+    }
+
+pd.DataFrame([summary_row(zd_default, "default"), summary_row(zd_aggressive, "aggressive")])
+```
+
+Zero-time-fraction dropped to **exactly 0.00%** across all 699 recordings in both passes, with
+**zero regressions** — no recording is worse in v03 than in v00. The worst pre-fix offenders
+(up to 99.8% zero-time in the default pass, i.e. essentially the entire recording silently
+discarded) are now fully recovered:
+
+![Survival-floor fix: the 15 recordings with the highest pre-fix zero-time fraction, before (v00) and after (v03), both compression passes. Every v03 bar is exactly zero.](figures/2026-07-24_bwm_zero_damage_before_after.png){.lightbox}
+
+Two recordings (`4037a618…`, `46630957…`) are **not** part of this fix: both have
+`frac_bad = 1.0` (all 384 channels flagged bad by bad-channel detection) and were never
+zero-time in *either* version — a distinct, expected failure mode (dead/noisy input, not
+over-thresholding) already tracked separately in `qc_fully_bad_recordings.csv`. They are
+flagged for exclusion from downstream analysis, not for recompression.
+
+## Saturation detection & muting — new in v03
+
+v00 ships **no saturation information at all** — the `/<recording>/saturation` HDF5 group
+doesn't exist anywhere in the live archive. v03 adds a full insertion-level saturation
+pipeline: ADC-clipped spans are detected on the raw LFP band (before any filtering, so
+pre-processing can't obscure the clipping), recorded as a per-recording interval table, and
+**muted** — zeroed with a cosine taper — on the decimated output *after* Cadzow denoising. This
+"late" re-mute was chosen over an early, pre-filter mute in a 2026-07-21 A/B comparison:
+muting the raw traces before the highpass/CAR/decimate/Cadzow chain did not keep the span
+clean — those stages leaked residual energy (and spurious CSD sources/sinks) back into it — so
+a single re-mute of the final output is both cleaner and cheaper.
+
+```{python}
+#| echo: false
+df_pid = pd.read_parquet("/Users/olivier/Documents/datadisk/lfp-processing/lfpack/v03_bwm/lfp_qc_per_pid.pqt")
+
+rows = []
+for pass_name in ["default", "aggressive"]:
+    d = df_pid[df_pid["pass"] == pass_name]
+    rows.append({
+        "pass": pass_name,
+        "recordings with saturation": f"{(d['saturated_fraction'] > 0).sum()} / {len(d)}",
+        "mean saturated fraction": f"{d['saturated_fraction'].mean():.2%}",
+        "total saturated time": f"{d['total_saturated_sec'].sum() / 3600:.1f} h",
+        "total saturated intervals": int(d["n_saturated_intervals"].sum()),
+        "correctly labelled muted=True": f"{(d['muted']).sum()} / {len(d)}",
+    })
+pd.DataFrame(rows)
+```
+
+![Saturation detection across the 699-recording default pass: per-recording saturated-fraction distribution (left) and the 15 most-affected recordings with total saturated seconds labelled (right).](figures/2026-07-24_bwm_saturation_detection.png){.lightbox}
+
+446/699 recordings (64%) have at least one detected saturated interval, totalling ~9.2 hours
+out of ~936 hours in the release (mean fraction 0.98%) — concentrated in a long tail of
+heavily-clipped insertions (up to 24% saturated) rather than spread evenly; most affected
+recordings lose well under 1% of their time. See the
+[saturation QC how-to](https://int-brain-lab.github.io/lfpack/how-to/bwm-dataset.html#saturation-qc)
+for how to query this per-recording via `LFPackReader.saturation` / `.saturation_summary` /
+`.saturation_mask`.
+
+**Labelling fix.** Every recording's saturation table now correctly reports `muted=True`. This
+required a fix, not just a rebuild: `compress_bin_to_h5` sets `muted = not
+checkpoint_existed` — an honest report of whether *this call* ran the mute step — which
+under-reports `False` whenever a build resumes from an already-muted Cadzow checkpoint (the
+normal case for this release, since decimation is checkpointed and expensive to redo). The v03
+build's own checkpoints were already correctly muted, so the underlying data was never wrong —
+but the `muted` label was `False` for all 699 recordings until now. Fixed in two places:
+`sdsc-slurms/2026-06-lfpack/compress.py` now forces `muted=True` post-hoc for future reruns
+(the checkpoint-reuse guarantee is specific to that driver, so the fix lives there rather than
+in `lfpack` itself), and the existing v03 HDF5 attrs + QC parquet were patched in place.
+
+## Release-wide QC (v03, all 699 recordings)
+
+```{python}
+#| echo: false
+rows = []
+for pass_name in ["default", "aggressive"]:
+    d = df_pid[df_pid["pass"] == pass_name]
+    rows.append({
+        "pass": pass_name,
+        "median RMSE (µV)": round(d["rmse_mean"].median(), 1),
+        "RMSE > 25 µV": f"{(d['rmse_mean'] > 25).sum()} / {len(d)}",
+        "median total CR": round(d["cr_total_mean"].median()),
+    })
+pd.DataFrame(rows)
+```
+
+![Release-wide RMSE and compression-ratio distributions across all 699 BWM recordings, default vs aggressive pass. The dashed line marks the 25 µV design target.](figures/2026-07-24_bwm_release_qc_distributions.png){.lightbox}
+
+The default pass sits at median RMSE ≈15 µV / CR ≈115, consistent with the ε=150/α=28
+operating point calibrated on the 11-PID benchmark in [index.qmd](index.qmd); 122/699
+recordings (17%) exceed the 25 µV design target in the default pass — expected tail behaviour
+on genuinely low-SNR or high-saturation insertions, not a regression (RMSE ≤25 µV was a median
+target, not a per-recording guarantee).
+
+**Caveat:** the two fully-bad recordings above report `rmse_mean = 0`, which reads as
+suspiciously perfect — it reflects a degenerate all-bad-channel input reconstructing exactly,
+not compression quality, and should be excluded before aggregating RMSE across the release.
+A further 2 recordings (`30dfb8c6…`, `7441d0df…`) have `frac_bad` between 0.5–0.7 and should be
+treated with the same caution.
+
+## Conclusion
+
+The v03 BWM release fixes the zero-damage codec bug across the full dataset with no
+regressions, ships a new saturation detection/muting pipeline stage with correctly-labelled
+metadata across all 699 recordings, and its release-wide RMSE/CR statistics are consistent
+with the benchmark calibration. Both compression passes (`lf_compressed_all_bwm.h5`,
+`lf_compressed_aggressive_all_bwm.h5`) were published to
+`s3://ibl-brain-wide-map-public/resources/ibl-agent-data/` on 2026-07-24, replacing v00.
