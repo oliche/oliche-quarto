@@ -9,6 +9,7 @@ project:
     - analyses/2026-06-lfp-compression-svd/index.qmd
     - analyses/2026-07-lfp-encoders/index.qmd
     - analyses/2026-08-lfpack-sync-issues/index.qmd
+    - analyses/2026-08-agea-25um-decoding/index.qmd
 
 website:
   title: "Analysis Hub"

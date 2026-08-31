@@ -1,0 +1,70 @@
+---
+title: "25um Gene-Expression Atlas: Region-Decoding Baseline"
+description: "First-pass region-decoding accuracy on the preliminary, un-denoised 25um EBRAINS gene-expression volumes, ahead of a PPCA-based denoise/impute pipeline."
+date: "2026-08-31"
+author: "Olivier Winter"
+categories: [genomics, gene-expression, AGEA, decoding, anatomy]
+---
+
+## Overview
+
+The existing AGEA denoise/impute pipeline
+([`06-denoise-impute.py`](https://github.com/int-brain-lab/iblatlas/blob/main/iblatlas/genomics/gene_expression_scrapping/06-denoise-impute.py))
+merges hemispheres, fills missing genes per voxel via PPCA across genes, and corrects a
+slice-to-slice staining artefact ("curtaining") on the 200um Allen Gene Expression Atlas
+(AGEA). We are extending this to 25um, using a new, much higher-resolution gene-expression
+dataset — Carey, Piluso, Bjerke et al. (2026),
+[*An interactive 3D atlas of gene expression in the mouse brain*](https://doi.org/10.64898/2026.01.20.700446),
+bioRxiv — which re-registers over 401,000 ISH sections (4,083 genes) to the Allen CCF at 25um.
+
+Before the raw, mask-carrying dataset is available, we ran a first pass on a preliminary,
+already-interpolated (not yet denoised/imputed) export of the same 4,083 genes, to
+(a) validate the tooling end-to-end on the real data format and (b) establish a reference
+region-decoding accuracy.
+
+## Method
+
+- **Format**: one NIfTI (`.nii.gz`) per gene, `(566, 320, 456)` voxels, 25um isotropic,
+  uint8-quantized. No separate anatomical registration or data-availability mask ships with
+  this preliminary export.
+- **Atlas registration**: this NIfTI grid is not natively bregma-registered like
+  [`iblatlas.atlas.AllenAtlas`](https://int-brain-lab.github.io/iblenv/_autosummary/iblatlas.html#module-iblatlas).
+  Its axis order matches Allen's `(ap, dv, ml)` by voxel count (`dv=320`, `ml=456` match
+  exactly; `ap=566` vs. Allen's `528`, i.e. 38 voxels of extra padding). The AP offset was
+  found empirically by maximizing the Dice overlap between this dataset's cross-gene
+  "ever nonzero" brain footprint and `AllenAtlas(res_um=25).label != 0`:
+  `nifti_ap = allen_ap + 14` (no shift needed on `dv`/`ml`), **Dice = 0.995**.
+- **Resolution & sampling**: rather than an arbitrary voxel subsample at 25um, each gene
+  volume was cropped to the aligned window and mean-pooled 8x8x8 down to 200um — the
+  resolution `06-denoise-impute.py` trains at — reusing the region-label volume the same
+  way, mode-pooled (following the aggregation convention already used in
+  [`05-generate-atlas-templates.py`](https://github.com/int-brain-lab/iblatlas/blob/main/iblatlas/genomics/gene_expression_scrapping/05-generate-atlas-templates.py)).
+  **All 62,879 in-brain voxels** were used — no subsampling, mirroring the original
+  pipeline's use of the full brain.
+- **Decoding**: `StandardScaler` + `PCA` (50 components) on the pooled `(62879, 4083)`
+  matrix, then an `MLPClassifier` (`hidden_layer_sizes=(50,)`) predicting Allen and Cosmos
+  region labels, evaluated under two train/test splits: a plain random 80/20 split (matches
+  the original script) and a spatially-grouped split (600um blocks held out whole, to check
+  for leakage from spatial autocorrelation between adjacent voxels).
+
+## Results
+
+| Region level | Split | Accuracy |
+|---|---|---:|
+| Cosmos (11 classes) | random | 0.936 |
+| Cosmos (11 classes) | spatial block | 0.920 |
+| Allen (fine-grained) | random | 0.746 |
+| Allen (fine-grained) | spatial block | 0.679 |
+
+The random-vs-block gap at both levels is consistent with spatial-autocorrelation leakage
+in the random split — larger at Allen level, where regions are smaller and more sensitive
+to nearby-voxel leakage. The top 50 PCA components explain ~46% of gene-expression
+variance, leaving room to improve once the data is properly denoised/imputed.
+
+## Conclusion
+
+Even on preliminary, un-denoised 25um data, region identity is well recovered from gene
+expression alone (92% Cosmos, 68% Allen, spatially-held-out). This is a solid reference
+point: format handling, atlas registration, and the decoding harness all work end-to-end
+on the real EBRAINS-derived data, ahead of building the PPCA-based denoise/impute pipeline
+for the final raw, mask-carrying dataset.
