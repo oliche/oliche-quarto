@@ -1,0 +1,147 @@
+---
+title: "LFP Compression: Tuning an Intermediate Tier"
+description: "Three sweeps across the 11 benchmark recordings (alpha only, epsilon only, and both jointly) to find a decoding-aware intermediate compression tier between the shipped default and aggressive passes."
+date: "2026-08-31"
+author: "Olivier Winter"
+categories: [electrophysiology, LFP, compression, Neuropixels, decoding]
+---
+
+## Overview
+
+[decoding_validation.qmd](decoding_validation.qmd) showed the shipped aggressive tier
+(ε=450, α=96) measurably hurts decoding — feedback especially — with no warning from RMSE, the
+metric it was calibrated on, and proposed retiring it in favour of a decoding-aware
+intermediate tier. This page runs that search across the same 11 benchmark recordings, all
+three decode targets (wheel speed, choice, feedback), and lands on a single recommendation.
+
+**Bottom line: there is no free intermediate tier.** Sweeping α alone (ε=150 fixed) or ε alone
+(α=28 fixed) both leave the compression ratio essentially flat while decoding keeps eroding —
+neither parameter is a usable lever on its own. Only scaling **both together** traces a real
+trade-off curve, and on that curve, moving *any* distance from the current default costs
+real feedback-decoding fidelity from the first step, with no favourable "knee." **Recommendation:
+keep the shipped default (ε=150, α=28) as the cohort-wide tier**; if more compression is
+required, ε=250/α=50 (~104× realized, vs default's 87×) is the only non-dominated compromise
+found — a real, disclosed cost (feedback retention 0.575 vs default's 0.597), not a free win.
+Retire the aggressive tier either way: it is not on the useful part of the curve for
+decoding-sensitive downstream use.
+
+## Method
+
+Same pipeline as [decoding_validation.qmd](decoding_validation.qmd#method): band-power
+envelope features (log Hilbert amplitude, delta/theta/beta/gamma, 96 channels), RidgeCV for
+wheel speed (R²), standardized LogisticRegressionCV for choice/feedback (balanced accuracy,
+5-fold CV, simple per-fold label-shuffle null). Each compression tier is a fresh
+`lfpack.compress_to_h5` build from the same Cadzow-denoised checkpoint
+(`lf_resampled_car_cadzow.npy`) used throughout the SVD benchmark, so tiers differ only in
+(ε, α) — no other pipeline stage changes.
+
+Three sweeps, in the order they were actually run (each motivated by what the previous one
+found):
+
+1. **α only**, ε=150 fixed: α ∈ {28 (default), 40, 55, 70, 75, 80, 85, 90, 96}.
+2. **ε only**, α=28 fixed: ε ∈ {150 (default), 225, 300, 375, 450}.
+3. **Diagonal**: (ε, α) scaled together along the line from default (150, 28) to the shipped
+   aggressive point (450, 96): (250, 50) and (350, 75).
+
+Every sweep also reports each tier's on-disk file size (summed across the 11 recordings) and
+channel-averaged Welch PSD, to check the high-frequency roll-off directly rather than infer it
+from RMSE.
+
+## Sweep 1: alpha alone doesn't buy compression
+
+```{python}
+#| echo: false
+import pandas as pd
+m = pd.read_csv("2026-08-31_compression_tuning_metrics.csv")
+alpha_order = ["uncompressed", "alpha28 (default)", "alpha40", "alpha55", "alpha70", "alpha75",
+               "alpha80", "alpha85", "alpha90", "alpha96 (eps150)"]
+tbl = m.groupby("tier")[["r2_wheel", "balanced_accuracy_choice", "balanced_accuracy_feedback", "cr_realized"]].mean().loc[alpha_order]
+tbl.round(3)
+```
+
+![Alpha sweep (ε=150 fixed): wheel R², choice/feedback balanced accuracy, and total file size (with realized CR labelled), 11 recordings, one box per tier.](figures/2026-08-31_alpha_sweep_decoding_summary_full.png){.lightbox}
+
+![Median channel-averaged PSD, alpha sweep. Curves fan out cleanly in beta/gamma as α rises — real high-frequency loss — but see below: it doesn't shrink the files.](figures/2026-08-31_alpha_sweep_psd_full.png){.lightbox}
+
+Raising α from 28 to 96 moves total file size from 0.242 GB to 0.211 GB across the 11
+recordings — a 13% reduction, realized CR 87×→98×. Feedback balanced accuracy over the same
+range drops from a mean retained fraction of 0.688 to 0.388 (chance-corrected against
+uncompressed). The PSD figure confirms α *is* removing real high-frequency content the whole
+way — it just isn't buying proportional storage savings once ε is fixed. **α outside its
+calibrated default is a real cost for negligible benefit.**
+
+## Sweep 2: epsilon alone doesn't buy compression either
+
+```{python}
+#| echo: false
+eps_order = ["uncompressed", "alpha28 (default)", "eps225 (alpha28)", "eps300 (alpha28)",
+             "eps375 (alpha28)", "eps450 (alpha28)"]
+m.groupby("tier")[["r2_wheel", "balanced_accuracy_choice", "balanced_accuracy_feedback", "cr_realized"]].mean().loc[eps_order].round(3)
+```
+
+![Epsilon sweep (α=28 fixed): same layout as above.](figures/2026-08-31_epsilon_sweep_decoding_summary.png){.lightbox}
+
+![Median channel-averaged PSD, epsilon sweep.](figures/2026-08-31_epsilon_sweep_psd.png){.lightbox}
+
+Same story: total size only drops from 0.242 GB (ε=150) to 0.211 GB (ε=450) — 87×→100× realized
+— while feedback retention falls from 0.688 to 0.603. **The most striking number here isn't in
+either table: `eps450 (alpha28)` is 0.211 GB at 100× realized CR, but the shipped aggressive
+tier — same ε=450, but α=96 instead of 28 — is 0.098 GB at 217× realized CR.** Same rank
+truncation, more than double the compression, purely from raising α. That contradicts sweep 1,
+where raising α at ε=150 barely moved the needle. **ε and α interact**: α's leverage over file
+size depends on ε, and vice versa. Neither axis is a free-standing lever — the compression
+payoff only appears when both are pushed together, which is exactly what the two-tier design
+(default vs. aggressive) already does, just as a single large jump with nothing in between.
+
+## Sweep 3: the diagonal — where the real trade-off lives
+
+```{python}
+#| echo: false
+diag_order = ["uncompressed", "alpha28 (default)", "eps250/alpha50", "eps350/alpha75",
+              "aggressive (eps450, alpha96, shipped)"]
+tbl = m.groupby("tier")[["r2_wheel", "balanced_accuracy_choice", "balanced_accuracy_feedback", "cr", "cr_realized"]].mean().loc[diag_order]
+tbl["total_GB"] = m.groupby("tier")["file_bytes"].sum().loc[diag_order] / 1e9
+tbl.round(3)
+```
+
+![Diagonal sweep (ε and α scaled together, from default to the shipped aggressive point): the real Pareto curve.](figures/2026-08-31_diagonal_sweep_decoding_summary.png){.lightbox}
+
+![Median channel-averaged PSD, diagonal sweep — cleanly ordered by compression level.](figures/2026-08-31_diagonal_sweep_psd.png){.lightbox}
+
+This is the real trade-off curve: realized CR climbs steadily (87× → 104× → 128× → 217×) as
+total size falls (0.242 → 0.201 → 0.163 → 0.098 GB), and feedback balanced accuracy declines
+in step (mean retained fraction 0.688 → 0.530 → 0.410 → 0.402). Two things stand out:
+
+- **No favourable knee.** The curve declines continuously and immediately from the very first
+  step away from default — there's no point where a chunk of compression is "free." Choosing an
+  intermediate tier is choosing how much feedback fidelity to spend, not finding a shortcut
+  past that cost.
+- **`eps350/alpha75` is dominated by the shipped aggressive tier.** It costs almost the same
+  feedback retention (0.410 vs. aggressive's 0.402) for barely half the compression (128× vs.
+  217×). If more compression than `eps250/alpha50` is ever acceptable, there is no reason to
+  stop at `eps350/alpha75` — go straight to aggressive.
+
+## Recommendation
+
+For the full ephys-atlas cohort compression run:
+
+- **Default (ε=150, α=28) stays the standard tier.** No tested point clears even a modest
+  (85%) retained-decoding bar relative to uncompressed, and default is the only tier that gets
+  close (0.688 on the binding feedback constraint).
+- **If additional storage savings are required, use ε=250, α=50** — the only non-dominated
+  intermediate point found (~104× realized CR, ~17% smaller than default's already-small
+  footprint) at a real, disclosed cost (feedback retention drops to 0.575 from default's
+  0.597 in absolute terms, 0.530 vs. 0.688 chance-corrected). Do not use `eps350/alpha75`
+  — it is dominated by the existing aggressive tier.
+- **Retire the current aggressive tier (ε=450, α=96)** for decoding-sensitive downstream use,
+  per [decoding_validation.qmd](decoding_validation.qmd). It remains a legitimate choice *only*
+  if ~104× (ε=250/α=50) isn't enough compression and the feedback-decoding cost of going all the
+  way to ~217× is explicitly accepted — but nothing between `eps250/alpha50` and aggressive is
+  worth shipping.
+
+**Practical note for the cluster run:** every tier here was built with `lfpack.compress_to_h5`
+directly from the existing `lf_resampled_car_cadzow.npy` Cadzow checkpoints already on disk for
+the 11 benchmark recordings (build cost ≈10-60s/recording per tier; no re-download or
+re-denoising needed). The same call — `compress_to_h5(cadzow_npy, out_h5, recording=pid,
+epsilon=250.0, alpha=50.0, fs=250.0, ...)` — is what should run per-recording on the full
+cohort if the ε=250/α=50 tier is adopted.
