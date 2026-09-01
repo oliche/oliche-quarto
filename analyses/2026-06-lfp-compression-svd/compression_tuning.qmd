@@ -29,12 +29,13 @@ differently depending on ε's choice of surviving components. This turns out to 
 below.
 
 **Bottom line:** the shipped aggressive tier (ε=450, α=96) measurably hurts decoding — feedback
-especially — with no warning from RMSE. Sweeping ε or α *alone* barely buys any extra
-compression over default while still costing decoding fidelity; only scaling both together
-traces a real trade-off, and on it, default (ε=150, α=28) already sits close to the useful
-edge. **Recommendation: retire the aggressive tier; keep default as standard; ε=250/α=50 is
-the only non-dominated fallback if more compression is ever required.** A full 2D grid (next
-page) will refine this.
+especially — with no warning from RMSE. Neither parameter is a usable lever on its own: α alone
+reliably costs decoding fidelity (confirmed with a paired test below) without buying real
+compression, and ε alone buys no compression either, nor — once properly tested — does it
+reliably cost decoding at all. Real compression only appears when both are pushed together,
+and a full 42-cell (ε, α) grid (mild through aggressive) now maps that trade-off directly.
+**Recommendation: retire the aggressive tier; keep default (ε=150, α=28) as standard; ε=450,
+α=28 is the best non-dominated upgrade if more compression is required.**
 
 ## Method
 
@@ -78,11 +79,20 @@ least affected.
 
 Sweeping **ε alone** (α=28 fixed, ε ∈ 150–450) or **α alone** (ε=150 fixed, α ∈ 28–96) both left
 total file size across the 11 recordings essentially flat (0.242 GB → ~0.21 GB either way, an
-~13% reduction) while feedback-decoding retention kept dropping (to 0.60/0.39 of uncompressed,
-chance-corrected). Neither axis alone is a usable lever. Yet at ε=450, moving α from 28→96 —
-the shipped aggressive tier vs. the same ε at default's α — *nearly halves* the file size
-(0.211 GB → 0.098 GB): the ε/α interaction described above in action. Real compression only
-appears when both are pushed together.
+~13% reduction). But their effect on decoding fidelity is *not* symmetric, and the raw per-
+recording numbers are easy to misread here: feedback balanced accuracy varies enormously
+between recordings (SD ≈0.11 at a single grid cell — some recordings decode feedback near
+chance, others above 0.8), which swamps both parameters' effects unless it's controlled for. A
+paired per-recording test (same 11 recordings, before vs. after moving one parameter) shows
+they're not equivalent: moving **α** from 28→96 (ε=150 fixed) drops feedback balanced accuracy
+in **10/11 recordings** (Wilcoxon p=0.005) — a real, consistent effect. Moving **ε** from
+150→450 (α=28 fixed) only drops it in 6/11 (p=0.17) — **not distinguishable from
+between-recording noise**, and driven almost entirely by two strong-feedback-decoding
+recordings rather than a general effect. So: α alone reliably costs decoding fidelity without
+buying compression; ε alone buys no compression either, but its apparent decoding cost mostly
+isn't real. Yet at ε=450, moving α from 28→96 — the shipped aggressive tier vs. the same ε at
+default's α — *nearly halves* the file size (0.211 GB → 0.098 GB): the ε/α interaction
+described above, in action. Real compression only appears when both are pushed together.
 
 ```{python}
 #| echo: false
@@ -100,22 +110,61 @@ tbl.round(3)
 Realized CR climbs steadily (87×→104×→128×→217×) as feedback retention falls in step
 (0.688→0.530→0.410→0.402) — **no free knee**: every step away from default costs real fidelity
 immediately. `eps350/alpha75` is dominated by the shipped aggressive tier (almost the same
-feedback cost, barely half the compression) — not worth using.
+feedback cost, barely half the compression) — not worth using. This diagonal only sampled the
+line between two points, though — the full grid below covers the surface.
+
+## Full 2D grid
+
+ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than
+default through the shipped aggressive point), all 11 recordings, all three decode targets.
+
+```{python}
+#| echo: false
+g = pd.read_csv("2026-09-01_full_grid_metrics.csv")
+grid = g.dropna(subset=["epsilon"])
+grid.groupby(["epsilon", "alpha"])[["r2_wheel", "balanced_accuracy_choice",
+                                     "balanced_accuracy_feedback", "cr_realized"]].mean().round(3)
+```
+
+![Mean decode metrics and realized CR over the full (ε, α) grid.](figures/2026-09-01_grid_heatmaps.png){.lightbox}
+
+The heatmaps make the asymmetry from the previous section visible directly: wheel and feedback
+both shift clearly moving *across* alpha (columns) but barely at all moving *down* epsilon
+(rows) — until the (450, 96) corner, which stands out as a clear outlier in the CR panel (217×
+vs. 140× and 135× in its immediate neighbors), the interaction in action.
+
+![Decoding metrics grouped by epsilon (hue = alpha), plotted as each recording's own delta from its default (150,28) cell — this removes the ~0.11 SD between-recording offset that hides the effect in raw values.](figures/2026-09-01_grid_boxplots_by_epsilon.png){.lightbox}
+
+![Total compressed size grouped by epsilon (hue = alpha) — the (450,96) bar is visibly shorter than its neighbors, again the interaction.](figures/2026-09-01_grid_barplot_size_by_epsilon.png){.lightbox}
+
+![Curves per alpha vs. epsilon (thin = per-recording, heavy = median). Decoding curves are nearly flat against epsilon at any fixed alpha; only CR keeps climbing, and does so more steeply for higher alpha.](figures/2026-09-01_grid_curves_per_alpha.png){.lightbox}
+
+![Pareto: realized CR vs. chance/zero-corrected retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png){.lightbox}
+
+**The true Pareto frontier** (cells where no other cell has both higher realized CR and higher
+retained feedback) contains 16 of the 42 cells, and default (150, 28) is on it — nothing
+dominates it. Stepping along the frontier past default is a real, gradual trade the whole way:
+(300, 28) barely improves CR (89× vs. 87×) for a real feedback cost (retained fraction
+0.640 vs. 0.688); (350, 28) and (450, 28) are close together and both meaningfully better value
+— (450, 28) reaches 100× for retained fraction 0.603, a small further cost over (350, 28)'s
+93×/0.605 for real extra compression. Past that, the frontier only continues by also raising α,
+which is where the interaction — and the larger feedback cost — kicks in.
 
 ## Recommendation
 
-- **Keep default (ε=150, α=28)** as the standard cohort-wide tier — no tested point clears even
-  a modest (85%) retained-decoding bar.
-- **If more compression is required, use ε=250, α=50** (~104× realized, ~17% smaller than
-  default) — a real, disclosed cost (feedback retention 0.530 vs. default's 0.688,
-  chance-corrected), not a free win.
-- **Retire the aggressive tier (ε=450, α=96)** for decoding-sensitive use. It's a legitimate
-  choice only if ~104× isn't enough and the larger feedback cost of ~217× is explicitly
-  accepted — nothing between ε=250/α=50 and aggressive is worth shipping.
+- **Keep default (ε=150, α=28)** as the standard cohort-wide tier — it's Pareto-efficient, and
+  every tested alternative trades away real feedback fidelity.
+- **If more compression is required, use ε=450, α=28** — 100× realized CR (0.211 GB vs.
+  default's 0.242 GB across the 11 recordings, both tiny next to uncompressed's 20.4 GB), R²
+  0.122 vs. default's 0.127, feedback balanced accuracy 0.585 vs. default's 0.597. That
+  feedback gap is not statistically distinguishable from between-recording noise (paired
+  Wilcoxon p=0.17) — the best-value, lowest-risk upgrade found on the whole grid.
+- **Retire the aggressive tier (ε=450, α=96).** Nothing between ε=450/α=28 and aggressive is
+  worth shipping — the frontier only gets there by also raising α, which is where the real,
+  significant decoding cost (p=0.005) lives.
+- **Worth knowing:** the α=14 row (any ε) gives noticeably *better* feedback retention than
+  default (up to 0.90) at a real storage cost (38–70× vs. default's 87×) — an option if a
+  future use case needs to beat default's fidelity rather than just approach it.
 - **Build command** (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no
-  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=250.0,
-  alpha=50.0, fs=250.0, ...)`.
-
-This diagonal-only search only sampled the line between two points, though. A full 2D grid
-across both parameters — from milder-than-default through aggressive — is in progress to
-properly characterize the ε/α trade-off surface.
+  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0,
+  alpha=28.0, fs=250.0, ...)`.
