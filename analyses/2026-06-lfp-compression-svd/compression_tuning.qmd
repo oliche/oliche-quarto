@@ -126,7 +126,7 @@ grid.groupby(["epsilon", "alpha"])[["r2_wheel", "balanced_accuracy_choice",
                                      "balanced_accuracy_feedback", "cr_realized"]].mean().round(3)
 ```
 
-![Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank.](figures/2026-09-01_grid_heatmaps.png){.lightbox}
+![Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank. Default and aggressive cells are outlined (red / orange).](figures/2026-09-01_grid_heatmaps.png){.lightbox}
 
 The heatmaps make the asymmetry from the previous section visible directly: wheel and feedback
 both shift clearly moving *across* alpha (columns) but barely at all moving *down* epsilon
@@ -145,7 +145,7 @@ wheel R², 0.597 vs. 0.642 feedback), and how far realized CR has to climb from 
 0.5, not 0. 1.0 means indistinguishable from uncompressed.
 
 ::: {.column-page}
-![Pareto: realized CR vs. retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png){.lightbox}
+![Pareto: realized CR vs. retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png){.lightbox}
 :::
 
 **The true Pareto frontier** (cells where no other cell has both higher realized CR and higher

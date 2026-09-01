@@ -275,7 +275,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="does-compression-hurt-decoding" class="level2">
 <h2 class="anchored" data-anchor-id="does-compression-hurt-decoding">Does compression hurt decoding?</h2>
-<div id="e4349c9a" class="cell" data-execution_count="1">
+<div id="762db75a" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
@@ -358,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="searching-for-an-intermediate-tier" class="level2">
 <h2 class="anchored" data-anchor-id="searching-for-an-intermediate-tier">Searching for an intermediate tier</h2>
 <p>Sweeping <strong>ε alone</strong> (α=28 fixed, ε ∈ 150–450) or <strong>α alone</strong> (ε=150 fixed, α ∈ 28–96) both left total file size across the 11 recordings essentially flat (0.242 GB → ~0.21 GB either way, an ~13% reduction). But their effect on decoding fidelity is <em>not</em> symmetric, and the raw per- recording numbers are easy to misread here: feedback balanced accuracy varies enormously between recordings (SD ≈0.11 at a single grid cell — some recordings decode feedback near chance, others above 0.8), which swamps both parameters’ effects unless it’s controlled for. A paired per-recording test (same 11 recordings, before vs.&nbsp;after moving one parameter) shows they’re not equivalent: moving <strong>α</strong> from 28→96 (ε=150 fixed) drops feedback balanced accuracy in <strong>10/11 recordings</strong> (Wilcoxon p=0.005) — a real, consistent effect. Moving <strong>ε</strong> from 150→450 (α=28 fixed) only drops it in 6/11 (p=0.17) — <strong>not distinguishable from between-recording noise</strong>, and driven almost entirely by two strong-feedback-decoding recordings rather than a general effect. So: α alone reliably costs decoding fidelity without buying compression; ε alone buys no compression either, but its apparent decoding cost mostly isn’t real. Yet at ε=450, moving α from 28→96 — the shipped aggressive tier vs.&nbsp;the same ε at default’s α — <em>nearly halves</em> the file size (0.211 GB → 0.098 GB): the ε/α interaction described above, in action. Real compression only appears when both are pushed together.</p>
-<div id="a0b0cc27" class="cell" data-execution_count="2">
+<div id="aa8b82f9" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="full-2d-grid" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="full-2d-grid">Full 2D grid</h2>
 <p>ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than default through the shipped aggressive point), all 11 recordings, all three decode targets.</p>
-<div id="ea8356e5" class="cell" data-execution_count="3">
+<div id="06004173" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
@@ -780,8 +780,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-09-01_grid_heatmaps.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank."><img src="figures/2026-09-01_grid_heatmaps.png" class="img-fluid figure-img" alt="Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank."></a></p>
-<figcaption>Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank.</figcaption>
+<p><a href="figures/2026-09-01_grid_heatmaps.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank. Default and aggressive cells are outlined (red / orange)."><img src="figures/2026-09-01_grid_heatmaps.png" class="img-fluid figure-img" alt="Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank. Default and aggressive cells are outlined (red / orange)."></a></p>
+<figcaption>Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank. Default and aggressive cells are outlined (red / orange).</figcaption>
 </figure>
 </div>
 <p>The heatmaps make the asymmetry from the previous section visible directly: wheel and feedback both shift clearly moving <em>across</em> alpha (columns) but barely at all moving <em>down</em> epsilon (rows) — until the (450, 96) corner, which stands out as a clear outlier in the CR panel (217× vs.&nbsp;140× and 135× in its immediate neighbors), the interaction in action. The corner cells also show plainly how close default’s decode metrics already sit to uncompressed (0.127 vs.&nbsp;0.139 wheel R², 0.597 vs.&nbsp;0.642 feedback), and how far realized CR has to climb from uncompressed’s 1×.</p>
@@ -801,8 +801,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p class="page-columns page-full"><a href="figures/2026-09-01_grid_pareto.png" class="lightbox page-columns page-full" data-gallery="quarto-lightbox-gallery-8" title="Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback."><img src="figures/2026-09-01_grid_pareto.png" class="img-fluid figure-img column-page" alt="Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback."></a></p>
-<figcaption>Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback.</figcaption>
+<p class="page-columns page-full"><a href="figures/2026-09-01_grid_pareto.png" class="lightbox page-columns page-full" data-gallery="quarto-lightbox-gallery-8" title="Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback."><img src="figures/2026-09-01_grid_pareto.png" class="img-fluid figure-img column-page" alt="Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback."></a></p>
+<figcaption>Pareto: realized CR vs.&nbsp;retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback.</figcaption>
 </figure>
 </div>
 </div>
@@ -1403,7 +1403,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>                                     <span class="st">"balanced_accuracy_feedback"</span>, <span class="st">"cr_realized"</span>]].mean().<span class="bu">round</span>(<span class="dv">3</span>)</span>
 <span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="al">![Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank.](figures/2026-09-01_grid_heatmaps.png)</span>{.lightbox}</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="al">![Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank. Default and aggressive cells are outlined (red / orange).](figures/2026-09-01_grid_heatmaps.png)</span>{.lightbox}</span>
 <span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>The heatmaps make the asymmetry from the previous section visible directly: wheel and feedback</span>
 <span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>both shift clearly moving *across* alpha (columns) but barely at all moving *down* epsilon</span>
@@ -1422,7 +1422,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>0.5, not 0. 1.0 means indistinguishable from uncompressed.</span>
 <span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a>::: {.column-page}</span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a><span class="al">![Pareto: realized CR vs. retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png)</span>{.lightbox}</span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a><span class="al">![Pareto: realized CR vs. retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png)</span>{.lightbox}</span>
 <span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>**The true Pareto frontier** (cells where no other cell has both higher realized CR and higher</span>
