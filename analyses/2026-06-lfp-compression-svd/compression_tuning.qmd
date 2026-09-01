@@ -126,20 +126,27 @@ grid.groupby(["epsilon", "alpha"])[["r2_wheel", "balanced_accuracy_choice",
                                      "balanced_accuracy_feedback", "cr_realized"]].mean().round(3)
 ```
 
-![Mean decode metrics and realized CR over the full (ε, α) grid.](figures/2026-09-01_grid_heatmaps.png){.lightbox}
+![Mean decode metrics and realized CR over the full (ε, α) grid. Uncompressed is added as a literal (ε=0, α=0) corner cell; the rest of that extra row/column is left blank.](figures/2026-09-01_grid_heatmaps.png){.lightbox}
 
 The heatmaps make the asymmetry from the previous section visible directly: wheel and feedback
 both shift clearly moving *across* alpha (columns) but barely at all moving *down* epsilon
 (rows) — until the (450, 96) corner, which stands out as a clear outlier in the CR panel (217×
-vs. 140× and 135× in its immediate neighbors), the interaction in action.
+vs. 140× and 135× in its immediate neighbors), the interaction in action. The corner cells also
+show plainly how close default's decode metrics already sit to uncompressed (0.127 vs. 0.139
+wheel R², 0.597 vs. 0.642 feedback), and how far realized CR has to climb from uncompressed's 1×.
 
-![Decoding metrics grouped by epsilon (hue = alpha), plotted as each recording's own delta from its default (150,28) cell — this removes the ~0.11 SD between-recording offset that hides the effect in raw values.](figures/2026-09-01_grid_boxplots_by_epsilon.png){.lightbox}
+![Decoding metrics grouped by epsilon (hue = alpha), plotted as each recording's own delta from its default (150,28) cell — this removes the ~0.11 SD between-recording offset that hides the effect in raw values. Uncompressed (blue dash-dot line) is each recording's own delta between its uncompressed and default scores, since it doesn't sit at any (ε, α) x-position.](figures/2026-09-01_grid_boxplots_by_epsilon.png){.lightbox}
 
-![Total compressed size grouped by epsilon (hue = alpha) — the (450,96) bar is visibly shorter than its neighbors, again the interaction.](figures/2026-09-01_grid_barplot_size_by_epsilon.png){.lightbox}
+![Total compressed size grouped by epsilon (hue = alpha), with the uncompressed total (20.4 GB, blue dash-dot line) for scale — every tested tier is at least ~40× smaller. The (450,96) bar is visibly shorter than its neighbors, again the interaction.](figures/2026-09-01_grid_barplot_size_by_epsilon.png){.lightbox}
 
-![Curves per alpha vs. epsilon (thin = per-recording, heavy = median). Decoding curves are nearly flat against epsilon at any fixed alpha; only CR keeps climbing, and does so more steeply for higher alpha.](figures/2026-09-01_grid_curves_per_alpha.png){.lightbox}
+**Retained fraction** (below) is how much of the uncompressed decode a tier keeps: for wheel,
+`R²(tier) / R²(uncompressed)`; for choice/feedback, `(balanced_accuracy(tier) - 0.5) /
+(balanced_accuracy(uncompressed) - 0.5)` — chance-corrected, since balanced accuracy's floor is
+0.5, not 0. 1.0 means indistinguishable from uncompressed.
 
-![Pareto: realized CR vs. chance/zero-corrected retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png){.lightbox}
+::: {.column-page}
+![Pareto: realized CR vs. retained decode fraction, one panel per target (marker size = alpha, colour = epsilon). Uncompressed (blue diamond) is the literal point (CR=1, retained=1.0) on these axes. Default (red star) sits on the frontier for wheel and near it for feedback.](figures/2026-09-01_grid_pareto.png){.lightbox}
+:::
 
 **The true Pareto frontier** (cells where no other cell has both higher realized CR and higher
 retained feedback) contains 16 of the 42 cells, and default (150, 28) is on it — nothing
