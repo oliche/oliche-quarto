@@ -116,7 +116,8 @@ line between two points, though — the full grid below covers the surface.
 ## Full 2D grid
 
 ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than
-default through the shipped aggressive point), all 11 recordings, all three decode targets.
+default through the shipped aggressive point), all three decode targets, across the same 11
+benchmark recordings used throughout this page — 14.8 h of LFP in total.
 
 ```{python}
 #| echo: false
@@ -137,7 +138,9 @@ wheel R², 0.597 vs. 0.642 feedback), and how far realized CR has to climb from 
 
 ![Decoding metrics grouped by epsilon (hue = alpha), plotted as each recording's own delta from its default (150,28) cell — this removes the ~0.11 SD between-recording offset that hides the effect in raw values. Uncompressed (blue dash-dot line) is each recording's own delta between its uncompressed and default scores, since it doesn't sit at any (ε, α) x-position.](figures/2026-09-01_grid_boxplots_by_epsilon.png){.lightbox}
 
-![Total compressed size grouped by epsilon (hue = alpha), with the uncompressed total (20.4 GB, blue dash-dot line) for scale — every tested tier is at least ~40× smaller. The (450,96) bar is visibly shorter than its neighbors, again the interaction.](figures/2026-09-01_grid_barplot_size_by_epsilon.png){.lightbox}
+![Total compressed size grouped by epsilon (hue = alpha), log scale, with the uncompressed total (20.4 GB, blue dash-dot line) for scale — every tested tier is at least ~40× smaller — and a secondary axis converting size directly to realized CR. The (450,96) bar is visibly shorter than its neighbors, again the interaction.](figures/2026-09-01_grid_barplot_size_by_epsilon.png){.lightbox}
+
+![Same, linear scale (bars stay honestly zero-based; the uncompressed line is dropped here since at 20.4 GB it would flatten every bar to an invisible sliver) — makes the actual size differences between adjacent cells easier to judge than the log version above.](figures/2026-09-01_grid_barplot_size_by_epsilon_linear.png){.lightbox}
 
 **Retained fraction** (below) is how much of the uncompressed decode a tier keeps: for wheel,
 `R²(tier) / R²(uncompressed)`; for choice/feedback, `(balanced_accuracy(tier) - 0.5) /
