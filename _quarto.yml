@@ -11,6 +11,7 @@ project:
     - analyses/2026-07-lfp-encoders/index.qmd
     - analyses/2026-08-lfpack-sync-issues/index.qmd
     - analyses/2026-08-agea-25um-decoding/index.qmd
+    - analyses/2026-09-ts1-lfp-baseline/index.qmd
 
 website:
   title: "Analysis Hub"

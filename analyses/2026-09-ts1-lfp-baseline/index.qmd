@@ -1,0 +1,156 @@
+---
+title: "TS1 LFP Baseline"
+description: "First LFP-modality baseline for the ibl-benchmark TS1 suite: pipeline, bugs found, and the final 29-session results."
+date: "2026-09-03"
+author: "Olivier Winter"
+categories: [ibl-benchmark, lfp, ts1, decoding]
+---
+
+## Overview
+
+`ibl-benchmark`'s TS1 suite (behavior decoding from population activity) has no LFP-modality
+baseline. This analysis adds one: a classical band-power decoder, scored through the real
+`bwb_eval` submission pipeline on all 29 TS1 eval sessions, using
+[lfpack](https://github.com/int-brain-lab/lfpack)-compressed LFP read straight off S3.
+
+Code lives in `ibl-benchmark` at `src/ts1/models/single_session/lfp/` (untracked at time of
+writing — not yet committed to the repo).
+
+## Method
+
+**Features**: log Hilbert-amplitude envelope in four bands (delta 1-4 Hz, theta 4-8 Hz,
+beta 15-30 Hz, gamma 30-90 Hz), 96 channels per probe (4:1 spatial binning from 384),
+concatenated across a session's probes. Read directly from
+`/Users/olivier/Documents/datadisk/lfp-processing/lfpack/v03/lf_compressed_all.h5`
+(the "default" ~100x compression tier).
+
+**Trial windows, targets, splits**: read directly off S3 via HTTP range requests against
+the official `all_units` eval build's `.h5` files — h5py supports any seekable file-like
+object, so opening the archive over HTTPS and only touching the small
+`task_aligned_intervals` / `ts1_{split}_domain` / `ts1_normalize` / behavior-branch groups
+(never `spikes`/`units`) keeps each session's read to a few dozen small requests instead of
+a 0.6-4.4 GiB download. Verified byte-identical to the local-file path on a validation
+session before relying on it.
+
+**Decoders**:
+
+- `choice` / `reward` / `stimulus_contrast` (sequence-level): mean-pooled window feature →
+  `StandardScaler → PCA(30) → LogisticRegressionCV`.
+- `wheel_speed` / `whisker_motion_energy` / `{left,right}_paw_speed` / `licking_rate`
+  (timestep-level): `StandardScaler → PCA(120) → RidgeCV`.
+
+For both, training pools the causal `train ∪ val` domains (60% of the session) rather than
+just `train` (40%) — the sklearn estimators already do their own internal CV for
+hyperparameter selection, so a held-out validation split buys nothing extra. For the
+timestep tasks specifically, training uses the *whole continuous* `train ∪ val` trace
+(quiescent periods included), not just the ~300 disjoint 1 s trial windows — ~5x more
+samples, empirically the best of three training strategies tested (beat both
+trial-window-only and a movement-biased subset on every continuous task).
+
+Test predictions are always restricted to the official per-trial windows, since that's
+what `bwb_eval` ground truth covers.
+
+`wheel_speed` and `licking_rate` predictions are clipped at 0 post-hoc: both are physically
+nonnegative and left unnormalized by the benchmark (`wheel_speed = np.abs(velocity)`,
+`licking_rate` a count rate), so a negative prediction is never valid. `whisker_motion_energy`
+and the paw speeds are *not* clipped — those three are z-scored by the benchmark's own
+`ts1_normalize` pipeline before scoring, so roughly half their legitimate values are negative
+by construction; clipping there would destroy real signal, not fix an error.
+
+## Bugs found and fixed along the way
+
+- **Relative-vs-absolute timestamp bug**: target timestamps returned by a trial's own slice
+  are relative to that trial's `start`, but the LFP feature timestamps are absolute
+  session-clock time. Interpolating one against the other directly means every query point
+  lands hundreds to thousands of seconds outside the LFP's finite domain — every continuous-task
+  feature vector was silently corrupted by this until found. This alone was worth more than
+  any later tuning: wheel_speed R² went from -0.053 to +0.023 on the session it was found on.
+- **PCA(30) on ~85k pooled whole-domain samples** was leaving real accuracy on the table
+  purely as a regularization artifact: a components sweep (30/60/120/250/None x two alpha
+  ranges) found PCA(120) consistently better on all three continuous tasks tested, e.g.
+  wheel_speed 0.023 → 0.043 on the same session.
+- **log1p on wheel_speed** (tried on the hypothesis that a right-skewed, nonnegative target
+  should fit better in log-space) made things *worse*, not better (0.043 → -0.019) — likely
+  because log1p's main benefit (compressing a long near-zero tail) doesn't help where the
+  model is actually scored: trial-locked windows where speed is already elevated, not near
+  zero. Simple clipping at 0 was the better fix.
+
+## Results
+
+### All 8 tasks, 29 sessions, official `bwb_eval` scoring
+
+| Task | Metric | Mean ± std | Chance | Sessions positive |
+|---|---|---|---|---|
+| **choice** | balanced acc | 0.539 ± 0.047 | 0.5 | above chance |
+| **reward** | balanced acc | 0.668 ± 0.143 | 0.5 | clearly above chance |
+| stimulus_contrast | balanced acc | 0.214 ± 0.032 | 0.2 | ~flat |
+| wheel_speed | R² | -0.048 ± 0.119 | 0 | 11/29 |
+| right_paw_speed | R² | -0.049 ± 0.118 | 0 | 10/29 |
+| left_paw_speed | R² | -0.040 ± 0.069 | 0 | 9/29 |
+| whisker_motion_energy | R² | -0.738 ± 0.580 | 0 | 2/29 |
+| licking_rate | Poisson D² | -0.419 ± 0.573 | 0 | — |
+
+wheel_speed reflects the post-hoc clip; the other 7 tasks are as originally scored.
+
+### Per-session wheel_speed R² (clipped), sorted
+
+| Session | R² | | Session | R² |
+|---|---|---|---|---|
+| c958919c | 0.149 | | 934dd7a4 | -0.081 |
+| 8c025071 | 0.119 | | 19e66dc9 | -0.083 |
+| 3bcb81b4 | 0.114 | | d0c91c3c | -0.090 |
+| e1931de1 | 0.098 | | 0cbeae00 | -0.114 |
+| 810b1e07 | 0.070 | | f4eb56a4 | -0.138 |
+| 16693458 | 0.054 | | fe1fd79f | -0.174 |
+| 09394481 | 0.050 | | 77e6dc6a | -0.202 |
+| 0802ced5 | 0.047 | | 5c0c560e | -0.211 |
+| 6713a4a7 | 0.042 | | 5569f363 | -0.218 |
+| dc21e80d | 0.033 | | f56194bc | -0.239 |
+| 12dc8b34 | 0.029 | | 6f6d2c8e | -0.325 |
+| 2d9bfc10 | -0.026 | | | |
+| b9c205c3 | -0.026 | | | |
+| 28338153 | -0.048 | | | |
+| 56956777 | -0.066 | | | |
+| 29a6def1 | -0.065 | | | |
+| 5ec72172 | -0.075 | | | |
+| 7cc74598 | -0.007 | | | |
+
+## Discussion
+
+**Why is the continuous-task R² negative on average, when there's clearly some signal?**
+Pearson correlations are consistently positive (0.18-0.35) across wheel/paw/whisker, so this
+isn't "no signal." Two things are going on:
+
+1. TS1's causal split evaluates on a genuinely held-out *later* block of the session, and
+   restricts to already-moving trial windows. As a check, I reran the exact evaluation style
+   of the earlier compression-benchmark scripts (`2026-08-31_LFP_compression_decoding.py`:
+   whole continuous session, interleaved 5-fold non-shuffled CV, no movement-window
+   restriction — **not a valid TS1 score**, purely diagnostic) on the same sessions and
+   features: R² came back 0.10-0.26, matching or beating that script's own 11-PID results
+   (0.024-0.315, uncompressed). Same data, same decoder — the evaluation protocol alone
+   explains most of the gap.
+2. **Session-to-session heterogeneity is real and large**: `c958919c`/`8c025071`/`3bcb81b4`
+   decode wheel speed well under the *official* protocol too (R² 0.11-0.15); `f56194bc`/
+   `6f6d2c8e` are essentially unusable (R² -0.24 to -0.33). The 11 PIDs in the original
+   compression benchmark were selected for a compression-fidelity demo, not sampled to
+   represent the benchmark's diversity, and none of them overlap with these 29 eval sessions.
+
+**whisker_motion_energy is the outlier**: worst mean R² and by far the highest variance, and
+unlike the other three continuous tasks it also showed a real, sizeable bias (predicted mean
+off by more than half a z-scored std on the one session checked closely) that the PCA fix
+only partly addressed. Not root-caused.
+
+## Conclusion
+
+LFP band power decodes `reward` and `choice` above chance from a simple linear pipeline, with
+`reward` the clearest win. The four continuous tasks show real but weak signal (positive
+correlation on most sessions) that a linear Ridge decoder can't turn into positive R² under
+TS1's causal-split, movement-window-only scoring on the majority of sessions — this looks like
+a genuine, still-open modeling problem rather than a pipeline bug, and `whisker_motion_energy`
+specifically has an unexplained bias worth a closer look.
+
+**Not yet done, worth doing before calling this submission-ready**: wire this into a proper
+`BaseModel`/`TS1EvalTrainer` (the standalone-script shape doesn't match the repo's other
+baselines, e.g. CEBRA); run the benchmark's 5 official `EVAL_SEEDS` instead of one; and the
+TS1 submission upload mechanics are themselves still marked TODO in `ibl-benchmark`'s own
+`CONTRIBUTING.md`, independent of anything here.
