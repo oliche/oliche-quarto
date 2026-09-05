@@ -84,9 +84,9 @@ base_order = ["uncompressed", "mild (eps100, alpha14)", "alpha28 (default)",
 m2.groupby("tier")[["r2_wheel", "balanced_accuracy_choice", "balanced_accuracy_feedback"]].agg(["mean", "median"]).loc[base_order].round(3)
 ```
 
-![Wheel-speed decoding R² per recording, vs shuffled null (black ticks).](figures/2026-08-31_lfp-compression-decoding_r2-by-pid.png){#fig-r2-by-pid .lightbox}
+![Wheel-speed decoding R² per recording (uncompressed, mild, default, aggressive), vs shuffled null (black ticks).](figures/2026-09-05_lfp-compression-decoding_r2-by-pid.png){#fig-r2-by-pid .lightbox}
 
-![Choice / feedback balanced accuracy per recording, one box per tier. Dashed line = chance.](figures/2026-08-31_lfp-compression-decoding_categorical_boxplot.png){#fig-categorical-boxplot .lightbox}
+![Choice / feedback balanced accuracy per recording, one box per tier (uncompressed, mild, default, aggressive). Dashed line = chance.](figures/2026-09-05_lfp-compression-decoding_categorical_boxplot.png){#fig-categorical-boxplot .lightbox}
 
 Default tracks uncompressed closely on every target; mild tracks it even more closely still
 (feedback balanced accuracy 0.626 vs. default's 0.597 and uncompressed's 0.642 — see
@@ -289,7 +289,14 @@ sources and doesn't need re-litigating per tier (@fig-region-recap-table).
 **Behavioural decoding**: `oliche-quarto/analyses/2026-06-lfp-compression-svd/` —
 `compression_benchmark.py`, `svd_adaptive_wp.py` and the dated
 `2026-08-31_LFP_compression_*.py` / `2026-08-31_LFP_compression_full_grid_displays.py` scripts
-under `~/Documents/ibldevtools/olivier/` (sweep computation + this page's figures).
+under `~/Documents/ibldevtools/olivier/` (sweep computation + this page's figures). The `mild`
+tier was added after the fact by `2026-09-05_LFP_compression_decoding_add_mild.py` /
+`2026-09-05_LFP_compression_decoding_categorical_add_mild.py` (reuse the already-computed
+uncompressed/default/aggressive rows, decode only the new variant, regenerate @fig-r2-by-pid /
+@fig-categorical-boxplot) and directly in
+`2026-08-31_LFP_compression_full_grid_displays.py` (@fig-grid-heatmaps / @fig-grid-pareto
+already covered the ε=100/α=14 cell — only the mild/default/aggressive highlight markers were
+added), same directory.
 
 **Region decoding**: `sdsc-slurms/2026-08_lfp-decoders/` — `extract.py` (per-PID/per-snippet
 LF+CSD feature extraction, joblib-parallel), `aggregate.py` (thin wrapper around

@@ -293,7 +293,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="does-compression-hurt-decoding" class="level3">
 <h3 class="anchored" data-anchor-id="does-compression-hurt-decoding">Does compression hurt decoding?</h3>
-<div id="65550686" class="cell" data-execution_count="1">
+<div id="a45e7a21" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
@@ -371,20 +371,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="fig-r2-by-pid" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r2-by-pid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="figures/2026-08-31_lfp-compression-decoding_r2-by-pid.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Wheel-speed decoding R² per recording, vs shuffled null (black ticks)."><img src="figures/2026-08-31_lfp-compression-decoding_r2-by-pid.png" class="img-fluid figure-img"></a>
+<a href="figures/2026-09-05_lfp-compression-decoding_r2-by-pid.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Wheel-speed decoding R² per recording (uncompressed, mild, default, aggressive), vs shuffled null (black ticks)."><img src="figures/2026-09-05_lfp-compression-decoding_r2-by-pid.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r2-by-pid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Wheel-speed decoding R² per recording, vs shuffled null (black ticks).
+Figure&nbsp;1: Wheel-speed decoding R² per recording (uncompressed, mild, default, aggressive), vs shuffled null (black ticks).
 </figcaption>
 </figure>
 </div>
 <div id="fig-categorical-boxplot" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-categorical-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="figures/2026-08-31_lfp-compression-decoding_categorical_boxplot.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per tier. Dashed line = chance."><img src="figures/2026-08-31_lfp-compression-decoding_categorical_boxplot.png" class="img-fluid figure-img"></a>
+<a href="figures/2026-09-05_lfp-compression-decoding_categorical_boxplot.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per tier (uncompressed, mild, default, aggressive). Dashed line = chance."><img src="figures/2026-09-05_lfp-compression-decoding_categorical_boxplot.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-categorical-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per tier. Dashed line = chance.
+Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per tier (uncompressed, mild, default, aggressive). Dashed line = chance.
 </figcaption>
 </figure>
 </div>
@@ -393,7 +393,7 @@ Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per ti
 <section id="searching-for-an-intermediate-tier" class="level3">
 <h3 class="anchored" data-anchor-id="searching-for-an-intermediate-tier">Searching for an intermediate tier</h3>
 <p>Sweeping <strong>ε alone</strong> (α=28 fixed, ε ∈ 150–450) or <strong>α alone</strong> (ε=150 fixed, α ∈ 28–96) both left total file size across the 11 recordings essentially flat (0.242 GB → ~0.21 GB either way, an ~13% reduction). But their effect on decoding fidelity is <em>not</em> symmetric, and the raw per- recording numbers are easy to misread here: feedback balanced accuracy varies enormously between recordings (SD ≈0.11 at a single grid cell — some recordings decode feedback near chance, others above 0.8), which swamps both parameters’ effects unless it’s controlled for. A paired per-recording test (same 11 recordings, before vs.&nbsp;after moving one parameter) shows they’re not equivalent: moving <strong>α</strong> from 28→96 (ε=150 fixed) drops feedback balanced accuracy in <strong>10/11 recordings</strong> (Wilcoxon p=0.005) — a real, consistent effect. Moving <strong>ε</strong> from 150→450 (α=28 fixed) only drops it in 6/11 (p=0.17) — <strong>not distinguishable from between-recording noise</strong>, and driven almost entirely by two strong-feedback-decoding recordings rather than a general effect. So: α alone reliably costs decoding fidelity without buying compression; ε alone buys no compression either, but its apparent decoding cost mostly isn’t real. Yet at ε=450, moving α from 28→96 — the shipped aggressive tier vs.&nbsp;the same ε at default’s α — <em>nearly halves</em> the file size (0.211 GB → 0.098 GB): the ε/α interaction described above, in action. Real compression only appears when both are pushed together.</p>
-<div id="42dcc02b" class="cell" data-execution_count="2">
+<div id="254c48e5" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
@@ -489,7 +489,7 @@ Figure&nbsp;4: Median channel-averaged PSD, diagonal sweep — cleanly ordered b
 <section id="full-2d-grid" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="full-2d-grid">Full 2D grid</h3>
 <p>ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than default through the shipped aggressive point), all three decode targets, across the same 11 benchmark recordings used throughout this section — 14.8 h of LFP in total.</p>
-<div id="da6e9e86" class="cell" data-execution_count="3">
+<div id="9c91bd4f" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
@@ -925,7 +925,7 @@ Figure&nbsp;9: Pareto: realized CR vs.&nbsp;retained decode fraction, one panel 
 </section>
 <section id="does-compression-hurt-region-decoding" class="level3">
 <h3 class="anchored" data-anchor-id="does-compression-hurt-region-decoding">Does compression hurt region decoding?</h3>
-<div id="fbd45b68" class="cell" data-execution_count="4">
+<div id="f8fb1b21" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
@@ -1057,7 +1057,7 @@ Figure&nbsp;12: Full numeric recap: accuracy mean/SD/min/max across folds, sampl
 </section>
 <section id="code" class="level2">
 <h2 class="anchored" data-anchor-id="code">Code</h2>
-<p><strong>Behavioural decoding</strong>: <code>oliche-quarto/analyses/2026-06-lfp-compression-svd/</code> — <code>compression_benchmark.py</code>, <code>svd_adaptive_wp.py</code> and the dated <code>2026-08-31_LFP_compression_*.py</code> / <code>2026-08-31_LFP_compression_full_grid_displays.py</code> scripts under <code>~/Documents/ibldevtools/olivier/</code> (sweep computation + this page’s figures).</p>
+<p><strong>Behavioural decoding</strong>: <code>oliche-quarto/analyses/2026-06-lfp-compression-svd/</code> — <code>compression_benchmark.py</code>, <code>svd_adaptive_wp.py</code> and the dated <code>2026-08-31_LFP_compression_*.py</code> / <code>2026-08-31_LFP_compression_full_grid_displays.py</code> scripts under <code>~/Documents/ibldevtools/olivier/</code> (sweep computation + this page’s figures). The <code>mild</code> tier was added after the fact by <code>2026-09-05_LFP_compression_decoding_add_mild.py</code> / <code>2026-09-05_LFP_compression_decoding_categorical_add_mild.py</code> (reuse the already-computed uncompressed/default/aggressive rows, decode only the new variant, regenerate <a href="#fig-r2-by-pid" class="quarto-xref">Figure&nbsp;1</a> / <a href="#fig-categorical-boxplot" class="quarto-xref">Figure&nbsp;2</a>) and directly in <code>2026-08-31_LFP_compression_full_grid_displays.py</code> (<a href="#fig-grid-heatmaps" class="quarto-xref">Figure&nbsp;5</a> / <a href="#fig-grid-pareto" class="quarto-xref">Figure&nbsp;9</a> already covered the ε=100/α=14 cell — only the mild/default/aggressive highlight markers were added), same directory.</p>
 <p><strong>Region decoding</strong>: <code>sdsc-slurms/2026-08_lfp-decoders/</code> — <code>extract.py</code> (per-PID/per-snippet LF+CSD feature extraction, joblib-parallel), <code>aggregate.py</code> (thin wrapper around <code>ephysatlas.aggregation.produce_output_dataframes</code>), <code>train_classifier.py</code> (5-fold PID-grouped XGBoost), <code>report.py</code> (this section’s table + figures, run locally after rsyncing <code>accuracy.json</code> back from the cluster). Region annotations (<code>atlas_id</code>/<code>acronym</code>/<code>x</code>/<code>y</code>/<code>z</code>) come embedded in each lfpack archive via <code>attach_ibl_metadata.py</code> (<code>sdsc-slurms/2026-06-lfpack/</code>).</p>
 
 
@@ -1603,9 +1603,9 @@ Figure&nbsp;12: Full numeric recap: accuracy mean/SD/min/max across folds, sampl
 <span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>m2.groupby(<span class="st">"tier"</span>)[[<span class="st">"r2_wheel"</span>, <span class="st">"balanced_accuracy_choice"</span>, <span class="st">"balanced_accuracy_feedback"</span>]].agg([<span class="st">"mean"</span>, <span class="st">"median"</span>]).loc[base_order].<span class="bu">round</span>(<span class="dv">3</span>)</span>
 <span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-speed decoding R² per recording, vs shuffled null (black ticks).](figures/2026-08-31_lfp-compression-decoding_r2-by-pid.png)</span>{#fig-r2-by-pid .lightbox}</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-speed decoding R² per recording (uncompressed, mild, default, aggressive), vs shuffled null (black ticks).](figures/2026-09-05_lfp-compression-decoding_r2-by-pid.png)</span>{#fig-r2-by-pid .lightbox}</span>
 <span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="al">![Choice / feedback balanced accuracy per recording, one box per tier. Dashed line = chance.](figures/2026-08-31_lfp-compression-decoding_categorical_boxplot.png)</span>{#fig-categorical-boxplot .lightbox}</span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="al">![Choice / feedback balanced accuracy per recording, one box per tier (uncompressed, mild, default, aggressive). Dashed line = chance.](figures/2026-09-05_lfp-compression-decoding_categorical_boxplot.png)</span>{#fig-categorical-boxplot .lightbox}</span>
 <span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>Default tracks uncompressed closely on every target; mild tracks it even more closely still</span>
 <span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>(feedback balanced accuracy 0.626 vs. default's 0.597 and uncompressed's 0.642 — see</span>
@@ -1808,15 +1808,22 @@ Figure&nbsp;12: Full numeric recap: accuracy mean/SD/min/max across folds, sampl
 <span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a>**Behavioural decoding**: <span class="in">`oliche-quarto/analyses/2026-06-lfp-compression-svd/`</span> —</span>
 <span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a><span class="in">`compression_benchmark.py`</span>, <span class="in">`svd_adaptive_wp.py`</span> and the dated</span>
 <span id="cb1-299"><a href="#cb1-299" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_*.py`</span> / <span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> scripts</span>
-<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a>under <span class="in">`~/Documents/ibldevtools/olivier/`</span> (sweep computation + this page's figures).</span>
-<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a>**Region decoding**: <span class="in">`sdsc-slurms/2026-08_lfp-decoders/`</span> — <span class="in">`extract.py`</span> (per-PID/per-snippet</span>
-<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>LF+CSD feature extraction, joblib-parallel), <span class="in">`aggregate.py`</span> (thin wrapper around</span>
-<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.aggregation.produce_output_dataframes`</span>), <span class="in">`train_classifier.py`</span> (5-fold PID-grouped</span>
-<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a>XGBoost), <span class="in">`report.py`</span> (this section's table + figures, run locally after rsyncing</span>
-<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a><span class="in">`accuracy.json`</span> back from the cluster). Region annotations (<span class="in">`atlas_id`</span>/<span class="in">`acronym`</span>/<span class="in">`x`</span>/<span class="in">`y`</span>/<span class="in">`z`</span>)</span>
-<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>come embedded in each lfpack archive via <span class="in">`attach_ibl_metadata.py`</span></span>
-<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>(<span class="in">`sdsc-slurms/2026-06-lfpack/`</span>).</span>
+<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a>under <span class="in">`~/Documents/ibldevtools/olivier/`</span> (sweep computation + this page's figures). The <span class="in">`mild`</span></span>
+<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a>tier was added after the fact by <span class="in">`2026-09-05_LFP_compression_decoding_add_mild.py`</span> /</span>
+<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-09-05_LFP_compression_decoding_categorical_add_mild.py`</span> (reuse the already-computed</span>
+<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>uncompressed/default/aggressive rows, decode only the new variant, regenerate @fig-r2-by-pid /</span>
+<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a>@fig-categorical-boxplot) and directly in</span>
+<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> (@fig-grid-heatmaps / @fig-grid-pareto</span>
+<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a>already covered the ε=100/α=14 cell — only the mild/default/aggressive highlight markers were</span>
+<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>added), same directory.</span>
+<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a>**Region decoding**: <span class="in">`sdsc-slurms/2026-08_lfp-decoders/`</span> — <span class="in">`extract.py`</span> (per-PID/per-snippet</span>
+<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>LF+CSD feature extraction, joblib-parallel), <span class="in">`aggregate.py`</span> (thin wrapper around</span>
+<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.aggregation.produce_output_dataframes`</span>), <span class="in">`train_classifier.py`</span> (5-fold PID-grouped</span>
+<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>XGBoost), <span class="in">`report.py`</span> (this section's table + figures, run locally after rsyncing</span>
+<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a><span class="in">`accuracy.json`</span> back from the cluster). Region annotations (<span class="in">`atlas_id`</span>/<span class="in">`acronym`</span>/<span class="in">`x`</span>/<span class="in">`y`</span>/<span class="in">`z`</span>)</span>
+<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>come embedded in each lfpack archive via <span class="in">`attach_ibl_metadata.py`</span></span>
+<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>(<span class="in">`sdsc-slurms/2026-06-lfpack/`</span>).</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
