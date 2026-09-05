@@ -1,0 +1,99 @@
+---
+title: "LFP Compression: Region-Decoding Validation"
+description: "Does lossy LFP compression degrade brain-region classification? A held-out XGBoost Cosmos-region decoder trained on LF-only features across the full 1099-PID ephys-atlas cohort, compared across compression tiers and ADC-saturation handling."
+date: "2026-09-05"
+author: "Olivier Winter"
+categories: [electrophysiology, LFP, compression, Neuropixels, decoding, region-classification]
+---
+
+## Overview
+
+[Decoding-aware tuning](compression_tuning.qmd) validated compression against wheel/choice/feedback
+behavioural decoding on 11 benchmark recordings. This page runs a second, independent functional
+check — **brain-region classification** — at full cohort scale (1099 PIDs, not 11), to see whether
+the same compression tiers hold up for an entirely different downstream task and a ~100×
+larger, more heterogeneous sample.
+
+**Bottom line:** the ranking matches the wheel/choice/feedback validation exactly —
+uncompressed > mild > default > aggressive — and the gaps are large enough to be functionally
+meaningful, not noise: compression cost is real and monotonic in both validations, on two
+unrelated decode targets, measured two different ways (behavioural regression/classification on
+11 recordings vs. brain-region classification on 1099).
+
+## Method
+
+Per-recording LF-band-power and CSD features (raw_lf + raw_lf_csd feature families, 33 columns,
+`ephysatlas.features.voltage_features_set`) are computed identically for every LFP source from
+~8 snippets/PID (8.79 s windows, 600 s spacing, matching the canonical ephys-atlas snippet
+grid), aggregated into one channel-level table, then classified with the canonical ephys-atlas
+XGBoost pipeline (5-fold **PID-grouped** CV, Cosmos-level labels, `VINTAGE =
+"2026-08_lfp-decoders"`).
+
+| LFP source | Read from | Notes |
+|---|---|---|
+| `uncompressed` | `lf_resampled_car_cadzow.npy` (Cadzow checkpoint, pre-SVD/WP) | reference — already on the compute cluster |
+| `mild` | `lf_compressed_mild_all.h5` | lfpack SVD+WP ε=100, α=14 |
+| `default` | `lf_compressed_all.h5` | lfpack SVD+WP ε=150, α=28 |
+| `aggressive` | `lf_compressed_aggressive_all.h5` | lfpack SVD+WP ε=450, α=96 |
+
+Two snippet-selection modes are compared per source (except `mild`, run only at full-cohort
+scale for `all` — see [Recap](#recap)): naive (`all`) vs. **saturation-avoided**, which drops
+snippets overlapping an ADC-saturated interval. This isolates the saturation question from the
+compression question directly, on the same cohort.
+
+Cohort: every histology-resolved insertion in `ibl_neuropixel_brainwide_01` (the ephys-atlas
+cohort — a strict superset of the curated ~700-PID BWM behavioural cohort), **1099 PIDs, 407616
+channels** per source/mode combination.
+
+## Does compression hurt region decoding?
+
+```{python}
+#| echo: false
+import pandas as pd
+r = pd.read_csv("2026-09-05_region_decoding_metrics.csv")
+order = ["uncompressed", "mild", "default", "aggressive"]
+r["lfp_source"] = pd.Categorical(r["lfp_source"], categories=order, ordered=True)
+r.sort_values(["lfp_source", "snippet_mode"])[
+    ["lfp_source", "snippet_mode", "accuracy", "n_pids", "n_channels"]
+].reset_index(drop=True)
+```
+
+![Impact of LFP compression tier on region decoding — mean accuracy (Cosmos, held-out) across 1099 PIDs, snippet_mode="all". Same ranking as the wheel/choice/feedback validation.](figures/2026-09-05_lfp-decoders_compression-impact.png){.lightbox}
+
+Compression clearly costs region-decoding accuracy, and the cost is monotonic with compression
+aggressiveness: uncompressed (0.468) > mild (0.435, −3.3pp) > default (0.420, −4.8pp) >
+aggressive (0.389, −7.9pp vs. uncompressed). This mirrors the wheel/choice/feedback validation's
+ranking exactly, on a completely different task, decoder, and cohort scale — strong evidence
+that the compression-tier ordering is a real property of the codec, not an artefact of one
+validation's specific method.
+
+## Does avoiding saturated snippets help?
+
+![Impact of ADC saturation avoidance on region decoding — bars: mean ± SD across 5 folds; dots: individual folds. Restricted to the three sources with both snippet modes (`mild` is `all`-only, see Recap).](figures/2026-09-05_lfp-decoders_saturation-impact.png){.lightbox}
+
+Small and inconsistent in direction: default drops slightly avoiding saturation (−0.3pp),
+aggressive and uncompressed both gain slightly (+0.3pp, +0.2pp) — all differences are within the
+fold-to-fold spread seen within a single combo's own 5 folds. Avoiding ADC-saturated snippets
+does not meaningfully change region-decoding accuracy at this snippet-selection scale — a
+separate axis from the compression-tier effect above, and not something saturation handling
+needs to trade off against.
+
+## Recap {#recap}
+
+![Full numeric recap: accuracy mean/SD/min/max across folds, sample sizes, per source × snippet mode.](figures/2026-09-05_lfp-decoders_recap-table.png){.lightbox}
+
+`mild` was added to this validation after the wheel/choice/feedback grid had already identified
+ε=100/α=14 as the best-fidelity operating point worth naming and shipping (see
+[Decoding-aware tuning](compression_tuning.qmd#recommendation)) — run only at `snippet_mode="all"`
+full-cohort scale, not `saturation-avoided`, since the saturation question was already answered
+by the other three sources and doesn't need re-litigating per tier.
+
+## Code
+
+Pipeline: `sdsc-slurms/2026-08_lfp-decoders/` — `extract.py` (per-PID/per-snippet LF+CSD feature
+extraction, joblib-parallel), `aggregate.py` (thin wrapper around
+`ephysatlas.aggregation.produce_output_dataframes`), `train_classifier.py` (5-fold PID-grouped
+XGBoost), `report.py` (this page's table + figures, run locally after rsyncing
+`accuracy.json` back from the cluster). Region annotations (`atlas_id`/`acronym`/`x`/`y`/`z`)
+come embedded in each lfpack archive via `attach_ibl_metadata.py`
+(`sdsc-slurms/2026-06-lfpack/`).

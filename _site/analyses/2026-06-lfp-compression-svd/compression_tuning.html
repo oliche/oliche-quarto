@@ -275,7 +275,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="does-compression-hurt-decoding" class="level2">
 <h2 class="anchored" data-anchor-id="does-compression-hurt-decoding">Does compression hurt decoding?</h2>
-<div id="4ca9f9b7" class="cell" data-execution_count="1">
+<div id="55902a83" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
@@ -358,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="searching-for-an-intermediate-tier" class="level2">
 <h2 class="anchored" data-anchor-id="searching-for-an-intermediate-tier">Searching for an intermediate tier</h2>
 <p>Sweeping <strong>ε alone</strong> (α=28 fixed, ε ∈ 150–450) or <strong>α alone</strong> (ε=150 fixed, α ∈ 28–96) both left total file size across the 11 recordings essentially flat (0.242 GB → ~0.21 GB either way, an ~13% reduction). But their effect on decoding fidelity is <em>not</em> symmetric, and the raw per- recording numbers are easy to misread here: feedback balanced accuracy varies enormously between recordings (SD ≈0.11 at a single grid cell — some recordings decode feedback near chance, others above 0.8), which swamps both parameters’ effects unless it’s controlled for. A paired per-recording test (same 11 recordings, before vs.&nbsp;after moving one parameter) shows they’re not equivalent: moving <strong>α</strong> from 28→96 (ε=150 fixed) drops feedback balanced accuracy in <strong>10/11 recordings</strong> (Wilcoxon p=0.005) — a real, consistent effect. Moving <strong>ε</strong> from 150→450 (α=28 fixed) only drops it in 6/11 (p=0.17) — <strong>not distinguishable from between-recording noise</strong>, and driven almost entirely by two strong-feedback-decoding recordings rather than a general effect. So: α alone reliably costs decoding fidelity without buying compression; ε alone buys no compression either, but its apparent decoding cost mostly isn’t real. Yet at ε=450, moving α from 28→96 — the shipped aggressive tier vs.&nbsp;the same ε at default’s α — <em>nearly halves</em> the file size (0.211 GB → 0.098 GB): the ε/α interaction described above, in action. Real compression only appears when both are pushed together.</p>
-<div id="ef30ed5b" class="cell" data-execution_count="2">
+<div id="3f950a52" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="full-2d-grid" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="full-2d-grid">Full 2D grid</h2>
 <p>ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than default through the shipped aggressive point), all three decode targets, across the same 11 benchmark recordings used throughout this page — 14.8 h of LFP in total.</p>
-<div id="555bc1e3" class="cell" data-execution_count="3">
+<div id="f1c2dc2e" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
@@ -821,6 +821,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>If more compression is required, use ε=450, α=28</strong> — 100× realized CR (0.211 GB vs. default’s 0.242 GB across the 11 recordings, both tiny next to uncompressed’s 20.4 GB), R² 0.122 vs.&nbsp;default’s 0.127, feedback balanced accuracy 0.585 vs.&nbsp;default’s 0.597. That feedback gap is not statistically distinguishable from between-recording noise (paired Wilcoxon p=0.17) — the best-value, lowest-risk upgrade found on the whole grid.</li>
 <li><strong>Retire the aggressive tier (ε=450, α=96).</strong> Nothing between ε=450/α=28 and aggressive is worth shipping — the frontier only gets there by also raising α, which is where the real, significant decoding cost (p=0.005) lives.</li>
 <li><strong>Worth knowing:</strong> the α=14 row (any ε) gives noticeably <em>better</em> feedback retention than default (up to 0.90) at a real storage cost (38–70× vs.&nbsp;default’s 87×) — an option if a future use case needs to beat default’s fidelity rather than just approach it.</li>
+<li><strong>Update (2026-09-05): this became the <code>mild</code> tier.</strong> ε=100, α=14 was named <code>mild</code> and shipped as a third production tier alongside default (aggressive retired per above), giving three named options instead of two: <code>mild</code> (ε=100, α=14, this row) for the highest fidelity, <code>default</code> (ε=150, α=28) as the standard, <code>aggressive</code> no longer recommended. Aggregated over the same 11 recordings: realized CR 48× (vs.&nbsp;default’s 87×, uncompressed’s 1×), feedback balanced accuracy 0.626 vs.&nbsp;default’s 0.597 and uncompressed’s 0.642 — a chance-corrected retained-feedback-fraction of <strong>0.89</strong> vs.&nbsp;default’s 0.68. Confirmed at full ephys-atlas cohort scale (1099 PIDs, not just these 11) by an independent region-decoding validation — see <a href="../../analyses/2026-06-lfp-compression-svd/region_decoding.html">Region-decoding validation</a>.</li>
 <li><strong>Build command</strong> (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no re-download needed): <code>lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0, alpha=28.0, fs=250.0, ...)</code>.</li>
 </ul>
 
@@ -1458,9 +1459,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Worth knowing:** the α=14 row (any ε) gives noticeably *better* feedback retention than</span>
 <span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>  default (up to 0.90) at a real storage cost (38–70× vs. default's 87×) — an option if a</span>
 <span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>  future use case needs to beat default's fidelity rather than just approach it.</span>
-<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Build command** (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no</span>
-<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0,</span>
-<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>  alpha=28.0, fs=250.0, ...)`.</span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Update (2026-09-05): this became the `mild` tier.** ε=100, α=14 was named <span class="in">`mild`</span> and shipped</span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>  as a third production tier alongside default (aggressive retired per above), giving three</span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>  named options instead of two: <span class="in">`mild`</span> (ε=100, α=14, this row) for the highest fidelity,</span>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>  <span class="in">`default`</span> (ε=150, α=28) as the standard, <span class="in">`aggressive`</span> no longer recommended. Aggregated over</span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a>  the same 11 recordings: realized CR 48× (vs. default's 87×, uncompressed's 1×), feedback</span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a>  balanced accuracy 0.626 vs. default's 0.597 and uncompressed's 0.642 — a chance-corrected</span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>  retained-feedback-fraction of **0.89** vs. default's 0.68. Confirmed at full ephys-atlas cohort</span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>  scale (1099 PIDs, not just these 11) by an independent region-decoding validation — see</span>
+<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">Region-decoding validation</span><span class="co">](region_decoding.qmd)</span>.</span>
+<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Build command** (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no</span>
+<span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a>  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0,</span>
+<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a>  alpha=28.0, fs=250.0, ...)`.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

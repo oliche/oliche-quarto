@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/analyses/2026-06-lfp-compression-svd/region_decoding.html",
       "/analyses/2026-09-ts1-lfp-baseline/index.html",
       "/analyses/2026-06-lfp-compression-svd/compression_tuning.html",
       "/analyses/2026-08-agea-25um-decoding/index.html",
