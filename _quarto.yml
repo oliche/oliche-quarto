@@ -7,8 +7,7 @@ project:
     - analyses/2026-05-EA-boundaries/index.qmd
     - analyses/2026-05-car-rms/index.qmd
     - analyses/2026-06-lfp-compression-svd/index.qmd
-    - analyses/2026-06-lfp-compression-svd/compression_tuning.qmd
-    - analyses/2026-06-lfp-compression-svd/region_decoding.qmd
+    - analyses/2026-06-lfp-compression-svd/functional_validation.qmd
     - analyses/2026-07-lfp-encoders/index.qmd
     - analyses/2026-08-lfpack-sync-issues/index.qmd
     - analyses/2026-08-agea-25um-decoding/index.qmd
