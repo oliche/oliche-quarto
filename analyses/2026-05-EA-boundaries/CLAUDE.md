@@ -62,6 +62,43 @@ Rastermap sort order is shared between measured/volume (same cache hash).
 - `build_volume_feature_df()` — vectorised volume lookup at channel xyz, applies same PCA
 - `plot_boundary_feature_profiles(..., sort_features=False)` — fixed feature order for comparisons
 
+## Completed — volume-first landmark discovery (vintage 2026_W26)
+
+Flipped the discovery direction: instead of scanning measured (sparse, real-probe) data first,
+the dense brainwide encoding volume is now the primary discovery substrate; measured data is
+the sanity check. Data retrieval moved to a new canonical, vintage-scoped location:
+`~/Documents/datadisk/ephys-atlas-decoding/{encoding_volumes,features}/ea_active/<label>/...`
+(the old flat `~/data/ephys-atlas/encoding_volumes/brainwide_ephys_atlas_25um.npz` had no vintage
+in its path, silently mixing a `2026_W12` volume with `2026_W24`-vintage measured-feature scripts).
+
+- Only two encoding-volume vintages exist on S3: `2026_W12` (25 µm) and `2026_W26` (50 µm,
+  latest). This project now uses **2026_W26 @ 50 µm**. Its CSD features are the opposite variant
+  from before: only `*_csd_diff1` (7), no plain `*_csd` — inverse of the 2026_W12 volume.
+- `ephysatlas.features.EphysPsdPCA` (the class the old PSD/CSD-reduction pipeline imported) does
+  **not exist** in the current ibleatools checkout, committed or uncommitted — it must have been
+  an uncommitted local edit on whatever machine ran the earlier sessions. Reimplemented as a small
+  self-contained `EphysPsdPCA` class directly in `boundaries_utils.py`, with a `csd_variant`
+  parameter (`'plain'` or `'diff1'`) so `load_or_fit_psd_pca()` / `load_or_build_pca_df()` can
+  target either encoding-volume vintage; cache filenames get a `_diff1` suffix when non-default so
+  old `plain`-variant caches are untouched.
+- Local env: `.venv` in this project directory (`uv venv` + `uv pip install -e <ibleatools>`,
+  **lite only**, no `--extra full` — that extra's `spikeinterface[dev]`/`spikepack[zarr]` versions
+  conflict and this analysis needs neither spike-sorting nor zarr).
+- `run_volume_landmark_scan.py`: builds a dense 100 µm AP×ML virtual-probe grid (1.36M channels)
+  from the 2026_W26/50µm volume (reusing `build_virtual_probe_df` from
+  `boundary_classifier_volume.py`), then runs the **same** `compute_boundary_feature_stats()`
+  Cohen's-d scan used for the original measured-data search. Outputs in `figures/`:
+  `vp_transition_matrix_2026_W26_100um.csv`, `volume_boundary_feature_stats_2026_W26.csv`,
+  `volume_landmark_ranking_2026_W26.csv` (+ `_tissue_only` variant excluding CSF/root/fiber-tract
+  crossings). Result: 63 directed Cosmos pairs now qualify (≥32 crossings) vs. 18 with real probes
+  — sparsity floor lifted. Top tissue-tissue candidates: **HPF↔MB** (d=1.84, 16 sig. features),
+  **TH↔HPF** (d=1.93, 12 sig. features — reproduces the known DG-thalamus landmark found earlier
+  from real data at d=1.42), Isocortex↔CNU, CNU↔HPF, CNU↔Isocortex.
+- `run_sanity_check_measured_vs_volume.py`: side-by-side measured-vs-volume depth-profile figures
+  (`figures/volume_vs_measured/`) for the top 5 tissue-only candidates, on shared feature display
+  limits and the same PCA axes (`csd_variant='diff1'`). Flags any candidate not corroborated in
+  measured `2026_W26` data rather than silently promoting it.
+
 ## Next steps
 
 - **SLIC supervoxel segmentation** (`slic_segmentation.py`) — unsupervised 3-D SLIC clustering of the encoding volume, checking whether boundaries emerge without labels. Exploratory: single overview figure (`figures/slic_supervoxels_overview.png`), no quantitative overlap/purity metric against Cosmos boundaries yet — needed before this is report-worthy.

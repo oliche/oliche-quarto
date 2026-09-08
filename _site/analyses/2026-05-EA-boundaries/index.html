@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -111,6 +111,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -193,28 +196,26 @@ window.Quarto = {
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
-  <li><a href="#step-1-cosmos-boundary-transition-matrix" id="toc-step-1-cosmos-boundary-transition-matrix" class="nav-link" data-scroll-target="#step-1-cosmos-boundary-transition-matrix">Step 1 — Cosmos boundary transition matrix</a></li>
-  <li><a href="#step-2-depth-profile-exploration" id="toc-step-2-depth-profile-exploration" class="nav-link" data-scroll-target="#step-2-depth-profile-exploration">Step 2 — Depth-profile exploration</a>
+  <li><a href="#step-1-volume-first-landmark-discovery-vintage-2026_w26" id="toc-step-1-volume-first-landmark-discovery-vintage-2026_w26" class="nav-link" data-scroll-target="#step-1-volume-first-landmark-discovery-vintage-2026_w26">Step 1 — Volume-first landmark discovery (vintage 2026_W26)</a>
   <ul class="collapse">
-  <li><a href="#example-th-hpf" id="toc-example-th-hpf" class="nav-link" data-scroll-target="#example-th-hpf">Example: TH → HPF</a></li>
-  <li><a href="#other-representative-boundaries" id="toc-other-representative-boundaries" class="nav-link" data-scroll-target="#other-representative-boundaries">Other representative boundaries</a></li>
+  <li><a href="#feature-importance-on-the-volume-data" id="toc-feature-importance-on-the-volume-data" class="nav-link" data-scroll-target="#feature-importance-on-the-volume-data">Feature importance on the volume data</a></li>
   </ul></li>
-  <li><a href="#step-3-dimensionality-reduction-pca" id="toc-step-3-dimensionality-reduction-pca" class="nav-link" data-scroll-target="#step-3-dimensionality-reduction-pca">Step 3 — Dimensionality reduction (PCA)</a></li>
-  <li><a href="#step-4-boundary-classifier" id="toc-step-4-boundary-classifier" class="nav-link" data-scroll-target="#step-4-boundary-classifier">Step 4 — Boundary classifier</a>
+  <li><a href="#step-2-dimensionality-reduction-pca" id="toc-step-2-dimensionality-reduction-pca" class="nav-link" data-scroll-target="#step-2-dimensionality-reduction-pca">Step 2 — Dimensionality reduction (PCA)</a></li>
+  <li><a href="#step-3-boundary-classifier" id="toc-step-3-boundary-classifier" class="nav-link" data-scroll-target="#step-3-boundary-classifier">Step 3 — Boundary classifier</a>
   <ul class="collapse">
   <li><a href="#feature-vector-construction" id="toc-feature-vector-construction" class="nav-link" data-scroll-target="#feature-vector-construction">Feature vector construction</a></li>
+  <li><a href="#model" id="toc-model" class="nav-link" data-scroll-target="#model">Model</a></li>
   <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
   <li><a href="#confusion-matrix" id="toc-confusion-matrix" class="nav-link" data-scroll-target="#confusion-matrix">Confusion matrix</a></li>
   </ul></li>
-  <li><a href="#step-5-top-6-transitions-brain-section-visualisation" id="toc-step-5-top-6-transitions-brain-section-visualisation" class="nav-link" data-scroll-target="#step-5-top-6-transitions-brain-section-visualisation">Step 5 — Top 6 transitions: brain-section visualisation</a>
+  <li><a href="#step-4-top-6-transitions-brain-section-visualisation" id="toc-step-4-top-6-transitions-brain-section-visualisation" class="nav-link" data-scroll-target="#step-4-top-6-transitions-brain-section-visualisation">Step 4 — Top 6 transitions: brain-section visualisation</a>
   <ul class="collapse">
   <li><a href="#coronal-sections" id="toc-coronal-sections" class="nav-link" data-scroll-target="#coronal-sections">Coronal sections</a></li>
   <li><a href="#sagittal-sections" id="toc-sagittal-sections" class="nav-link" data-scroll-target="#sagittal-sections">Sagittal sections</a></li>
   <li><a href="#depth-profile-heatmaps" id="toc-depth-profile-heatmaps" class="nav-link" data-scroll-target="#depth-profile-heatmaps">Depth-profile heatmaps</a></li>
   </ul></li>
-  <li><a href="#step-6-per-landmark-feature-importance" id="toc-step-6-per-landmark-feature-importance" class="nav-link" data-scroll-target="#step-6-per-landmark-feature-importance">Step 6 — Per-landmark feature importance</a></li>
-  <li><a href="#step-7-ceiling-validation-encoding-volume-virtual-probes" id="toc-step-7-ceiling-validation-encoding-volume-virtual-probes" class="nav-link" data-scroll-target="#step-7-ceiling-validation-encoding-volume-virtual-probes">Step 7 — Ceiling validation: encoding-volume virtual probes</a></li>
-  <li><a href="#step-8-depth-resolved-attribution-integrated-gradients" id="toc-step-8-depth-resolved-attribution-integrated-gradients" class="nav-link" data-scroll-target="#step-8-depth-resolved-attribution-integrated-gradients">Step 8 — Depth-resolved attribution (Integrated Gradients)</a></li>
+  <li><a href="#step-5-per-landmark-feature-importance" id="toc-step-5-per-landmark-feature-importance" class="nav-link" data-scroll-target="#step-5-per-landmark-feature-importance">Step 5 — Per-landmark feature importance</a></li>
+  <li><a href="#step-6-ceiling-validation-encoding-volume-virtual-probes" id="toc-step-6-ceiling-validation-encoding-volume-virtual-probes" class="nav-link" data-scroll-target="#step-6-ceiling-validation-encoding-volume-virtual-probes">Step 6 — Ceiling validation: encoding-volume virtual probes</a></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
   <ul class="collapse">
   <li><a href="#caveats" id="toc-caveats" class="nav-link" data-scroll-target="#caveats">Caveats</a></li>
@@ -272,98 +273,223 @@ window.Quarto = {
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>Sharp transitions in electrophysiological features at brain-region boundaries can serve as anatomical landmarks for Neuropixels probe localisation — a well-known example is the <strong>hippocampus–thalamus boundary</strong> (<a href="https://elifesciences.org/articles/100840#fig3">Benson et al.&nbsp;eLife 2024</a>, Fig. 3b).</p>
-<p>This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals. To do so we identify which transitions we observe on our dataset by computing a transition matrix. Then we build a dataset of the features at the transitions, for each couple of transitions that has more than 32 data points. To identify which transitions are the most salient, we train a classifier to predict the transition couple from the features around the transition. We then select the 6 most salient transitions and run a feature importance SHAP analysis to understand each feature contribution.</p>
+<p>This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals. Discovery runs on the dense, noise-free <strong>brainwide encoding volume</strong> first (Step 1) — a 4-D reconstruction of ephys features across the whole brain — with real Neuropixels recordings used to sanity-check the top candidates it surfaces. The boundaries are then characterised in more detail with classifiers trained directly on measured data (Steps 2–5), and the measured-classifier accuracy ceiling is cross-checked against the same pipeline run on the volume (Step 6).</p>
 <hr>
 </section>
-<section id="step-1-cosmos-boundary-transition-matrix" class="level2">
-<h2 class="anchored" data-anchor-id="step-1-cosmos-boundary-transition-matrix">Step 1 — Cosmos boundary transition matrix</h2>
-<p>For each probe, channels are depth-aggregated (modal Cosmos region), adjacent-depth transitions are counted directionally, and interior unlabelled positions are replaced by nearest-neighbour interpolation along the probe (<strong>21,435 positions replaced</strong> in vintage 2026_W24).</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/cosmos_transition_matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Directional Cosmos-level transition count matrix (vintage 2026_W24). Row = from-region, column = to-region. Colour clipped at the 97th percentile; diagonal masked."><img src="figures/cosmos_transition_matrix.png" class="img-fluid figure-img" alt="Directional Cosmos-level transition count matrix (vintage 2026_W24). Row = from-region, column = to-region. Colour clipped at the 97th percentile; diagonal masked."></a></p>
-<figcaption>Directional Cosmos-level transition count matrix (vintage 2026_W24). Row = from-region, column = to-region. Colour clipped at the 97th percentile; diagonal masked.</figcaption>
+<section id="step-1-volume-first-landmark-discovery-vintage-2026_w26" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-volume-first-landmark-discovery-vintage-2026_w26">Step 1 — Volume-first landmark discovery (vintage 2026_W26)</h2>
+<p>The encoding volume is used as the <strong>primary</strong> discovery substrate, with measured data used only to sanity-check the top candidates it surfaces — because the ceiling analysis (Step 6) shows the volume carries essentially all of the signal, at none of the recording noise.</p>
+<p>A dense 100 µm AP × ML virtual-probe grid (1.36M channels, <code>build_virtual_probe_df</code>) was sampled from the newest available encoding volume (<strong>2026_W26</strong>, 50 µm — the only vintage newer than 2026_W12 with a volume on S3), and the same Cohen’s-d boundary scan used for the original measured-data search (<code>compute_boundary_feature_stats</code>) was run on it unchanged. Because the dense grid removes the real-probe sparsity floor, <strong>63 directed Cosmos pairs</strong> now qualify (≥32 crossings) versus the 18 reachable with real probes.</p>
+<div id="fig-vp-transition-matrix" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vp-transition-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/vp_transition_matrix_2026_W26_100um.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Dense virtual-probe Cosmos transition matrix (2026_W26, 100 µm grid) — directional crossing counts across the whole brain, unconstrained by real recording coverage."><img src="figures/vp_transition_matrix_2026_W26_100um.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vp-transition-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Dense virtual-probe Cosmos transition matrix (2026_W26, 100 µm grid) — directional crossing counts across the whole brain, unconstrained by real recording coverage.
+</figcaption>
 </figure>
 </div>
-<p>Boundaries with <strong>≥ 32 probe crossings</strong> in either direction are retained for downstream analyses — <strong>18 transitions</strong> in total.</p>
+<p>Excluding trivial CSF/root/fiber-tract crossings, the top 20 tissue–tissue transitions by breadth of significant features (Cohen’s d &gt; 0.8, Bonferroni-corrected p &lt; 0.01) then effect size are:</p>
+<div class="cell" data-execution_count="1">
+<div id="tbl-significant-transitions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="1">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-significant-transitions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Top 20 significant tissue–tissue boundary transitions from the dense encoding-volume scan, ranked by # significant features then max Cohen’s d.
+</figcaption>
+<div aria-describedby="tbl-significant-transitions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<div>
+
+
+<table class="dataframe cell caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Max Cohen's d</th>
+<th data-quarto-table-cell-role="th"># significant features</th>
+<th data-quarto-table-cell-role="th"># crossings</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">transition</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HPF → MB</th>
+<td>1.8427</td>
+<td>16</td>
+<td>208</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">TH → HPF</th>
+<td>1.9304</td>
+<td>12</td>
+<td>917</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Isocortex → CNU</th>
+<td>1.2497</td>
+<td>6</td>
+<td>79</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">CNU → HPF</th>
+<td>2.0400</td>
+<td>4</td>
+<td>109</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">CNU → Isocortex</th>
+<td>1.8137</td>
+<td>4</td>
+<td>1615</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">CTXsp → CNU</th>
+<td>0.9830</td>
+<td>2</td>
+<td>774</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">CNU → TH</th>
+<td>0.9618</td>
+<td>2</td>
+<td>283</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">CB → MB</th>
+<td>0.8168</td>
+<td>2</td>
+<td>304</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">MB → HPF</th>
+<td>0.8290</td>
+<td>1</td>
+<td>412</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">MB → Isocortex</th>
+<td>0.8290</td>
+<td>1</td>
+<td>459</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HPF → TH</th>
+<td>0.8011</td>
+<td>1</td>
+<td>51</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">TH → CNU</th>
+<td>1.1821</td>
+<td>0</td>
+<td>65</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">MB → CB</th>
+<td>0.7833</td>
+<td>0</td>
+<td>44</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">CTXsp → OLF</th>
+<td>0.7830</td>
+<td>0</td>
+<td>79</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HY → TH</th>
+<td>0.7547</td>
+<td>0</td>
+<td>757</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">MB → HY</th>
+<td>0.7536</td>
+<td>0</td>
+<td>182</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">CNU → HY</th>
+<td>0.7363</td>
+<td>0</td>
+<td>342</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">MB → TH</th>
+<td>0.6461</td>
+<td>0</td>
+<td>234</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">OLF → CTXsp</th>
+<td>0.6449</td>
+<td>0</td>
+<td>1346</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">HPF → Isocortex</th>
+<td>0.6102</td>
+<td>0</td>
+<td>2750</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p><strong>TH → HPF reproduces the known DG–thalamus landmark</strong> — a useful cross-check that the volume-first approach recovers the same landmark the measured-data classifier below (Step 3) independently ranks among its most reliably classified transitions.</p>
+<div id="fig-vol-th-hpf" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vol-th-hpf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/volume_vs_measured/volume_TH_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: TH → HPF depth profile from the encoding volume (dense grid, 150 of 917 crossings shown)."><img src="figures/volume_vs_measured/volume_TH_to_HPF.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vol-th-hpf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: TH → HPF depth profile from the encoding volume (dense grid, 150 of 917 crossings shown).
+</figcaption>
+</figure>
+</div>
+<div id="fig-measured-th-hpf" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-measured-th-hpf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/volume_vs_measured/measured_TH_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: The same TH → HPF profile from measured 2026_W26 recordings (150 of 206 crossings shown), same features as the volume figure above."><img src="figures/volume_vs_measured/measured_TH_to_HPF.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-measured-th-hpf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: The same TH → HPF profile from measured 2026_W26 recordings (150 of 206 crossings shown), same features as the volume figure above.
+</figcaption>
+</figure>
+</div>
+<p><code>csd_pc0</code> and <code>psd_pc0</code> show the same sign and timing of the transition in both panels; the measured panel is visibly noisier (single-recording variance) but the underlying step is the same — exactly what the Step 6 ceiling analysis would predict. (Each panel uses its own colour scale, scaled to its own 2nd–98th percentile range — a shared scale washes the smoother volume panel out, since it has far less spread than single-recording measured data.)</p>
+<p>Of the top 5 tissue–tissue candidates, <strong>3 are directly corroborated</strong> in measured 2026_W26 data (HPF → MB, TH → HPF, CNU → Isocortex). The other 2 (Isocortex → CNU, CNU → HPF) are not absent from real data so much as <strong>direction-flipped or unobserved</strong>: real Neuropixels trajectories only sample a limited set of entry angles, so a transition direction that’s common in the dense, uniformly-sampled virtual grid can be rare or missing among the ~1,000 real insertions — this is flagged as encoding-volume-only rather than silently promoted to landmark status.</p>
+<section id="feature-importance-on-the-volume-data" class="level3">
+<h3 class="anchored" data-anchor-id="feature-importance-on-the-volume-data">Feature importance on the volume data</h3>
+<p>Reproducing Step 5’s measured-data SHAP analysis directly on the volume: a GB classifier was trained on mean-diff feature vectors for the 20 significant transitions above (dense virtual-probe crossings, ±1000 µm window), reaching <strong>94.6% accuracy</strong> (85.7% balanced) over 4-fold CV — in the same range as the Step 6 ceiling classifier. SHAP (TreeExplainer) then identifies which features drive each of the 6 best-classified transitions specifically.</p>
+<div id="fig-vol-feature-importance" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vol-feature-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/landmark_feature_importance_volume.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Volume-derived per-landmark feature importance — top 10 features per boundary (mean |SHAP|), for the 6 best-classified of the 20 significant transitions."><img src="figures/landmark_feature_importance_volume.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vol-feature-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Volume-derived per-landmark feature importance — top 10 features per boundary (mean |SHAP|), for the 6 best-classified of the 20 significant transitions.
+</figcaption>
+</figure>
+</div>
+<p><code>aperiodic_offset</code>, <code>csd_pc0</code> and <code>rms_ap</code> dominate <strong>TH → HPF</strong> here too, consistent with the measured-data fingerprint in Step 5 — the volume-derived classifier recovers the same feature-level signature as the noisier real-data one, with none of the sampling limitations of real probe coverage.</p>
+<p>Full ranked tables: <code>figures/volume_landmark_ranking_2026_W26_tissue_only.csv</code> (all 33 tissue–tissue pairs) and <code>figures/volume_boundary_feature_stats_2026_W26.csv</code> (per-feature detail).</p>
 <hr>
 </section>
-<section id="step-2-depth-profile-exploration" class="level2">
-<h2 class="anchored" data-anchor-id="step-2-depth-profile-exploration">Step 2 — Depth-profile exploration</h2>
-<p>For each qualifying transition the ±1000 µm window around each crossing depth was extracted, channels were aligned to zero, and features were plotted as heatmaps (probes × depth).</p>
-<section id="example-th-hpf" class="level3">
-<h3 class="anchored" data-anchor-id="example-th-hpf">Example: TH → HPF</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_TH_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Depth-profile heatmap for TH → HPF (198 crossings). Each column is one probe; rows are depth relative to the transition. The sharp sign-reversal at depth 0 is consistent with the known DG landmark."><img src="figures/profiles_TH_to_HPF.png" class="img-fluid figure-img" alt="Depth-profile heatmap for TH → HPF (198 crossings). Each column is one probe; rows are depth relative to the transition. The sharp sign-reversal at depth 0 is consistent with the known DG landmark."></a></p>
-<figcaption>Depth-profile heatmap for TH → HPF (198 crossings). Each column is one probe; rows are depth relative to the transition. The sharp sign-reversal at depth 0 is consistent with the known DG landmark.</figcaption>
-</figure>
-</div>
-<div class="quarto-layout-panel" data-layout-ncol="2">
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_TH_to_HPF_ap.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="TH→HPF transitions by AP position"><img src="figures/profiles_TH_to_HPF_ap.png" class="img-fluid figure-img" alt="TH→HPF transitions by AP position"></a></p>
-<figcaption>TH→HPF transitions by AP position</figcaption>
-</figure>
-</div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_TH_to_HPF_ml.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="TH→HPF transitions by ML position"><img src="figures/profiles_TH_to_HPF_ml.png" class="img-fluid figure-img" alt="TH→HPF transitions by ML position"></a></p>
-<figcaption>TH→HPF transitions by ML position</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
 </section>
-<section id="other-representative-boundaries" class="level3">
-<h3 class="anchored" data-anchor-id="other-representative-boundaries">Other representative boundaries</h3>
-<div class="quarto-layout-panel" data-layout-ncol="2">
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_HPF_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="HPF → Isocortex (310 probes)"><img src="figures/profiles_HPF_to_Isocortex.png" class="img-fluid figure-img" alt="HPF → Isocortex (310 probes)"></a></p>
-<figcaption>HPF → Isocortex (310 probes)</figcaption>
-</figure>
-</div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_HB_to_CB.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="HB → CB (136 probes)"><img src="figures/profiles_HB_to_CB.png" class="img-fluid figure-img" alt="HB → CB (136 probes)"></a></p>
-<figcaption>HB → CB (136 probes)</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_CNU_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="CNU → Isocortex (110 probes)"><img src="figures/profiles_CNU_to_Isocortex.png" class="img-fluid figure-img" alt="CNU → Isocortex (110 probes)"></a></p>
-<figcaption>CNU → Isocortex (110 probes)</figcaption>
-</figure>
-</div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/profiles_MB_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="MB → HPF (119 probes)"><img src="figures/profiles_MB_to_HPF.png" class="img-fluid figure-img" alt="MB → HPF (119 probes)"></a></p>
-<figcaption>MB → HPF (119 probes)</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<hr>
-</section>
-</section>
-<section id="step-3-dimensionality-reduction-pca" class="level2">
-<h2 class="anchored" data-anchor-id="step-3-dimensionality-reduction-pca">Step 3 — Dimensionality reduction (PCA)</h2>
+<section id="step-2-dimensionality-reduction-pca" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-dimensionality-reduction-pca">Step 2 — Dimensionality reduction (PCA)</h2>
 <p>Raw LFP features include 21 PSD-related columns (7 raw-PSD + 14 CSD-PSD) that are highly correlated due to the 1/f spectral background. Two independent PCAs compress these into 4 components:</p>
 <ul>
 <li><strong>PSD group</strong> (7 features) → <code>psd_pc0</code>, <code>psd_pc1</code></li>
@@ -401,33 +527,40 @@ window.Quarto = {
 </tbody>
 </table>
 <p>After PCA, Cosmos-level regions are already partially separable in the 2D PC space:</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/psd_pca_04_scatter_cosmos.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along psd_pc0/csd_pc0, confirming the PCA components carry anatomical signal even without supervision."><img src="figures/psd_pca_04_scatter_cosmos.png" class="img-fluid figure-img" alt="PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along psd_pc0/csd_pc0, confirming the PCA components carry anatomical signal even without supervision."></a></p>
-<figcaption>PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along <code>psd_pc0</code>/<code>csd_pc0</code>, confirming the PCA components carry anatomical signal even without supervision.</figcaption>
+<div id="fig-psd-pca-scatter" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-psd-pca-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/psd_pca_04_scatter_cosmos.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along psd_pc0/csd_pc0, confirming the PCA components carry anatomical signal even without supervision."><img src="figures/psd_pca_04_scatter_cosmos.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-psd-pca-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along <code>psd_pc0</code>/<code>csd_pc0</code>, confirming the PCA components carry anatomical signal even without supervision.
+</figcaption>
 </figure>
 </div>
 <hr>
 </section>
-<section id="step-4-boundary-classifier" class="level2">
-<h2 class="anchored" data-anchor-id="step-4-boundary-classifier">Step 4 — Boundary classifier</h2>
+<section id="step-3-boundary-classifier" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-boundary-classifier">Step 3 — Boundary classifier</h2>
 <section id="feature-vector-construction" class="level3">
 <h3 class="anchored" data-anchor-id="feature-vector-construction">Feature vector construction</h3>
 <p>For each (probe, boundary) crossing, a <strong>difference vector</strong> is computed:</p>
 <p><span class="math display">\[\mathbf{x} = \bar{\mathbf{f}}_{\text{below}} - \bar{\mathbf{f}}_{\text{above}}\]</span></p>
-<p>where “below” is the from-region side (deeper) and “above” is the to-region side (shallower), each averaged over the ±1000 µm window around the crossing depth. This yields a 26-dimensional vector per sample encoding the <em>direction and magnitude</em> of the feature change. 1c ### Model</p>
+<p>where “below” is the from-region side (deeper) and “above” is the to-region side (shallower), each averaged over the ±1000 µm window around the crossing depth. This yields a 26-dimensional vector per sample encoding the <em>direction and magnitude</em> of the feature change.</p>
+</section>
+<section id="model" class="level3">
+<h3 class="anchored" data-anchor-id="model">Model</h3>
 <p>A <strong>Gradient Boosted classifier</strong> (<code>HistGradientBoostingClassifier</code>, 300 iterations) is trained on the 18-class problem using <strong>4-fold stratified cross-validation</strong> (1,714 samples total).</p>
 </section>
 <section id="accuracy" class="level3">
 <h3 class="anchored" data-anchor-id="accuracy">Accuracy</h3>
-<div class="cell" data-execution_count="1">
-<div id="tbl-accuracy" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="1">
+<div class="cell" data-execution_count="2">
+<div id="tbl-accuracy" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-accuracy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: Per-class CV accuracy (gradient boosting).
+Table&nbsp;2: Per-class CV accuracy (gradient boosting).
 </figcaption>
 <div aria-describedby="tbl-accuracy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>class
 TH → HPF                  74.2%
 HPF → Isocortex           72.9%
@@ -453,7 +586,7 @@ Name: GB accuracy, dtype: str</code></pre>
 </figure>
 </div>
 </div>
-<div id="583eb24b" class="cell" data-execution_count="2">
+<div id="db1d96a5" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stdout">
 <pre><code>Overall GB CV accuracy: 47.1%</code></pre>
 </div>
@@ -462,33 +595,45 @@ Name: GB accuracy, dtype: str</code></pre>
 </section>
 <section id="confusion-matrix" class="level3">
 <h3 class="anchored" data-anchor-id="confusion-matrix">Confusion matrix</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/classifier_confusion_gb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion."><img src="figures/classifier_confusion_gb.png" class="img-fluid figure-img" alt="GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion."></a></p>
-<figcaption>GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.</figcaption>
+<div id="fig-confusion-gb" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-confusion-gb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/classifier_confusion_gb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion."><img src="figures/classifier_confusion_gb.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confusion-gb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.
+</figcaption>
 </figure>
 </div>
 <hr>
 </section>
 </section>
-<section id="step-5-top-6-transitions-brain-section-visualisation" class="level2">
-<h2 class="anchored" data-anchor-id="step-5-top-6-transitions-brain-section-visualisation">Step 5 — Top 6 transitions: brain-section visualisation</h2>
+<section id="step-4-top-6-transitions-brain-section-visualisation" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-top-6-transitions-brain-section-visualisation">Step 4 — Top 6 transitions: brain-section visualisation</h2>
 <p>The six most consistently classified transitions (by GB per-class accuracy) are identified automatically.</p>
 <section id="coronal-sections" class="level3">
 <h3 class="anchored" data-anchor-id="coronal-sections">Coronal sections</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/classifier_coronal_boundaries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region)."><img src="figures/classifier_coronal_boundaries.png" class="img-fluid figure-img" alt="Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region)."></a></p>
-<figcaption>Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).</figcaption>
+<div id="fig-coronal" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-coronal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/classifier_coronal_boundaries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region)."><img src="figures/classifier_coronal_boundaries.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coronal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).
+</figcaption>
 </figure>
 </div>
 </section>
 <section id="sagittal-sections" class="level3">
 <h3 class="anchored" data-anchor-id="sagittal-sections">Sagittal sections</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/classifier_sagittal_boundaries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels."><img src="figures/classifier_sagittal_boundaries.png" class="img-fluid figure-img" alt="Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels."></a></p>
-<figcaption>Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.</figcaption>
+<div id="fig-sagittal" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sagittal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/classifier_sagittal_boundaries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels."><img src="figures/classifier_sagittal_boundaries.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sagittal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.
+</figcaption>
 </figure>
 </div>
 </section>
@@ -497,54 +642,78 @@ Name: GB accuracy, dtype: str</code></pre>
 <div class="quarto-layout-panel" data-layout-ncol="2">
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_TH_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="TH → HPF (74.2% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_TH_to_HPF.png" class="img-fluid figure-img" alt="TH → HPF (74.2% GB accuracy)"></a></p>
-<figcaption>TH → HPF (74.2% GB accuracy)</figcaption>
+<div id="fig-heatmap-TH_to_HPF" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-TH_to_HPF-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_TH_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: TH → HPF (74.2% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_TH_to_HPF.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-TH_to_HPF-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: TH → HPF (74.2% GB accuracy)
+</figcaption>
 </figure>
 </div>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_HPF_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="HPF → Isocortex (72.9% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_HPF_to_Isocortex.png" class="img-fluid figure-img" alt="HPF → Isocortex (72.9% GB accuracy)"></a></p>
-<figcaption>HPF → Isocortex (72.9% GB accuracy)</figcaption>
-</figure>
+<div id="fig-heatmap-HPF_to_Isocortex" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-HPF_to_Isocortex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_HPF_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;10: HPF → Isocortex (72.9% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_HPF_to_Isocortex.png" class="img-fluid figure-img"></a>
 </div>
-</div>
-</div>
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_HB_to_CB.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="HB → CB (72.8% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_HB_to_CB.png" class="img-fluid figure-img" alt="HB → CB (72.8% GB accuracy)"></a></p>
-<figcaption>HB → CB (72.8% GB accuracy)</figcaption>
-</figure>
-</div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_CNU_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16" title="CNU → Isocortex (70.0% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_CNU_to_Isocortex.png" class="img-fluid figure-img" alt="CNU → Isocortex (70.0% GB accuracy)"></a></p>
-<figcaption>CNU → Isocortex (70.0% GB accuracy)</figcaption>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-HPF_to_Isocortex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: HPF → Isocortex (72.9% GB accuracy)
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_MB_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17" title="MB → HPF (54.6% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_MB_to_HPF.png" class="img-fluid figure-img" alt="MB → HPF (54.6% GB accuracy)"></a></p>
-<figcaption>MB → HPF (54.6% GB accuracy)</figcaption>
+<div id="fig-heatmap-HB_to_CB" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-HB_to_CB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_HB_to_CB.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure&nbsp;11: HB → CB (72.8% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_HB_to_CB.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-HB_to_CB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: HB → CB (72.8% GB accuracy)
+</figcaption>
 </figure>
 </div>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/heatmap_profiles/heatmap_OLF_to_CTXsp.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18" title="OLF → CTXsp (52.2% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_OLF_to_CTXsp.png" class="img-fluid figure-img" alt="OLF → CTXsp (52.2% GB accuracy)"></a></p>
-<figcaption>OLF → CTXsp (52.2% GB accuracy)</figcaption>
+<div id="fig-heatmap-CNU_to_Isocortex" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-CNU_to_Isocortex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_CNU_to_Isocortex.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;12: CNU → Isocortex (70.0% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_CNU_to_Isocortex.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-CNU_to_Isocortex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: CNU → Isocortex (70.0% GB accuracy)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-heatmap-MB_to_HPF" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-MB_to_HPF-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_MB_to_HPF.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure&nbsp;13: MB → HPF (54.6% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_MB_to_HPF.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-MB_to_HPF-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: MB → HPF (54.6% GB accuracy)
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-heatmap-OLF_to_CTXsp" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-OLF_to_CTXsp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heatmap_profiles/heatmap_OLF_to_CTXsp.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure&nbsp;14: OLF → CTXsp (52.2% GB accuracy)"><img src="figures/heatmap_profiles/heatmap_OLF_to_CTXsp.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-OLF_to_CTXsp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14: OLF → CTXsp (52.2% GB accuracy)
+</figcaption>
 </figure>
 </div>
 </div>
@@ -553,13 +722,17 @@ Name: GB accuracy, dtype: str</code></pre>
 <hr>
 </section>
 </section>
-<section id="step-6-per-landmark-feature-importance" class="level2">
-<h2 class="anchored" data-anchor-id="step-6-per-landmark-feature-importance">Step 6 — Per-landmark feature importance</h2>
+<section id="step-5-per-landmark-feature-importance" class="level2">
+<h2 class="anchored" data-anchor-id="step-5-per-landmark-feature-importance">Step 5 — Per-landmark feature importance</h2>
 <p>For each of the top-6 transitions, SHAP values (TreeExplainer on the full training set) identify which features the model relies on specifically for <strong>that boundary</strong>. Only the samples belonging to each class are used, so the result is a per-landmark fingerprint rather than a global importance ranking.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/landmark_feature_importance.png" class="lightbox" data-gallery="quarto-lightbox-gallery-19" title="Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape."><img src="figures/landmark_feature_importance.png" class="img-fluid figure-img" alt="Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape."></a></p>
-<figcaption>Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.</figcaption>
+<div id="fig-landmark-feature-importance" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-landmark-feature-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/landmark_feature_importance.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="Figure&nbsp;15: Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape."><img src="figures/landmark_feature_importance.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-landmark-feature-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.
+</figcaption>
 </figure>
 </div>
 <p>The per-landmark fingerprints reveal two distinct boundary types:</p>
@@ -568,49 +741,41 @@ Name: GB accuracy, dtype: str</code></pre>
 <p>The clean split between LFP-power and waveform-shape landmarks suggests that <strong>different recording modalities</strong> are optimal for different anatomical boundaries — a practical guide for online landmark detection.</p>
 <hr>
 </section>
-<section id="step-7-ceiling-validation-encoding-volume-virtual-probes" class="level2">
-<h2 class="anchored" data-anchor-id="step-7-ceiling-validation-encoding-volume-virtual-probes">Step 7 — Ceiling validation: encoding-volume virtual probes</h2>
+<section id="step-6-ceiling-validation-encoding-volume-virtual-probes" class="level2">
+<h2 class="anchored" data-anchor-id="step-6-ceiling-validation-encoding-volume-virtual-probes">Step 6 — Ceiling validation: encoding-volume virtual probes</h2>
 <p>The measured-probe classifier tops out at ~47% because real recordings are noisy and probes are sparse. To check whether this ceiling reflects <em>noise</em> rather than a lack of information in the features, the same pipeline (mean-diff feature vector → GB classifier, 4-fold stratified CV) was re-run on <strong>synthetic virtual probes</strong>: a dense 200 µm AP/ML grid of vertical probes sampled directly from the brainwide encoding volume, with no real Neuropixels data involved. Because the virtual-probe grid densely covers the whole brain (including CSF/<code>void_fluid</code> space), it yields a broader set of <strong>26 transitions</strong> rather than the 18 from real probes — a related but not identical label set.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/classifier_confusion_vol_gb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-20" title="Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal."><img src="figures/classifier_confusion_vol_gb.png" class="img-fluid figure-img" alt="Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal."></a></p>
-<figcaption>Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.</figcaption>
+<div id="fig-confusion-vol-gb" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-confusion-vol-gb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/classifier_confusion_vol_gb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16" title="Figure&nbsp;16: Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal."><img src="figures/classifier_confusion_vol_gb.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confusion-vol-gb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16: Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.
+</figcaption>
 </figure>
 </div>
 <p>The noise-free volume classifier reaches <strong>94.5% accuracy</strong> (93.8% balanced) — near-perfect, versus ~47% on real data. This confirms the measured-probe accuracy is <strong>limited by recording noise and biological variability, not by the discriminative power of the feature set or the classification method</strong>: the same features, sampled without noise, almost perfectly separate every boundary.</p>
 <hr>
 </section>
-<section id="step-8-depth-resolved-attribution-integrated-gradients" class="level2">
-<h2 class="anchored" data-anchor-id="step-8-depth-resolved-attribution-integrated-gradients">Step 8 — Depth-resolved attribution (Integrated Gradients)</h2>
-<p>SHAP (Step 6) summarises which <em>features</em> matter per boundary, collapsed across depth. To see <em>where</em> within the ±500 µm crossing window each feature matters, an MLP was trained on the full depth profile of each crossing (50 depth positions × 26 features = 1300-d input, 4-fold stratified CV) and Captum Integrated Gradients was used to attribute the prediction to every (depth, feature) pair.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/ig/ig_class_signatures.png" class="lightbox" data-gallery="quarto-lightbox-gallery-21" title="Per-class Integrated Gradients heatmaps (depth × feature) for a subset of transitions. The dashed line marks the boundary (depth = 0); red/blue indicate positive/negative attribution."><img src="figures/ig/ig_class_signatures.png" class="img-fluid figure-img" alt="Per-class Integrated Gradients heatmaps (depth × feature) for a subset of transitions. The dashed line marks the boundary (depth = 0); red/blue indicate positive/negative attribution."></a></p>
-<figcaption>Per-class Integrated Gradients heatmaps (depth × feature) for a subset of transitions. The dashed line marks the boundary (depth = 0); red/blue indicate positive/negative attribution.</figcaption>
-</figure>
-</div>
-<p>The attribution maps are spatially sharp around depth 0 for the strongest landmarks (e.g.&nbsp;<code>psd_pc0</code>/<code>csd_pc0</code> for TH → HPF), corroborating the SHAP fingerprints with an independent, depth-resolved method rather than a single averaged feature vector.</p>
-<hr>
-</section>
 <section id="discussion" class="level2">
 <h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
 <p>The classification result — ~47% accuracy against a 9.3% chance level — confirms that LFP features carry <strong>strong, boundary-specific information</strong> at every well-sampled Cosmos-level interface. The top transitions (TH → HPF, HPF → Isocortex, HB → CB, CNU → Isocortex) all achieve <strong>70–74% per-class accuracy</strong>.</p>
-<p>The repro-ephys DG–thalamus landmark corresponds roughly to <strong>TH → HPF</strong> in Cosmos space, consistent with our finding that this is among the most reliably classified transitions. The analysis extends this to 17 additional boundaries, several of which appear even more distinctive.</p>
-<p>The encoding-volume ceiling analysis (Step 7) shows the ~47% real-data accuracy is a <strong>noise floor, not an information floor</strong> — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features. The Integrated Gradients analysis (Step 8) independently corroborates the SHAP fingerprints with depth-resolved attributions.</p>
+<p>The repro-ephys DG–thalamus landmark corresponds roughly to <strong>TH → HPF</strong> in Cosmos space, consistent with our finding that this is among the most reliably classified transitions, and the first landmark independently recovered by the volume-first scan in Step 1. The analysis extends this to 17 additional boundaries, several of which appear even more distinctive.</p>
+<p>The encoding-volume ceiling analysis (Step 6) shows the ~47% real-data accuracy is a <strong>noise floor, not an information floor</strong> — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features.</p>
 <section id="caveats" class="level3">
 <h3 class="anchored" data-anchor-id="caveats">Caveats</h3>
 <ul>
 <li>Accuracies describe generalisation across probes, not expected precision in a single experiment.</li>
 <li>Cosmos-level regions aggregate heterogeneous substructures; finer-grained Beryl-level analysis would reveal variability within each Cosmos boundary.</li>
 <li>Transitions involving unlabelled tissue (void, root) are biologically less interpretable — they mark where probes exit the brain rather than genuine tissue differences.</li>
-<li>The virtual-probe ceiling analysis (Step 7) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/<code>void_fluid</code> crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.</li>
+<li>The virtual-probe ceiling analysis (Step 6) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/<code>void_fluid</code> crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.</li>
 </ul>
 </section>
 <section id="next-steps" class="level3">
 <h3 class="anchored" data-anchor-id="next-steps">Next steps</h3>
 <ul>
 <li>Unsupervised <strong>SLIC supervoxel segmentation</strong> of the encoding volume is being explored as a classifier-independent check of whether boundaries emerge without any labels; not yet quantified against Cosmos boundaries.</li>
-<li>Coronal/sagittal <strong>atlas-coverage QC panels</strong> (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs.&nbsp;gaps, as a supplement to Step 5.</li>
+<li>Coronal/sagittal <strong>atlas-coverage QC panels</strong> (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs.&nbsp;gaps, as a supplement to Step 4.</li>
 </ul>
 
 
@@ -1083,231 +1248,247 @@ Name: GB accuracy, dtype: str</code></pre>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>Sharp transitions in electrophysiological features at brain-region boundaries can serve as anatomical landmarks for Neuropixels probe localisation — a well-known example is the **hippocampus–thalamus boundary** (<span class="co">[</span><span class="ot">Benson et al. eLife 2024</span><span class="co">](https://elifesciences.org/articles/100840#fig3)</span>, Fig. 3b).</span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals.</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>To do so we identify which transitions we observe on our dataset by computing a transition matrix. Then we build a dataset of the features at the transitions, for each couple</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>of transitions that has more than 32 data points.</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>To identify which transitions are the most salient, we train a classifier to predict the transition couple from the features around the transition. We then select the 6 most</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>salient transitions and run a feature importance SHAP analysis to understand each feature contribution.</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals. Discovery runs on the dense, noise-free **brainwide encoding volume** first (Step 1) — a 4-D reconstruction of ephys features across the whole brain — with real Neuropixels recordings used to sanity-check the top candidates it surfaces. The boundaries are then characterised in more detail with classifiers trained directly on measured data (Steps 2–5), and the measured-classifier accuracy ceiling is cross-checked against the same pipeline run on the volume (Step 6).</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 1 — Volume-first landmark discovery (vintage 2026_W26)</span></span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 1 — Cosmos boundary transition matrix</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>For each probe, channels are depth-aggregated (modal Cosmos region), adjacent-depth transitions are counted directionally, and interior unlabelled positions are replaced by nearest-neighbour interpolation along the probe (**21,435 positions replaced** in vintage 2026_W24).</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="al">![Directional Cosmos-level transition count matrix (vintage 2026_W24). Row = from-region, column = to-region. Colour clipped at the 97th percentile; diagonal masked.](figures/cosmos_transition_matrix.png)</span>{.lightbox}</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>Boundaries with **≥ 32 probe crossings** in either direction are retained for downstream analyses — **18 transitions** in total.</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>The encoding volume is used as the **primary** discovery substrate, with measured data used only to sanity-check the top candidates it surfaces — because the ceiling analysis (Step 6) shows the volume carries essentially all of the signal, at none of the recording noise.</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>A dense 100 µm AP × ML virtual-probe grid (1.36M channels, <span class="in">`build_virtual_probe_df`</span>) was sampled</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>from the newest available encoding volume (**2026_W26**, 50 µm — the only vintage newer than</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>2026_W12 with a volume on S3), and the same Cohen's-d boundary scan used for the original</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>measured-data search (<span class="in">`compute_boundary_feature_stats`</span>) was run on it unchanged. Because the dense</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>grid removes the real-probe sparsity floor, **63 directed Cosmos pairs** now qualify (≥32</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>crossings) versus the 18 reachable with real probes.</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="al">![Dense virtual-probe Cosmos transition matrix (2026_W26, 100 µm grid) — directional crossing counts across the whole brain, unconstrained by real recording coverage.](figures/vp_transition_matrix_2026_W26_100um.png)</span>{#fig-vp-transition-matrix .lightbox}</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>Excluding trivial CSF/root/fiber-tract crossings, the top 20 tissue–tissue transitions by breadth</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>of significant features (Cohen's d &gt; 0.8, Bonferroni-corrected p &lt; 0.01) then effect size are:</span>
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 2 — Depth-profile exploration</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>For each qualifying transition the ±1000 µm window around each crossing depth was extracted, channels were aligned to zero, and features were plotted as heatmaps (probes × depth).</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="fu">### Example: TH → HPF</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="al">![Depth-profile heatmap for TH → HPF (198 crossings). Each column is one probe; rows are depth relative to the transition. The sharp sign-reversal at depth 0 is consistent with the known DG landmark.](figures/profiles_TH_to_HPF.png)</span>{.lightbox}</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="al">![TH→HPF transitions by AP position](figures/profiles_TH_to_HPF_ap.png)</span>{.lightbox}</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="al">![TH→HPF transitions by ML position](figures/profiles_TH_to_HPF_ml.png)</span>{.lightbox}</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### Other representative boundaries</span></span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="al">![HPF → Isocortex (310 probes)](figures/profiles_HPF_to_Isocortex.png)</span>{.lightbox}</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-significant-transitions</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Top 20 significant tissue–tissue boundary transitions from the dense encoding-volume scan, ranked by # significant features then max Cohen's d."</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>df_sig <span class="op">=</span> pd.read_csv(<span class="st">'figures/volume_landmark_ranking_2026_W26_tissue_only.csv'</span>).head(<span class="dv">20</span>)</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>df_sig[<span class="st">'transition'</span>] <span class="op">=</span> df_sig[<span class="st">'from'</span>] <span class="op">+</span> <span class="st">' → '</span> <span class="op">+</span> df_sig[<span class="st">'to'</span>]</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>df_sig <span class="op">=</span> df_sig.set_index(<span class="st">'transition'</span>)[[<span class="st">'max_cohens_d'</span>, <span class="st">'n_significant_features'</span>, <span class="st">'n_trans'</span>]]</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>df_sig.columns <span class="op">=</span> [<span class="st">"Max Cohen's d"</span>, <span class="st">'# significant features'</span>, <span class="st">'# crossings'</span>]</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>df_sig</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>**TH → HPF reproduces the known DG–thalamus landmark** — a useful cross-check that the</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>volume-first approach recovers the same landmark the measured-data classifier below (Step 3)</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>independently ranks among its most reliably classified transitions.</span>
 <span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="al">![HB → CB (136 probes)](figures/profiles_HB_to_CB.png)</span>{.lightbox}</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="al">![TH → HPF depth profile from the encoding volume (dense grid, 150 of 917 crossings shown).](figures/volume_vs_measured/volume_TH_to_HPF.png)</span>{#fig-vol-th-hpf .lightbox}</span>
 <span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="al">![CNU → Isocortex (110 probes)](figures/profiles_CNU_to_Isocortex.png)</span>{.lightbox}</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="al">![The same TH → HPF profile from measured 2026_W26 recordings (150 of 206 crossings shown), same features as the volume figure above.](figures/volume_vs_measured/measured_TH_to_HPF.png)</span>{#fig-measured-th-hpf .lightbox}</span>
 <span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="al">![MB → HPF (119 probes)](figures/profiles_MB_to_HPF.png)</span>{.lightbox}</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 3 — Dimensionality reduction (PCA)</span></span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>Raw LFP features include 21 PSD-related columns (7 raw-PSD + 14 CSD-PSD) that are highly correlated due to the 1/f spectral background.</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>Two independent PCAs compress these into 4 components:</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**PSD group** (7 features) → <span class="in">`psd_pc0`</span>, <span class="in">`psd_pc1`</span></span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**CSD group** (14 features) → <span class="in">`csd_pc0`</span>, <span class="in">`csd_pc1`</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="in">`csd_pc0`</span> and <span class="in">`psd_pc0`</span> show the same sign and timing of the transition in both panels; the</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>measured panel is visibly noisier (single-recording variance) but the underlying step is the same</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>— exactly what the Step 6 ceiling analysis would predict. (Each panel uses its own colour scale,</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>scaled to its own 2nd–98th percentile range — a shared scale washes the smoother volume panel out,</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>since it has far less spread than single-recording measured data.)</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>Of the top 5 tissue–tissue candidates, **3 are directly corroborated** in measured 2026_W26 data</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>(HPF → MB, TH → HPF, CNU → Isocortex). The other 2 (Isocortex → CNU, CNU → HPF) are not absent from</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>real data so much as **direction-flipped or unobserved**: real Neuropixels trajectories only</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>sample a limited set of entry angles, so a transition direction that's common in the dense,</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>uniformly-sampled virtual grid can be rare or missing among the ~1,000 real insertions — this is</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>flagged as encoding-volume-only rather than silently promoted to landmark status.</span>
 <span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>The original PSD/CSD columns are dropped. After also removing <span class="in">`distance_to_tip_um`</span> and the aperiodic-residual PSD features, **26 features** remain for downstream analysis:</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="fu">### Feature importance on the volume data</span></span>
 <span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Group <span class="pp">|</span> Features <span class="pp">|</span></span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------|----------|</span></span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> PCA (LFP) <span class="pp">|</span> <span class="in">`psd_pc0`</span>, <span class="in">`psd_pc1`</span>, <span class="in">`csd_pc0`</span>, <span class="in">`csd_pc1`</span> <span class="pp">|</span></span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Waveform shape <span class="pp">|</span> <span class="in">`tip_val`</span>, <span class="in">`trough_val`</span>, <span class="in">`peak_val`</span>, <span class="in">`recovery_time_secs`</span>, <span class="in">`tip_time_secs`</span>, <span class="in">`trough_time_secs`</span>, <span class="in">`peak_time_secs`</span>, <span class="in">`depolarisation_slope`</span>, <span class="in">`repolarisation_slope`</span>, <span class="in">`recovery_slope`</span> <span class="pp">|</span></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unit quality <span class="pp">|</span> <span class="in">`rms_ap`</span>, <span class="in">`spike_count`</span>, <span class="in">`polarity`</span>, <span class="in">`cor_ratio`</span>, <span class="in">`alpha_mean`</span>, <span class="in">`alpha_std`</span>, <span class="in">`decay_n_peaks`</span>, <span class="in">`decay_fit_error`</span>, <span class="in">`decay_fit_r_squared`</span> <span class="pp">|</span></span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> LFP aperiodic <span class="pp">|</span> <span class="in">`rms_lf_no_car`</span>, <span class="in">`aperiodic_offset`</span>, <span class="in">`aperiodic_exponent`</span> <span class="pp">|</span></span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>After PCA, Cosmos-level regions are already partially separable in the 2D PC space:</span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a><span class="al">![PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along `psd_pc0`/`csd_pc0`, confirming the PCA components carry anatomical signal even without supervision.](figures/psd_pca_04_scatter_cosmos.png)</span>{.lightbox}</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>Reproducing Step 5's measured-data SHAP analysis directly on the volume: a GB classifier was</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>trained on mean-diff feature vectors for the 20 significant transitions above (dense virtual-probe</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>crossings, ±1000 µm window), reaching **94.6% accuracy** (85.7% balanced) over 4-fold CV — in the</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>same range as the Step 6 ceiling classifier. SHAP (TreeExplainer) then identifies which features</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>drive each of the 6 best-classified transitions specifically.</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a><span class="al">![Volume-derived per-landmark feature importance — top 10 features per boundary (mean \|SHAP\|), for the 6 best-classified of the 20 significant transitions.](figures/landmark_feature_importance_volume.png)</span>{#fig-vol-feature-importance .lightbox}</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a><span class="in">`aperiodic_offset`</span>, <span class="in">`csd_pc0`</span> and <span class="in">`rms_ap`</span> dominate **TH → HPF** here too, consistent with the</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>measured-data fingerprint in Step 5 — the volume-derived classifier recovers the same</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>feature-level signature as the noisier real-data one, with none of the sampling limitations of</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>real probe coverage.</span>
 <span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 4 — Boundary classifier</span></span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a><span class="fu">### Feature vector construction</span></span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>For each (probe, boundary) crossing, a **difference vector** is computed:</span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>$$\mathbf{x} = \bar{\mathbf{f}}_{\text{below}} - \bar{\mathbf{f}}_{\text{above}}$$</span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>where "below" is the from-region side (deeper) and "above" is the to-region side (shallower), each averaged over the ±1000 µm window around the crossing depth.</span>
-<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>This yields a 26-dimensional vector per sample encoding the *direction and magnitude* of the feature change.</span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>1c</span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model</span></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>Full ranked tables: <span class="in">`figures/volume_landmark_ranking_2026_W26_tissue_only.csv`</span> (all 33 tissue–tissue</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>pairs) and <span class="in">`figures/volume_boundary_feature_stats_2026_W26.csv`</span> (per-feature detail).</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 2 — Dimensionality reduction (PCA)</span></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>Raw LFP features include 21 PSD-related columns (7 raw-PSD + 14 CSD-PSD) that are highly correlated due to the 1/f spectral background.</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>Two independent PCAs compress these into 4 components:</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**PSD group** (7 features) → <span class="in">`psd_pc0`</span>, <span class="in">`psd_pc1`</span></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>**CSD group** (14 features) → <span class="in">`csd_pc0`</span>, <span class="in">`csd_pc1`</span></span>
 <span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>A **Gradient Boosted classifier** (`HistGradientBoostingClassifier`, 300 iterations) is trained on the 18-class problem using **4-fold stratified cross-validation** (1,714 samples total).</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>The original PSD/CSD columns are dropped. After also removing <span class="in">`distance_to_tip_um`</span> and the aperiodic-residual PSD features, **26 features** remain for downstream analysis:</span>
 <span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="fu">### Accuracy</span></span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-accuracy</span></span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Per-class CV accuracy (gradient boosting)."</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Group <span class="pp">|</span> Features <span class="pp">|</span></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------|----------|</span></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> PCA (LFP) <span class="pp">|</span> <span class="in">`psd_pc0`</span>, <span class="in">`psd_pc1`</span>, <span class="in">`csd_pc0`</span>, <span class="in">`csd_pc1`</span> <span class="pp">|</span></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Waveform shape <span class="pp">|</span> <span class="in">`tip_val`</span>, <span class="in">`trough_val`</span>, <span class="in">`peak_val`</span>, <span class="in">`recovery_time_secs`</span>, <span class="in">`tip_time_secs`</span>, <span class="in">`trough_time_secs`</span>, <span class="in">`peak_time_secs`</span>, <span class="in">`depolarisation_slope`</span>, <span class="in">`repolarisation_slope`</span>, <span class="in">`recovery_slope`</span> <span class="pp">|</span></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unit quality <span class="pp">|</span> <span class="in">`rms_ap`</span>, <span class="in">`spike_count`</span>, <span class="in">`polarity`</span>, <span class="in">`cor_ratio`</span>, <span class="in">`alpha_mean`</span>, <span class="in">`alpha_std`</span>, <span class="in">`decay_n_peaks`</span>, <span class="in">`decay_fit_error`</span>, <span class="in">`decay_fit_r_squared`</span> <span class="pp">|</span></span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> LFP aperiodic <span class="pp">|</span> <span class="in">`rms_lf_no_car`</span>, <span class="in">`aperiodic_offset`</span>, <span class="in">`aperiodic_exponent`</span> <span class="pp">|</span></span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>After PCA, Cosmos-level regions are already partially separable in the 2D PC space:</span>
 <span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
-<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>].copy()</span>
-<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_gb[df_gb[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>].set_index(<span class="st">'class'</span>)[<span class="st">'accuracy'</span>]</span>
-<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_gb.sort_values(ascending<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>df_gb.index <span class="op">=</span> df_gb.index.<span class="bu">str</span>.replace(<span class="st">'_to_'</span>, <span class="st">' → '</span>)</span>
-<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>df_gb.name <span class="op">=</span> <span class="st">'GB accuracy'</span></span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>df_gb.<span class="bu">map</span>(<span class="kw">lambda</span> x: <span class="ss">f"</span><span class="sc">{</span>x<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
-<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a><span class="al">![PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along `psd_pc0`/`csd_pc0`, confirming the PCA components carry anatomical signal even without supervision.](figures/psd_pca_04_scatter_cosmos.png)</span>{#fig-psd-pca-scatter .lightbox}</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 3 — Boundary classifier</span></span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a><span class="fu">### Feature vector construction</span></span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>For each (probe, boundary) crossing, a **difference vector** is computed:</span>
 <span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
-<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>overall <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">==</span> <span class="st">'overall'</span>)][<span class="st">'accuracy'</span>].values[<span class="dv">0</span>]</span>
-<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Overall GB CV accuracy: </span><span class="sc">{</span>overall<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
-<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>Overall CV accuracy: **GB ≈ 47%** against a null of ~9.3% (permutation test, p = 0.0099) — roughly **5× chance level**, confirming that LFP features carry strong boundary-specific information.</span>
-<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a><span class="fu">### Confusion matrix</span></span>
-<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a><span class="al">![GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.](figures/classifier_confusion_gb.png)</span>{.lightbox}</span>
-<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>$$\mathbf{x} = \bar{\mathbf{f}}_{\text{below}} - \bar{\mathbf{f}}_{\text{above}}$$</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>where "below" is the from-region side (deeper) and "above" is the to-region side (shallower), each averaged over the ±1000 µm window around the crossing depth.</span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>This yields a 26-dimensional vector per sample encoding the *direction and magnitude* of the feature change.</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model</span></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>A **Gradient Boosted classifier** (`HistGradientBoostingClassifier`, 300 iterations) is trained on the 18-class problem using **4-fold stratified cross-validation** (1,714 samples total).</span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a><span class="fu">### Accuracy</span></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-accuracy</span></span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Per-class CV accuracy (gradient boosting)."</span></span>
 <span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 5 — Top 6 transitions: brain-section visualisation</span></span>
-<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>The six most consistently classified transitions (by GB per-class accuracy) are identified automatically.</span>
-<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a><span class="fu">### Coronal sections</span></span>
-<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a><span class="al">![Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).](figures/classifier_coronal_boundaries.png)</span>{.lightbox}</span>
-<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a><span class="fu">### Sagittal sections</span></span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>].copy()</span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_gb[df_gb[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>].set_index(<span class="st">'class'</span>)[<span class="st">'accuracy'</span>]</span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_gb.sort_values(ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>df_gb.index <span class="op">=</span> df_gb.index.<span class="bu">str</span>.replace(<span class="st">'_to_'</span>, <span class="st">' → '</span>)</span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a>df_gb.name <span class="op">=</span> <span class="st">'GB accuracy'</span></span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>df_gb.<span class="bu">map</span>(<span class="kw">lambda</span> x: <span class="ss">f"</span><span class="sc">{</span>x<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a><span class="al">![Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.](figures/classifier_sagittal_boundaries.png)</span>{.lightbox}</span>
-<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a><span class="fu">### Depth-profile heatmaps</span></span>
-<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
-<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>)]</span>
-<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a>top6 <span class="op">=</span> df_gb.nlargest(<span class="dv">6</span>, <span class="st">'accuracy'</span>)[[<span class="st">'class'</span>, <span class="st">'accuracy'</span>]].values.tolist()</span>
-<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a>overall <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">==</span> <span class="st">'overall'</span>)][<span class="st">'accuracy'</span>].values[<span class="dv">0</span>]</span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Overall GB CV accuracy: </span><span class="sc">{</span>overall<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a>Overall CV accuracy: **GB ≈ 47%** against a null of ~9.3% (permutation test, p = 0.0099) — roughly **5× chance level**, confirming that LFP features carry strong boundary-specific information.</span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a><span class="fu">### Confusion matrix</span></span>
 <span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
-<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
-<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
-<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>)]</span>
-<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a>top6 <span class="op">=</span> df_gb.nlargest(<span class="dv">6</span>, <span class="st">'accuracy'</span>)[[<span class="st">'class'</span>, <span class="st">'accuracy'</span>]].values.tolist()</span>
-<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> cls, acc <span class="kw">in</span> top6:</span>
-<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a>    slug <span class="op">=</span> cls.replace(<span class="st">'_to_'</span>, <span class="st">'_to_'</span>)</span>
-<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> cls.replace(<span class="st">'_to_'</span>, <span class="st">' → '</span>)</span>
-<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'![</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>acc<span class="sc">:.1%}</span><span class="ss"> GB accuracy)](figures/heatmap_profiles/heatmap_</span><span class="sc">{</span>slug<span class="sc">}</span><span class="ss">.png)</span><span class="ch">{{</span><span class="ss">.lightbox</span><span class="ch">}}\n</span><span class="ss">'</span>)</span>
-<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 6 — Per-landmark feature importance</span></span>
-<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a>For each of the top-6 transitions, SHAP values (TreeExplainer on the full training set) identify which features the model relies on specifically for **that boundary**.</span>
-<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a>Only the samples belonging to each class are used, so the result is a per-landmark fingerprint rather than a global importance ranking.</span>
-<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a><span class="al">![Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.](figures/landmark_feature_importance.png)</span>{.lightbox}</span>
-<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a>The per-landmark fingerprints reveal two distinct boundary types:</span>
+<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a><span class="al">![GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.](figures/classifier_confusion_gb.png)</span>{#fig-confusion-gb .lightbox}</span>
+<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 4 — Top 6 transitions: brain-section visualisation</span></span>
+<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a>The six most consistently classified transitions (by GB per-class accuracy) are identified automatically.</span>
+<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a><span class="fu">### Coronal sections</span></span>
+<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a><span class="al">![Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).](figures/classifier_coronal_boundaries.png)</span>{#fig-coronal .lightbox}</span>
+<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a><span class="fu">### Sagittal sections</span></span>
+<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a><span class="al">![Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.](figures/classifier_sagittal_boundaries.png)</span>{#fig-sagittal .lightbox}</span>
+<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a><span class="fu">### Depth-profile heatmaps</span></span>
+<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
+<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>)]</span>
+<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a>top6 <span class="op">=</span> df_gb.nlargest(<span class="dv">6</span>, <span class="st">'accuracy'</span>)[[<span class="st">'class'</span>, <span class="st">'accuracy'</span>]].values.tolist()</span>
+<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a>**LFP-power boundaries** — driven by <span class="in">`psd_pc0`</span> / <span class="in">`csd_pc0`</span> (broadband LFP and CSD):</span>
-<span id="cb3-189"><a href="#cb3-189" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**TH → HPF** (<span class="in">`psd_pc0`</span>, <span class="in">`csd_pc0`</span>, <span class="in">`rms_ap`</span>) — broadband LFP power drop, consistent with the known DG landmark from repro-ephys.</span>
-<span id="cb3-190"><a href="#cb3-190" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**HPF → Isocortex** (<span class="in">`csd_pc0`</span>, <span class="in">`rms_lf_no_car`</span>, <span class="in">`aperiodic_exponent`</span>) — CSD-dominated, reflects cortical layering.</span>
-<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CNU → Isocortex** (<span class="in">`psd_pc0`</span>, <span class="in">`rms_ap`</span>, <span class="in">`aperiodic_offset`</span>) — similar broadband + spiking signature.</span>
-<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a>**Waveform-shape boundaries** — driven by spike kinetics, not LFP:</span>
-<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**HB → CB** (<span class="in">`recovery_slope`</span>, <span class="in">`decay_fit_r_squared`</span>, <span class="in">`cor_ratio`</span>) — purely waveform-shape; no LFP contribution.</span>
-<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**MB → HPF** (<span class="in">`aperiodic_offset`</span>, <span class="in">`recovery_slope`</span>, <span class="in">`trough_time_secs`</span>) — mixed LFP + waveform.</span>
-<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**OLF → CTXsp** (<span class="in">`recovery_time_secs`</span>, <span class="in">`alpha_std`</span>, <span class="in">`trough_time_secs`</span>) — waveform kinetics dominate strongly.</span>
-<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a>The clean split between LFP-power and waveform-shape landmarks suggests that **different recording modalities** are optimal for different anatomical boundaries — a practical guide for online landmark detection.</span>
-<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 7 — Ceiling validation: encoding-volume virtual probes</span></span>
-<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a>The measured-probe classifier tops out at ~47% because real recordings are noisy and probes are sparse.</span>
-<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a>To check whether this ceiling reflects *noise* rather than a lack of information in the features, the same pipeline (mean-diff feature vector → GB classifier, 4-fold stratified CV) was re-run on **synthetic virtual probes**: a dense 200 µm AP/ML grid of vertical probes sampled directly from the brainwide encoding volume, with no real Neuropixels data involved.</span>
-<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a>Because the virtual-probe grid densely covers the whole brain (including CSF/<span class="in">`void_fluid`</span> space), it yields a broader set of **26 transitions** rather than the 18 from real probes — a related but not identical label set.</span>
-<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a><span class="al">![Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.](figures/classifier_confusion_vol_gb.png)</span>{.lightbox}</span>
-<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a>The noise-free volume classifier reaches **94.5% accuracy** (93.8% balanced) — near-perfect, versus ~47% on real data.</span>
-<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a>This confirms the measured-probe accuracy is **limited by recording noise and biological variability, not by the discriminative power of the feature set or the classification method**: the same features, sampled without noise, almost perfectly separate every boundary.</span>
-<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 8 — Depth-resolved attribution (Integrated Gradients)</span></span>
-<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a>SHAP (Step 6) summarises which *features* matter per boundary, collapsed across depth. To see *where* within the ±500 µm crossing window each feature matters, an MLP was trained on the full depth profile of each crossing (50 depth positions × 26 features = 1300-d input, 4-fold stratified CV) and Captum Integrated Gradients was used to attribute the prediction to every (depth, feature) pair.</span>
-<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a><span class="al">![Per-class Integrated Gradients heatmaps (depth × feature) for a subset of transitions. The dashed line marks the boundary (depth = 0); red/blue indicate positive/negative attribution.](figures/ig/ig_class_signatures.png)</span>{.lightbox}</span>
+<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
+<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a>df_acc <span class="op">=</span> pd.read_csv(<span class="st">'figures/classifier_accuracy.csv'</span>)</span>
+<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a>df_gb <span class="op">=</span> df_acc[(df_acc[<span class="st">'model'</span>] <span class="op">==</span> <span class="st">'gb'</span>) <span class="op">&amp;</span> (df_acc[<span class="st">'class'</span>] <span class="op">!=</span> <span class="st">'overall'</span>)]</span>
+<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a>top6 <span class="op">=</span> df_gb.nlargest(<span class="dv">6</span>, <span class="st">'accuracy'</span>)[[<span class="st">'class'</span>, <span class="st">'accuracy'</span>]].values.tolist()</span>
+<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> cls, acc <span class="kw">in</span> top6:</span>
+<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a>    slug <span class="op">=</span> cls.replace(<span class="st">'_to_'</span>, <span class="st">'_to_'</span>)</span>
+<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> cls.replace(<span class="st">'_to_'</span>, <span class="st">' → '</span>)</span>
+<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'![</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>acc<span class="sc">:.1%}</span><span class="ss"> GB accuracy)](figures/heatmap_profiles/heatmap_</span><span class="sc">{</span>slug<span class="sc">}</span><span class="ss">.png)</span><span class="ch">{{</span><span class="ss">#fig-heatmap-</span><span class="sc">{</span>slug<span class="sc">}</span><span class="ss"> .lightbox</span><span class="ch">}}\n</span><span class="ss">'</span>)</span>
+<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 5 — Per-landmark feature importance</span></span>
+<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a>For each of the top-6 transitions, SHAP values (TreeExplainer on the full training set) identify which features the model relies on specifically for **that boundary**.</span>
+<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a>Only the samples belonging to each class are used, so the result is a per-landmark fingerprint rather than a global importance ranking.</span>
+<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a><span class="al">![Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.](figures/landmark_feature_importance.png)</span>{#fig-landmark-feature-importance .lightbox}</span>
+<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a>The per-landmark fingerprints reveal two distinct boundary types:</span>
+<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a>**LFP-power boundaries** — driven by <span class="in">`psd_pc0`</span> / <span class="in">`csd_pc0`</span> (broadband LFP and CSD):</span>
+<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**TH → HPF** (<span class="in">`psd_pc0`</span>, <span class="in">`csd_pc0`</span>, <span class="in">`rms_ap`</span>) — broadband LFP power drop, consistent with the known DG landmark from repro-ephys.</span>
+<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**HPF → Isocortex** (<span class="in">`csd_pc0`</span>, <span class="in">`rms_lf_no_car`</span>, <span class="in">`aperiodic_exponent`</span>) — CSD-dominated, reflects cortical layering.</span>
+<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CNU → Isocortex** (<span class="in">`psd_pc0`</span>, <span class="in">`rms_ap`</span>, <span class="in">`aperiodic_offset`</span>) — similar broadband + spiking signature.</span>
 <span id="cb3-220"><a href="#cb3-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a>The attribution maps are spatially sharp around depth 0 for the strongest landmarks (e.g. <span class="in">`psd_pc0`</span>/<span class="in">`csd_pc0`</span> for TH → HPF), corroborating the SHAP fingerprints with an independent, depth-resolved method rather than a single averaged feature vector.</span>
-<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a><span class="fu">## Discussion</span></span>
-<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a>The classification result — ~47% accuracy against a 9.3% chance level — confirms that LFP features carry **strong, boundary-specific information** at every well-sampled Cosmos-level interface.</span>
-<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a>The top transitions (TH → HPF, HPF → Isocortex, HB → CB, CNU → Isocortex) all achieve **70–74% per-class accuracy**.</span>
+<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a>**Waveform-shape boundaries** — driven by spike kinetics, not LFP:</span>
+<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**HB → CB** (<span class="in">`recovery_slope`</span>, <span class="in">`decay_fit_r_squared`</span>, <span class="in">`cor_ratio`</span>) — purely waveform-shape; no LFP contribution.</span>
+<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**MB → HPF** (<span class="in">`aperiodic_offset`</span>, <span class="in">`recovery_slope`</span>, <span class="in">`trough_time_secs`</span>) — mixed LFP + waveform.</span>
+<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**OLF → CTXsp** (<span class="in">`recovery_time_secs`</span>, <span class="in">`alpha_std`</span>, <span class="in">`trough_time_secs`</span>) — waveform kinetics dominate strongly.</span>
+<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a>The clean split between LFP-power and waveform-shape landmarks suggests that **different recording modalities** are optimal for different anatomical boundaries — a practical guide for online landmark detection.</span>
+<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb3-229"><a href="#cb3-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a>The repro-ephys DG–thalamus landmark corresponds roughly to **TH → HPF** in Cosmos space, consistent with our finding that this is among the most reliably classified transitions.</span>
-<span id="cb3-231"><a href="#cb3-231" aria-hidden="true" tabindex="-1"></a>The analysis extends this to 17 additional boundaries, several of which appear even more distinctive.</span>
-<span id="cb3-232"><a href="#cb3-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-233"><a href="#cb3-233" aria-hidden="true" tabindex="-1"></a>The encoding-volume ceiling analysis (Step 7) shows the ~47% real-data accuracy is a **noise floor, not an information floor** — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features. The Integrated Gradients analysis (Step 8) independently corroborates the SHAP fingerprints with depth-resolved attributions.</span>
-<span id="cb3-234"><a href="#cb3-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-235"><a href="#cb3-235" aria-hidden="true" tabindex="-1"></a><span class="fu">### Caveats</span></span>
-<span id="cb3-236"><a href="#cb3-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-237"><a href="#cb3-237" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Accuracies describe generalisation across probes, not expected precision in a single experiment.</span>
-<span id="cb3-238"><a href="#cb3-238" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Cosmos-level regions aggregate heterogeneous substructures; finer-grained Beryl-level analysis would reveal variability within each Cosmos boundary.</span>
-<span id="cb3-239"><a href="#cb3-239" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Transitions involving unlabelled tissue (void, root) are biologically less interpretable — they mark where probes exit the brain rather than genuine tissue differences.</span>
-<span id="cb3-240"><a href="#cb3-240" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>The virtual-probe ceiling analysis (Step 7) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/<span class="in">`void_fluid`</span> crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.</span>
-<span id="cb3-241"><a href="#cb3-241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-242"><a href="#cb3-242" aria-hidden="true" tabindex="-1"></a><span class="fu">### Next steps</span></span>
-<span id="cb3-243"><a href="#cb3-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-244"><a href="#cb3-244" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Unsupervised **SLIC supervoxel segmentation** of the encoding volume is being explored as a classifier-independent check of whether boundaries emerge without any labels; not yet quantified against Cosmos boundaries.</span>
-<span id="cb3-245"><a href="#cb3-245" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Coronal/sagittal **atlas-coverage QC panels** (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs. gaps, as a supplement to Step 5.</span>
+<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 6 — Ceiling validation: encoding-volume virtual probes</span></span>
+<span id="cb3-231"><a href="#cb3-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-232"><a href="#cb3-232" aria-hidden="true" tabindex="-1"></a>The measured-probe classifier tops out at ~47% because real recordings are noisy and probes are sparse.</span>
+<span id="cb3-233"><a href="#cb3-233" aria-hidden="true" tabindex="-1"></a>To check whether this ceiling reflects *noise* rather than a lack of information in the features, the same pipeline (mean-diff feature vector → GB classifier, 4-fold stratified CV) was re-run on **synthetic virtual probes**: a dense 200 µm AP/ML grid of vertical probes sampled directly from the brainwide encoding volume, with no real Neuropixels data involved.</span>
+<span id="cb3-234"><a href="#cb3-234" aria-hidden="true" tabindex="-1"></a>Because the virtual-probe grid densely covers the whole brain (including CSF/<span class="in">`void_fluid`</span> space), it yields a broader set of **26 transitions** rather than the 18 from real probes — a related but not identical label set.</span>
+<span id="cb3-235"><a href="#cb3-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-236"><a href="#cb3-236" aria-hidden="true" tabindex="-1"></a><span class="al">![Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.](figures/classifier_confusion_vol_gb.png)</span>{#fig-confusion-vol-gb .lightbox}</span>
+<span id="cb3-237"><a href="#cb3-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-238"><a href="#cb3-238" aria-hidden="true" tabindex="-1"></a>The noise-free volume classifier reaches **94.5% accuracy** (93.8% balanced) — near-perfect, versus ~47% on real data.</span>
+<span id="cb3-239"><a href="#cb3-239" aria-hidden="true" tabindex="-1"></a>This confirms the measured-probe accuracy is **limited by recording noise and biological variability, not by the discriminative power of the feature set or the classification method**: the same features, sampled without noise, almost perfectly separate every boundary.</span>
+<span id="cb3-240"><a href="#cb3-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-241"><a href="#cb3-241" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-242"><a href="#cb3-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-243"><a href="#cb3-243" aria-hidden="true" tabindex="-1"></a><span class="fu">## Discussion</span></span>
+<span id="cb3-244"><a href="#cb3-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-245"><a href="#cb3-245" aria-hidden="true" tabindex="-1"></a>The classification result — ~47% accuracy against a 9.3% chance level — confirms that LFP features carry **strong, boundary-specific information** at every well-sampled Cosmos-level interface.</span>
+<span id="cb3-246"><a href="#cb3-246" aria-hidden="true" tabindex="-1"></a>The top transitions (TH → HPF, HPF → Isocortex, HB → CB, CNU → Isocortex) all achieve **70–74% per-class accuracy**.</span>
+<span id="cb3-247"><a href="#cb3-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-248"><a href="#cb3-248" aria-hidden="true" tabindex="-1"></a>The repro-ephys DG–thalamus landmark corresponds roughly to **TH → HPF** in Cosmos space, consistent with our finding that this is among the most reliably classified transitions, and the first landmark independently recovered by the volume-first scan in Step 1.</span>
+<span id="cb3-249"><a href="#cb3-249" aria-hidden="true" tabindex="-1"></a>The analysis extends this to 17 additional boundaries, several of which appear even more distinctive.</span>
+<span id="cb3-250"><a href="#cb3-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-251"><a href="#cb3-251" aria-hidden="true" tabindex="-1"></a>The encoding-volume ceiling analysis (Step 6) shows the ~47% real-data accuracy is a **noise floor, not an information floor** — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features.</span>
+<span id="cb3-252"><a href="#cb3-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-253"><a href="#cb3-253" aria-hidden="true" tabindex="-1"></a><span class="fu">### Caveats</span></span>
+<span id="cb3-254"><a href="#cb3-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-255"><a href="#cb3-255" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Accuracies describe generalisation across probes, not expected precision in a single experiment.</span>
+<span id="cb3-256"><a href="#cb3-256" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Cosmos-level regions aggregate heterogeneous substructures; finer-grained Beryl-level analysis would reveal variability within each Cosmos boundary.</span>
+<span id="cb3-257"><a href="#cb3-257" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Transitions involving unlabelled tissue (void, root) are biologically less interpretable — they mark where probes exit the brain rather than genuine tissue differences.</span>
+<span id="cb3-258"><a href="#cb3-258" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>The virtual-probe ceiling analysis (Step 6) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/<span class="in">`void_fluid`</span> crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.</span>
+<span id="cb3-259"><a href="#cb3-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-260"><a href="#cb3-260" aria-hidden="true" tabindex="-1"></a><span class="fu">### Next steps</span></span>
+<span id="cb3-261"><a href="#cb3-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-262"><a href="#cb3-262" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Unsupervised **SLIC supervoxel segmentation** of the encoding volume is being explored as a classifier-independent check of whether boundaries emerge without any labels; not yet quantified against Cosmos boundaries.</span>
+<span id="cb3-263"><a href="#cb3-263" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Coronal/sagittal **atlas-coverage QC panels** (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs. gaps, as a supplement to Step 4.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import pdist
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import RobustScaler
 
 _DEFAULT_ROOT = Path.home().joinpath('data', 'ephys-atlas', 'features')
@@ -30,6 +31,75 @@ EXCLUDE_COLS = frozenset({
 # Region IDs treated as pass-through labels during nearest-neighbour interpolation.
 # void (0), VS/ventricular systems (73), root (997), fiber tracts (1009), void_fluid (2000).
 _NNI_IDS = frozenset({0, 73, 997, 1009, 2000})
+
+# PSD/CSD raw feature groups reduced to 2 PCs each by EphysPsdPCA. The CSD group has
+# two vintage-dependent variants: encoding volumes up to 2026_W12 only carried the
+# plain (non-diff1) CSD features, while 2026_W26 onward carries only the *_csd_diff1
+# variant. `csd_variant` picks whichever one matches the encoding volume in use so the
+# measured-data PCA and the volume lookup stay on identical feature columns.
+_PSD_COLS = [
+    'rms_lf', 'psd_lfp', 'psd_delta', 'psd_theta', 'psd_alpha', 'psd_beta', 'psd_gamma',
+]
+_CSD_COLS_BY_VARIANT = {
+    'plain': [
+        'rms_lf_csd', 'psd_lfp_csd', 'psd_delta_csd', 'psd_theta_csd',
+        'psd_alpha_csd', 'psd_beta_csd', 'psd_gamma_csd',
+    ],
+    'diff1': [
+        'rms_lf_csd_diff1', 'psd_lfp_csd_diff1', 'psd_delta_csd_diff1',
+        'psd_theta_csd_diff1', 'psd_alpha_csd_diff1', 'psd_beta_csd_diff1',
+        'psd_gamma_csd_diff1',
+    ],
+}
+
+
+class EphysPsdPCA:
+    """Reduce PSD and CSD raw feature groups to 2 principal components each.
+
+    Fit once on measured channel features; the same fitted scaler+PCA is then applied
+    unchanged to encoding-volume lookups so ``psd_pc0/1`` and ``csd_pc0/1`` are on
+    identical axes in both. Each group is scaled with a ``RobustScaler`` before PCA,
+    matching the outlier-robust convention used elsewhere in this module.
+
+    Parameters
+    ----------
+    n_components_psd, n_components_csd:
+        Number of principal components retained per group.
+    csd_variant:
+        ``'plain'`` (``*_csd``) or ``'diff1'`` (``*_csd_diff1``) — must match the
+        columns available in the encoding volume this PCA will be applied to.
+    """
+
+    def __init__(self, n_components_psd=2, n_components_csd=2, csd_variant='plain'):
+        if csd_variant not in _CSD_COLS_BY_VARIANT:
+            raise ValueError(f"csd_variant must be one of {list(_CSD_COLS_BY_VARIANT)}")
+        self.n_components_psd = n_components_psd
+        self.n_components_csd = n_components_csd
+        self.csd_variant = csd_variant
+        self.psd_cols_ = _PSD_COLS
+        self.csd_cols_ = _CSD_COLS_BY_VARIANT[csd_variant]
+
+    def fit(self, df_raw: pd.DataFrame) -> 'EphysPsdPCA':
+        self.scaler_psd_ = RobustScaler().fit(df_raw[self.psd_cols_])
+        self.pca_psd_ = PCA(n_components=self.n_components_psd).fit(
+            self.scaler_psd_.transform(df_raw[self.psd_cols_])
+        )
+        self.scaler_csd_ = RobustScaler().fit(df_raw[self.csd_cols_])
+        self.pca_csd_ = PCA(n_components=self.n_components_csd).fit(
+            self.scaler_csd_.transform(df_raw[self.csd_cols_])
+        )
+        return self
+
+    def transform(self, df_raw: pd.DataFrame) -> pd.DataFrame:
+        psd_scores = self.pca_psd_.transform(self.scaler_psd_.transform(df_raw[self.psd_cols_]))
+        csd_scores = self.pca_csd_.transform(self.scaler_csd_.transform(df_raw[self.csd_cols_]))
+
+        df = df_raw.drop(columns=self.psd_cols_ + self.csd_cols_)
+        for i in range(self.n_components_psd):
+            df[f'psd_pc{i}'] = psd_scores[:, i]
+        for i in range(self.n_components_csd):
+            df[f'csd_pc{i}'] = csd_scores[:, i]
+        return df
 
 
 def load_features(
@@ -93,18 +163,21 @@ def load_or_fit_psd_pca(
     brain_atlas,
     n_components_psd: int = 2,
     n_components_csd: int = 2,
+    csd_variant: str = 'plain',
 ):
     """Fit EphysPsdPCA on raw features using only volume-compatible columns.
 
-    Excludes ``*_csd_diff1`` features so the exact same scaler+PCA can be
+    Keeps only the CSD variant (``plain`` or ``diff1``) matching the encoding
+    volume this PCA will be applied to, so the exact same scaler+PCA can be
     applied to both the measured channel dataframe and the encoding volume.
-    The fitted object is cached as ``psd_pca_{vintage}.pkl``.
+    The fitted object is cached as ``psd_pca_{vintage}.pkl`` (``plain``,
+    the long-standing default) or ``psd_pca_{vintage}_{csd_variant}.pkl``.
 
     Parameters
     ----------
     raw_features_path:
-        Path to the raw feature directory (before PCA), i.e.
-        ``~/data/ephys-atlas/features/ea_active/{vintage}/agg_full``.
+        Path to the raw feature directory (before PCA), e.g.
+        ``datadisk/ephys-atlas-decoding/features/ea_active/{vintage}/agg_full``.
     cache_dir:
         Directory where the pickle is stored.
     vintage:
@@ -115,33 +188,31 @@ def load_or_fit_psd_pca(
         PSD principal components to retain.
     n_components_csd:
         CSD principal components to retain.
+    csd_variant:
+        ``'plain'`` (``*_csd``, matches the 2026_W12 encoding volume) or
+        ``'diff1'`` (``*_csd_diff1``, matches the 2026_W26+ encoding volume).
 
     Returns
     -------
     psd_pca:
-        Fitted ``EphysPsdPCA`` instance (``scaler_psd_``, ``pca_psd_``,
-        ``scaler_csd_``, ``pca_csd_`` attributes ready for ``transform``).
+        Fitted :class:`EphysPsdPCA` instance.
     """
     import ephysatlas.data
-    from ephysatlas.features import EphysPsdPCA
 
-    cache_path = cache_dir.joinpath(f'psd_pca_{vintage}.pkl')
+    suffix = '' if csd_variant == 'plain' else f'_{csd_variant}'
+    cache_path = cache_dir.joinpath(f'psd_pca_{vintage}{suffix}.pkl')
     if cache_path.exists():
         print(f'Loading cached PSD/CSD PCA from {cache_path.name}')
         with open(cache_path, 'rb') as fh:
             return pickle.load(fh)
 
-    print('Fitting PSD/CSD PCA on raw features (volume-compatible: no diff1) …')
+    print(f'Fitting PSD/CSD PCA on raw features (csd_variant={csd_variant!r}) …')
     df_raw = ephysatlas.data.read_features_from_disk(
         raw_features_path, brain_atlas=brain_atlas, strict=False
     )
-    # Drop diff1 CSD features — not present in the encoding volume
-    diff1_cols = [c for c in df_raw.columns if c.endswith('_diff1')]
-    df_raw = df_raw.drop(columns=diff1_cols)
-    print(f'  Dropped {len(diff1_cols)} diff1 columns: {diff1_cols}')
-
     psd_pca = EphysPsdPCA(
-        n_components_psd=n_components_psd, n_components_csd=n_components_csd
+        n_components_psd=n_components_psd, n_components_csd=n_components_csd,
+        csd_variant=csd_variant,
     ).fit(df_raw)
 
     cache_dir.mkdir(exist_ok=True)
@@ -157,6 +228,7 @@ def load_or_build_pca_df(
     vintage: str,
     brain_atlas,
     psd_pca=None,
+    csd_variant: str = 'plain',
 ) -> pd.DataFrame:
     """Load (or build and cache) the post-PCA channel features dataframe.
 
@@ -177,6 +249,8 @@ def load_or_build_pca_df(
     psd_pca:
         Pre-fitted ``EphysPsdPCA``.  Loaded via :func:`load_or_fit_psd_pca`
         when ``None``.
+    csd_variant:
+        Passed to :func:`load_or_fit_psd_pca` when *psd_pca* is ``None``.
 
     Returns
     -------
@@ -185,20 +259,21 @@ def load_or_build_pca_df(
     """
     import ephysatlas.data
 
-    cache_path = cache_dir.joinpath(f'df_{vintage}.parquet')
+    suffix = '' if csd_variant == 'plain' else f'_{csd_variant}'
+    cache_path = cache_dir.joinpath(f'df_{vintage}{suffix}.parquet')
     if cache_path.exists():
         print(f'Loading cached post-PCA dataframe from {cache_path.name}')
         return pd.read_parquet(cache_path)
 
     if psd_pca is None:
-        psd_pca = load_or_fit_psd_pca(raw_features_path, cache_dir, vintage, brain_atlas)
+        psd_pca = load_or_fit_psd_pca(
+            raw_features_path, cache_dir, vintage, brain_atlas, csd_variant=csd_variant
+        )
 
     print('Building post-PCA dataframe …')
     df_raw = ephysatlas.data.read_features_from_disk(
         raw_features_path, brain_atlas=brain_atlas, strict=False
     )
-    diff1_cols = [c for c in df_raw.columns if c.endswith('_diff1')]
-    df_raw = df_raw.drop(columns=diff1_cols)
     df = psd_pca.transform(df_raw)
     df.to_parquet(cache_path)
     print(f'  Cached → {cache_path.name}')

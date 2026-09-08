@@ -1,0 +1,1241 @@
+from,to,feature,n_trans,n_probes,cohens_d,pval,pval_bonf
+void_fluid,HY,rms_ap,316,316,401.1139,0.0,0.0
+void_fluid,Isocortex,rms_ap,623,623,156.5467,0.0,0.0
+void_fluid,Isocortex,aperiodic_offset,623,623,126.1532,0.0,0.0
+void_fluid,Isocortex,recovery_time_secs,623,623,110.9299,0.0,0.0
+void_fluid,Isocortex,psd_pc0,623,623,105.3464,0.0,0.0
+void_fluid,HY,psd_pc0,316,316,79.1892,0.0,0.0
+void_fluid,Isocortex,trough_time_secs,623,623,72.4633,0.0,0.0
+void_fluid,HY,recovery_time_secs,316,316,70.0032,0.0,0.0
+void_fluid,HY,aperiodic_offset,316,316,58.5437,0.0,0.0
+void_fluid,HY,tip_time_secs,316,316,54.8763,0.0,0.0
+void_fluid,HY,csd_pc0,316,316,52.3703,0.0,0.0
+void_fluid,HY,trough_time_secs,316,316,50.536,0.0,0.0
+void_fluid,Isocortex,tip_time_secs,623,623,42.4689,0.0,0.0
+void_fluid,HY,csd_pc1,316,316,36.2723,0.0,0.0
+void_fluid,HY,psd_pc1,316,316,26.9913,0.0,0.0
+void_fluid,HY,aperiodic_exponent,316,316,25.4923,0.0,0.0
+void_fluid,Isocortex,csd_pc0,623,623,23.9361,0.0,0.0
+void_fluid,Isocortex,psd_pc1,623,623,18.2768,0.0,0.0
+void_fluid,Isocortex,alpha_mean,623,623,15.8164,0.0,0.0
+void_fluid,Isocortex,aperiodic_exponent,623,623,15.5618,0.0,0.0
+CB,void_fluid,psd_pc0,1159,1159,14.2545,0.0,0.0
+CB,void_fluid,aperiodic_offset,1159,1159,14.1912,0.0,0.0
+CB,void_fluid,rms_ap,1159,1159,14.1427,0.0,0.0
+CB,void_fluid,csd_pc0,1159,1159,14.1276,0.0,0.0
+void_fluid,Isocortex,csd_pc1,623,623,14.0802,0.0,0.0
+CB,void_fluid,recovery_time_secs,1159,1159,14.0024,0.0,0.0
+CB,void_fluid,tip_time_secs,1159,1159,13.9345,0.0,0.0
+CB,void_fluid,trough_time_secs,1159,1159,13.7486,0.0,0.0
+CB,void_fluid,psd_pc1,1159,1159,13.4241,0.0,0.0
+CB,void_fluid,csd_pc1,1159,1159,13.2416,0.0,0.0
+void_fluid,HY,cor_ratio,316,316,12.8044,0.0,0.0
+void_fluid,Isocortex,cor_ratio,623,623,11.9186,0.0,0.0
+void_fluid,Isocortex,alpha_std,623,623,11.6288,0.0,0.0
+CB,void_fluid,aperiodic_exponent,1159,1159,11.6063,0.0,0.0
+void_fluid,HY,alpha_mean,316,316,10.6288,0.0,0.0
+CB,void_fluid,alpha_mean,1159,1159,10.5265,0.0,0.0
+CB,void_fluid,alpha_std,1159,1159,9.8697,0.0,0.0
+void_fluid,HB,psd_pc0,1832,1832,9.0223,0.0,0.0
+void_fluid,HB,rms_ap,1832,1832,8.9928,0.0,0.0
+void_fluid,HB,aperiodic_offset,1832,1832,8.9831,0.0,0.0
+CB,void_fluid,cor_ratio,1159,1159,8.8523,0.0,0.0
+void_fluid,HB,csd_pc0,1832,1832,8.8187,0.0,0.0
+void_fluid,HB,recovery_time_secs,1832,1832,8.6104,0.0,0.0
+void_fluid,HB,psd_pc1,1832,1832,8.4842,0.0,0.0
+void_fluid,HB,csd_pc1,1832,1832,8.4482,0.0,0.0
+void_fluid,HB,tip_time_secs,1832,1832,8.433,0.0,0.0
+void_fluid,HB,aperiodic_exponent,1832,1832,8.3175,0.0,0.0
+void_fluid,HB,trough_time_secs,1832,1832,8.2054,0.0,0.0
+void_fluid,HB,alpha_mean,1832,1832,7.1069,0.0,0.0
+void_fluid,HB,cor_ratio,1832,1832,6.4961,0.0,0.0
+OLF,void_fluid,aperiodic_offset,419,419,6.4646,0.0,0.0
+OLF,void_fluid,rms_ap,419,419,6.4641,0.0,0.0
+OLF,void_fluid,psd_pc0,419,419,6.4609,0.0,0.0
+void_fluid,HY,alpha_std,316,316,6.4607,0.0,0.0
+CB,void_fluid,depolarisation_slope,1159,1159,6.458,0.0,0.0
+OLF,void_fluid,recovery_time_secs,419,419,6.4514,0.0,0.0
+OLF,void_fluid,tip_time_secs,419,419,6.4286,0.0,0.0
+OLF,void_fluid,trough_time_secs,419,419,6.4193,0.0,0.0
+OLF,void_fluid,csd_pc0,419,419,6.3916,0.0,0.0
+OLF,void_fluid,psd_pc1,419,419,6.3667,0.0,0.0
+OLF,void_fluid,csd_pc1,419,419,6.336,0.0,0.0
+OLF,void_fluid,aperiodic_exponent,419,419,6.3068,0.0,0.0
+OLF,void_fluid,alpha_mean,419,419,6.2255,0.0,0.0
+void_fluid,root,rms_ap,664,664,6.1655,0.0,0.0
+void_fluid,root,psd_pc0,664,664,6.1557,0.0,0.0
+void_fluid,root,aperiodic_offset,664,664,6.1466,0.0,0.0
+void_fluid,root,recovery_time_secs,664,664,6.1095,0.0,0.0
+void_fluid,root,tip_time_secs,664,664,6.1076,0.0,0.0
+void_fluid,root,csd_pc0,664,664,6.0723,0.0,0.0
+void_fluid,HB,alpha_std,1832,1832,6.067,0.0,0.0
+void_fluid,root,csd_pc1,664,664,6.0599,0.0,0.0
+void_fluid,root,psd_pc1,664,664,6.0512,0.0,0.0
+OLF,void_fluid,alpha_std,419,419,6.0454,0.0,0.0
+void_fluid,root,trough_time_secs,664,664,6.0385,0.0,0.0
+void_fluid,fiber tracts,rms_ap,1923,1923,5.9547,0.0,0.0
+void_fluid,root,aperiodic_exponent,664,664,5.9234,0.0,0.0
+void_fluid,fiber tracts,psd_pc0,1923,1923,5.8992,0.0,0.0
+void_fluid,fiber tracts,aperiodic_offset,1923,1923,5.8967,0.0,0.0
+void_fluid,fiber tracts,recovery_time_secs,1923,1923,5.8691,0.0,0.0
+void_fluid,fiber tracts,tip_time_secs,1923,1923,5.8642,0.0,0.0
+CB,void_fluid,tip_val,1159,1159,5.8571,0.0,0.0
+OLF,void_fluid,cor_ratio,419,419,5.8406,0.0,0.0
+void_fluid,OLF,rms_ap,2526,2526,5.8207,0.0,0.0
+void_fluid,OLF,recovery_time_secs,2526,2526,5.8095,0.0,0.0
+void_fluid,OLF,tip_time_secs,2526,2526,5.8066,0.0,0.0
+void_fluid,OLF,aperiodic_offset,2526,2526,5.8034,0.0,0.0
+void_fluid,OLF,psd_pc0,2526,2526,5.8013,0.0,0.0
+void_fluid,OLF,trough_time_secs,2526,2526,5.7775,0.0,0.0
+Isocortex,void_fluid,rms_ap,3352,3352,5.7693,0.0,0.0
+void_fluid,fiber tracts,trough_time_secs,1923,1923,5.7606,0.0,0.0
+Isocortex,void_fluid,psd_pc0,3352,3352,5.7546,0.0,0.0
+Isocortex,void_fluid,recovery_time_secs,3352,3352,5.7516,0.0,0.0
+CB,void_fluid,trough_val,1159,1159,5.749,0.0,0.0
+Isocortex,void_fluid,tip_time_secs,3352,3352,5.7464,0.0,0.0
+Isocortex,void_fluid,aperiodic_offset,3352,3352,5.7354,0.0,0.0
+Isocortex,void_fluid,trough_time_secs,3352,3352,5.733,0.0,0.0
+Isocortex,void_fluid,csd_pc0,3352,3352,5.7076,0.0,0.0
+Isocortex,void_fluid,psd_pc1,3352,3352,5.6889,0.0,0.0
+Isocortex,void_fluid,csd_pc1,3352,3352,5.6782,0.0,0.0
+void_fluid,fiber tracts,psd_pc1,1923,1923,5.6418,0.0,0.0
+CB,void_fluid,peak_val,1159,1159,5.612,0.0,0.0
+void_fluid,HY,depolarisation_slope,316,316,5.5642,0.0,0.0
+void_fluid,fiber tracts,csd_pc1,1923,1923,5.5451,0.0,0.0
+void_fluid,fiber tracts,csd_pc0,1923,1923,5.5204,0.0,0.0
+void_fluid,fiber tracts,aperiodic_exponent,1923,1923,5.5066,0.0,0.0
+Isocortex,void_fluid,aperiodic_exponent,3352,3352,5.4772,0.0,0.0
+void_fluid,OLF,csd_pc1,2526,2526,5.4647,0.0,0.0
+void_fluid,OLF,psd_pc1,2526,2526,5.4362,0.0,0.0
+MB,void_fluid,rms_ap,519,519,5.3771,0.0,0.0
+MB,void_fluid,psd_pc0,519,519,5.3698,0.0,0.0
+void_fluid,OLF,csd_pc0,2526,2526,5.3631,0.0,0.0
+MB,void_fluid,aperiodic_offset,519,519,5.3629,0.0,0.0
+void_fluid,OLF,aperiodic_exponent,2526,2526,5.3348,0.0,0.0
+CB,void_fluid,repolarisation_slope,1159,1159,5.3156,0.0,0.0
+MB,void_fluid,recovery_time_secs,519,519,5.3142,0.0,0.0
+MB,void_fluid,csd_pc1,519,519,5.292,0.0,0.0
+MB,void_fluid,tip_time_secs,519,519,5.29,0.0,0.0
+MB,void_fluid,csd_pc0,519,519,5.2567,0.0,0.0
+MB,void_fluid,trough_time_secs,519,519,5.2529,0.0,0.0
+MB,void_fluid,psd_pc1,519,519,5.2375,0.0,0.0
+void_fluid,root,alpha_mean,664,664,5.2257,0.0,0.0
+MB,void_fluid,aperiodic_exponent,519,519,5.2123,0.0,0.0
+void_fluid,fiber tracts,alpha_mean,1923,1923,5.1726,0.0,0.0
+void_fluid,CB,psd_pc0,713,713,5.1181,0.0,0.0
+void_fluid,CB,rms_ap,713,713,5.1095,0.0,0.0
+void_fluid,CB,aperiodic_offset,713,713,5.1062,0.0,0.0
+void_fluid,CB,csd_pc0,713,713,5.0966,0.0,0.0
+void_fluid,CB,recovery_time_secs,713,713,5.0859,0.0,0.0
+void_fluid,OLF,alpha_mean,2526,2526,5.0734,0.0,0.0
+void_fluid,CB,tip_time_secs,713,713,5.0623,0.0,0.0
+void_fluid,CB,csd_pc1,713,713,5.0507,0.0,0.0
+void_fluid,CB,trough_time_secs,713,713,5.0486,0.0,0.0
+Isocortex,void_fluid,alpha_mean,3352,3352,5.0,0.0,0.0
+void_fluid,CB,psd_pc1,713,713,4.9761,0.0,0.0
+MB,void_fluid,alpha_mean,519,519,4.9193,0.0,0.0
+MB,void_fluid,cor_ratio,519,519,4.8883,0.0,0.0
+void_fluid,HY,tip_val,316,316,4.8461,0.0,0.0
+void_fluid,root,cor_ratio,664,664,4.8303,0.0,0.0
+void_fluid,CB,aperiodic_exponent,713,713,4.8233,0.0,0.0
+void_fluid,OLF,alpha_std,2526,2526,4.8025,0.0,0.0
+void_fluid,HY,trough_val,316,316,4.7044,0.0,0.0
+void_fluid,fiber tracts,alpha_std,1923,1923,4.6585,0.0,0.0
+void_fluid,CB,alpha_mean,713,713,4.6344,0.0,0.0
+CB,void_fluid,recovery_slope,1159,1159,4.6092,0.0,0.0
+void_fluid,CNU,rms_ap,967,967,4.5744,0.0,0.0
+void_fluid,CNU,psd_pc0,967,967,4.5702,0.0,0.0
+void_fluid,CNU,aperiodic_offset,967,967,4.5702,0.0,0.0
+void_fluid,CNU,recovery_time_secs,967,967,4.5681,0.0,0.0
+void_fluid,CNU,tip_time_secs,967,967,4.5627,0.0,0.0
+void_fluid,CNU,trough_time_secs,967,967,4.5579,0.0,0.0
+void_fluid,CB,alpha_std,713,713,4.5151,0.0,0.0
+void_fluid,OLF,cor_ratio,2526,2526,4.4992,0.0,0.0
+void_fluid,CNU,csd_pc0,967,967,4.4755,0.0,0.0
+void_fluid,fiber tracts,cor_ratio,1923,1923,4.4596,0.0,0.0
+void_fluid,CNU,csd_pc1,967,967,4.4589,0.0,0.0
+void_fluid,CNU,psd_pc1,967,967,4.4467,0.0,0.0
+MB,void_fluid,alpha_std,519,519,4.4338,0.0,0.0
+void_fluid,root,alpha_std,664,664,4.411,0.0,0.0
+Isocortex,void_fluid,cor_ratio,3352,3352,4.3609,0.0,0.0
+void_fluid,CB,cor_ratio,713,713,4.2855,0.0,0.0
+void_fluid,CNU,alpha_mean,967,967,4.2367,0.0,0.0
+void_fluid,CNU,aperiodic_exponent,967,967,4.2172,0.0,0.0
+void_fluid,HY,peak_val,316,316,4.2026,0.0,0.0
+void_fluid,HY,repolarisation_slope,316,316,4.1417,0.0,0.0
+Isocortex,void_fluid,alpha_std,3352,3352,4.0759,0.0,0.0
+void_fluid,CNU,alpha_std,967,967,4.0556,0.0,0.0
+Isocortex,void_fluid,depolarisation_slope,3352,3352,4.0333,0.0,0.0
+void_fluid,CNU,cor_ratio,967,967,3.9603,0.0,0.0
+void_fluid,HPF,rms_ap,823,823,3.8211,0.0,0.0
+void_fluid,HPF,psd_pc0,823,823,3.8161,0.0,0.0
+void_fluid,HPF,aperiodic_offset,823,823,3.8139,0.0,0.0
+void_fluid,HPF,tip_time_secs,823,823,3.8125,0.0,0.0
+Isocortex,void_fluid,tip_val,3352,3352,3.8076,0.0,0.0
+void_fluid,HPF,recovery_time_secs,823,823,3.8042,0.0,0.0
+void_fluid,HPF,trough_time_secs,823,823,3.7894,0.0,0.0
+void_fluid,HPF,csd_pc1,823,823,3.7374,0.0,0.0
+void_fluid,HPF,psd_pc1,823,823,3.7347,0.0,0.0
+OLF,void_fluid,depolarisation_slope,419,419,3.7316,0.0,0.0
+void_fluid,HPF,csd_pc0,823,823,3.729,0.0,0.0
+void_fluid,HPF,aperiodic_exponent,823,823,3.7077,0.0,0.0
+CB,void_fluid,peak_time_secs,1159,1159,3.6927,0.0,0.0
+void_fluid,OLF,depolarisation_slope,2526,2526,3.6862,0.0,0.0
+MB,void_fluid,tip_val,519,519,3.6713,0.0,0.0
+MB,void_fluid,depolarisation_slope,519,519,3.6346,0.0,0.0
+void_fluid,root,depolarisation_slope,664,664,3.5954,0.0,0.0
+OLF,void_fluid,trough_val,419,419,3.5815,0.0,0.0
+void_fluid,HB,depolarisation_slope,1832,1832,3.5465,0.0,0.0
+void_fluid,OLF,tip_val,2526,2526,3.5442,0.0,0.0
+MB,void_fluid,peak_val,519,519,3.5326,0.0,0.0
+void_fluid,root,tip_val,664,664,3.487,0.0,0.0
+void_fluid,Isocortex,depolarisation_slope,623,623,3.4584,0.0,0.0
+void_fluid,HB,tip_val,1832,1832,3.4552,0.0,0.0
+MB,void_fluid,trough_val,519,519,3.4458,0.0,0.0
+void_fluid,CNU,depolarisation_slope,967,967,3.4178,0.0,0.0
+OLF,void_fluid,repolarisation_slope,419,419,3.4134,0.0,0.0
+void_fluid,HPF,alpha_mean,823,823,3.4134,0.0,0.0
+void_fluid,OLF,trough_val,2526,2526,3.4096,0.0,0.0
+Isocortex,void_fluid,peak_val,3352,3352,3.3935,0.0,0.0
+void_fluid,CNU,tip_val,967,967,3.37,0.0,0.0
+void_fluid,HY,peak_time_secs,316,316,3.3128,0.0,0.0
+MB,void_fluid,peak_time_secs,519,519,3.2906,0.0,0.0
+OLF,void_fluid,tip_val,419,419,3.2832,0.0,0.0
+void_fluid,HPF,cor_ratio,823,823,3.2719,0.0,0.0
+void_fluid,OLF,peak_val,2526,2526,3.2663,0.0,0.0
+void_fluid,HB,peak_val,1832,1832,3.2456,0.0,0.0
+OLF,void_fluid,peak_val,419,419,3.237,0.0,0.0
+void_fluid,HY,recovery_slope,316,316,3.2278,0.0,0.0
+void_fluid,CNU,peak_val,967,967,3.2257,0.0,0.0
+void_fluid,OLF,repolarisation_slope,2526,2526,3.2194,0.0,0.0
+MB,void_fluid,repolarisation_slope,519,519,3.2167,0.0,0.0
+void_fluid,CNU,trough_val,967,967,3.2096,0.0,0.0
+Isocortex,void_fluid,trough_val,3352,3352,3.2084,0.0,0.0
+void_fluid,HB,peak_time_secs,1832,1832,3.1844,0.0,0.0
+void_fluid,HPF,alpha_std,823,823,3.1547,0.0,0.0
+void_fluid,Isocortex,tip_val,623,623,3.1363,0.0,0.0
+void_fluid,root,trough_val,664,664,3.1334,0.0,0.0
+void_fluid,HB,trough_val,1832,1832,3.1246,0.0,0.0
+OLF,void_fluid,recovery_slope,419,419,3.111,0.0,0.0
+MB,void_fluid,recovery_slope,519,519,3.083,0.0,0.0
+Isocortex,void_fluid,repolarisation_slope,3352,3352,2.9961,0.0,0.0
+void_fluid,root,peak_val,664,664,2.9644,0.0,0.0
+void_fluid,Isocortex,trough_val,623,623,2.9013,0.0,0.0
+void_fluid,CNU,repolarisation_slope,967,967,2.8982,0.0,0.0
+void_fluid,CB,trough_val,713,713,2.8966,0.0,0.0
+void_fluid,Isocortex,repolarisation_slope,623,623,2.8555,0.0,0.0
+void_fluid,CB,depolarisation_slope,713,713,2.855,0.0,0.0
+void_fluid,HB,repolarisation_slope,1832,1832,2.7887,0.0,0.0
+void_fluid,OLF,recovery_slope,2526,2526,2.7603,0.0,0.0
+void_fluid,fiber tracts,depolarisation_slope,1923,1923,2.7534,0.0,0.0
+void_fluid,OLF,peak_time_secs,2526,2526,2.7082,0.0,0.0
+void_fluid,Isocortex,peak_val,623,623,2.7074,0.0,0.0
+void_fluid,HB,recovery_slope,1832,1832,2.6898,0.0,0.0
+Isocortex,void_fluid,recovery_slope,3352,3352,2.6852,0.0,0.0
+void_fluid,root,repolarisation_slope,664,664,2.6653,0.0,0.0
+void_fluid,HPF,depolarisation_slope,823,823,2.66,0.0,0.0
+void_fluid,CB,peak_val,713,713,2.6585,0.0,0.0
+void_fluid,HPF,tip_val,823,823,2.6512,0.0,0.0
+void_fluid,fiber tracts,tip_val,1923,1923,2.6277,0.0,0.0
+void_fluid,fiber tracts,trough_val,1923,1923,2.5565,0.0,0.0
+void_fluid,CNU,recovery_slope,967,967,2.5253,0.0,0.0
+void_fluid,Isocortex,recovery_slope,623,623,2.5002,0.0,0.0
+void_fluid,Isocortex,peak_time_secs,623,623,2.4719,0.0,0.0
+void_fluid,HPF,peak_time_secs,823,823,2.4404,0.0,0.0
+void_fluid,CB,tip_val,713,713,2.4365,0.0,0.0
+fiber tracts,void_fluid,rms_ap,152,152,2.4141,0.0,0.0
+fiber tracts,void_fluid,psd_pc0,152,152,2.4139,2.792265132827207e-127,3.4624087647057365e-124
+fiber tracts,void_fluid,aperiodic_offset,152,152,2.4127,0.0,0.0
+fiber tracts,void_fluid,csd_pc0,152,152,2.4113,2.7917959748610407e-127,3.4618270088276903e-124
+fiber tracts,void_fluid,recovery_time_secs,152,152,2.407,0.0,0.0
+fiber tracts,void_fluid,tip_time_secs,152,152,2.4051,0.0,0.0
+fiber tracts,void_fluid,psd_pc1,152,152,2.4029,2.792265132827207e-127,3.4624087647057365e-124
+fiber tracts,void_fluid,csd_pc1,152,152,2.4012,2.7917959748610407e-127,3.4618270088276903e-124
+fiber tracts,void_fluid,trough_time_secs,152,152,2.3998,0.0,0.0
+fiber tracts,void_fluid,aperiodic_exponent,152,152,2.394,0.0,0.0
+void_fluid,fiber tracts,peak_time_secs,1923,1923,2.3893,0.0,0.0
+void_fluid,fiber tracts,peak_val,1923,1923,2.3773,0.0,0.0
+void_fluid,CB,repolarisation_slope,713,713,2.3683,0.0,0.0
+fiber tracts,void_fluid,alpha_mean,152,152,2.3051,0.0,0.0
+void_fluid,CTXsp,rms_ap,39,39,2.2988,2.5391528173565685e-42,3.148549493522145e-39
+void_fluid,CTXsp,recovery_time_secs,39,39,2.2976,2.598007352858211e-42,3.2215291175441815e-39
+void_fluid,CTXsp,aperiodic_exponent,39,39,2.2971,2.60361254671551e-42,3.2284795579272325e-39
+void_fluid,CTXsp,tip_time_secs,39,39,2.297,2.6064151436441598e-42,3.231954778118758e-39
+void_fluid,CTXsp,trough_time_secs,39,39,2.2965,2.60361254671551e-42,3.2284795579272325e-39
+void_fluid,CTXsp,psd_pc0,39,39,2.2961,2.608644183844326e-42,3.234718787966964e-39
+void_fluid,CTXsp,aperiodic_offset,39,39,2.2953,2.5952047559295612e-42,3.218053897352656e-39
+void_fluid,CTXsp,csd_pc1,39,39,2.2942,2.608644183844326e-42,3.234718787966964e-39
+void_fluid,CTXsp,alpha_mean,39,39,2.2919,2.6064151436441598e-42,3.231954778118758e-39
+void_fluid,CTXsp,psd_pc1,39,39,2.2889,2.608644183844326e-42,3.234718787966964e-39
+void_fluid,CTXsp,csd_pc0,39,39,2.2828,2.608644183844326e-42,3.234718787966964e-39
+void_fluid,CTXsp,alpha_std,39,39,2.2714,2.6092177405728094e-42,3.2354299983102836e-39
+void_fluid,HPF,peak_val,823,823,2.2708,0.0,0.0
+void_fluid,CTXsp,cor_ratio,39,39,2.2684,2.6064151436441598e-42,3.231954778118758e-39
+void_fluid,fiber tracts,repolarisation_slope,1923,1923,2.2671,0.0,0.0
+fiber tracts,void_fluid,cor_ratio,152,152,2.2667,0.0,0.0
+void_fluid,root,peak_time_secs,664,664,2.2529,0.0,0.0
+void_fluid,HPF,repolarisation_slope,823,823,2.2285,0.0,0.0
+Isocortex,void_fluid,peak_time_secs,3352,3352,2.2256,0.0,0.0
+void_fluid,HPF,trough_val,823,823,2.2125,0.0,0.0
+void_fluid,CNU,peak_time_secs,967,967,2.1906,0.0,0.0
+fiber tracts,void_fluid,alpha_std,152,152,2.1899,0.0,0.0
+void_fluid,root,recovery_slope,664,664,2.1847,0.0,0.0
+OLF,void_fluid,peak_time_secs,419,419,2.077,0.0,0.0
+CNU,HPF,psd_pc0,109,109,2.04,3.965508339147002e-16,4.917230340542283e-13
+CNU,HPF,csd_pc0,109,109,2.0274,2.0444666349663206e-16,2.535138627358238e-13
+void_fluid,HPF,recovery_slope,823,823,2.0016,0.0,0.0
+void_fluid,fiber tracts,recovery_slope,1923,1923,1.987,0.0,0.0
+void_fluid,CB,recovery_slope,713,713,1.9805,0.0,0.0
+void_fluid,CTXsp,depolarisation_slope,39,39,1.9367,2.6092177405728094e-42,3.2354299983102836e-39
+void_fluid,CTXsp,tip_val,39,39,1.9324,2.6092177405728094e-42,3.2354299983102836e-39
+TH,HPF,aperiodic_offset,917,917,1.9304,0.0,0.0
+TH,HPF,psd_pc0,917,917,1.854,0.0,0.0
+HPF,MB,aperiodic_exponent,208,208,1.8427,0.0,0.0
+CNU,HPF,aperiodic_offset,109,109,1.8329,1.7651871853313975e-14,2.188832109810933e-11
+CNU,Isocortex,aperiodic_offset,1615,1615,1.8137,0.0,0.0
+HPF,MB,recovery_time_secs,208,208,1.7861,0.0,0.0
+HPF,MB,trough_time_secs,208,208,1.7197,0.0,0.0
+void_fluid,CTXsp,peak_val,39,39,1.6957,2.6092177405728094e-42,3.2354299983102836e-39
+HPF,MB,rms_ap,208,208,1.6895,0.0,0.0
+fiber tracts,void_fluid,depolarisation_slope,152,152,1.6799,0.0,0.0
+TH,HPF,csd_pc0,917,917,1.6363,0.0,0.0
+fiber tracts,void_fluid,tip_val,152,152,1.6005,0.0,0.0
+void_fluid,CTXsp,peak_time_secs,39,39,1.5365,1.1549501942965142e-41,1.4321382409276776e-38
+TH,HPF,cor_ratio,917,917,1.527,0.0,0.0
+void_fluid,CTXsp,repolarisation_slope,39,39,1.5196,2.627714880301897e-40,3.2583664515743522e-37
+void_fluid,CTXsp,trough_val,39,39,1.5121,2.6092177405728094e-42,3.2354299983102836e-39
+HPF,MB,peak_time_secs,208,208,1.5021,0.0,0.0
+HPF,MB,tip_time_secs,208,208,1.478,0.0,0.0
+HPF,MB,cor_ratio,208,208,1.4689,0.0,0.0
+fiber tracts,MB,repolarisation_slope,135,135,1.4315,0.0,0.0
+fiber tracts,void_fluid,trough_val,152,152,1.4072,0.0,0.0
+fiber tracts,MB,tip_val,135,135,1.402,0.0,0.0
+fiber tracts,MB,recovery_slope,135,135,1.3963,0.0,0.0
+void_fluid,CB,peak_time_secs,713,713,1.3939,0.0,0.0
+fiber tracts,void_fluid,peak_val,152,152,1.387,0.0,0.0
+fiber tracts,MB,peak_val,135,135,1.3785,0.0,0.0
+fiber tracts,MB,depolarisation_slope,135,135,1.3777,0.0,0.0
+TH,HPF,rms_ap,917,917,1.3302,0.0,0.0
+HPF,MB,recovery_slope,208,208,1.3284,0.0,0.0
+fiber tracts,MB,trough_val,135,135,1.326,0.0,0.0
+CNU,Isocortex,aperiodic_exponent,1615,1615,1.3201,0.0,0.0
+CNU,Isocortex,psd_pc0,1615,1615,1.3184,0.0,0.0
+fiber tracts,MB,rms_ap,135,135,1.3137,0.0,0.0
+void_fluid,CTXsp,recovery_slope,39,39,1.3114,4.372959216050513e-26,5.422469427902636e-23
+fiber tracts,void_fluid,repolarisation_slope,152,152,1.2937,0.0,0.0
+HPF,MB,aperiodic_offset,208,208,1.2702,0.0,0.0
+fiber tracts,MB,peak_time_secs,135,135,1.2654,0.0,0.0
+Isocortex,CNU,trough_time_secs,79,79,1.2497,8.265779228214388e-24,1.0249566242985841e-20
+fiber tracts,void_fluid,peak_time_secs,152,152,1.2195,0.0,0.0
+fiber tracts,MB,tip_time_secs,135,135,1.2125,0.0,0.0
+fiber tracts,MB,recovery_time_secs,135,135,1.1935,0.0,0.0
+TH,CNU,alpha_mean,65,65,1.1821,0.0012918326538056135,1.0
+HPF,MB,depolarisation_slope,208,208,1.1791,5.429406570143577e-39,6.732464146978036e-36
+fiber tracts,MB,trough_time_secs,135,135,1.1737,0.0,0.0
+HPF,MB,psd_pc0,208,208,1.1647,2.1489670505208384e-46,2.6647191426458395e-43
+fiber tracts,MB,cor_ratio,135,135,1.1304,0.0,0.0
+HPF,MB,repolarisation_slope,208,208,1.1261,4.3834513658512605e-36,5.435479693655563e-33
+fiber tracts,void_fluid,recovery_slope,152,152,1.1012,0.0,0.0
+fiber tracts,MB,aperiodic_exponent,135,135,1.0878,0.0,0.0
+CNU,Isocortex,csd_pc1,1615,1615,1.0835,1.6106402130687397e-284,1.9971938642052372e-281
+root,CNU,repolarisation_slope,151,151,1.0794,0.0,0.0
+TH,CNU,trough_val,65,65,1.0786,0.009805836714804173,1.0
+TH,CNU,peak_val,65,65,1.0782,0.008998331613838673,1.0
+root,CNU,recovery_slope,151,151,1.0679,0.0,0.0
+TH,CNU,alpha_std,65,65,1.0621,0.0016557363560423255,1.0
+HPF,MB,tip_val,208,208,1.0561,9.06049905523414e-30,1.1235018828490334e-26
+TH,HPF,aperiodic_exponent,917,917,1.0503,0.0,0.0
+Isocortex,CNU,recovery_time_secs,79,79,1.0471,2.7237146784156204e-18,3.3774062012353693e-15
+HPF,MB,csd_pc0,208,208,1.0387,1.3256687612322846e-42,1.6438292639280327e-39
+HPF,MB,trough_val,208,208,1.0369,2.7347629218066846e-31,3.391106023040289e-28
+TH,HPF,recovery_slope,917,917,1.0286,0.0,0.0
+TH,HPF,trough_val,917,917,1.0275,0.0,0.0
+root,CNU,trough_val,151,151,1.0193,0.0,0.0
+root,CNU,peak_val,151,151,0.9954,0.0,0.0
+CTXsp,CNU,tip_time_secs,774,752,0.983,0.0,0.0
+TH,CNU,peak_time_secs,65,65,0.976,0.001967331627383828,1.0
+CNU,HPF,aperiodic_exponent,109,109,0.9714,3.1772429132104207e-09,3.939781212380922e-06
+CNU,TH,trough_val,283,283,0.9618,1.2067923183918192e-36,1.4964224748058558e-33
+Isocortex,CNU,psd_pc1,79,79,0.9573,3.9439936519660975e-15,4.8905521284379605e-12
+TH,CNU,recovery_slope,65,65,0.9285,0.008988658897578716,1.0
+Isocortex,CNU,tip_time_secs,79,79,0.9283,5.76150288710048e-17,7.144263580004595e-14
+TH,HPF,peak_val,917,917,0.9234,0.0,0.0
+TH,CNU,tip_val,65,65,0.916,0.009764563292264938,1.0
+root,CNU,depolarisation_slope,151,151,0.9096,6.362735807113264e-41,7.889792400820448e-38
+fiber tracts,MB,csd_pc0,135,135,0.8914,1.3378648945682429e-57,1.658952469264621e-54
+TH,HPF,alpha_mean,917,917,0.8818,0.0,0.0
+root,CNU,tip_val,151,151,0.8814,4.08924092841564e-37,5.070658751235394e-34
+HPF,MB,peak_val,208,208,0.8754,1.2322779792150597e-21,1.528024694226674e-18
+root,MB,tip_val,57,57,0.874,1.029845738919591e-15,1.2770087162602929e-12
+Isocortex,CNU,aperiodic_offset,79,79,0.8678,2.8757972023694955e-13,3.5659885309381745e-10
+TH,CNU,cor_ratio,65,65,0.8629,0.006047505419701338,1.0
+root,MB,peak_val,57,57,0.8461,1.6351655272861532e-13,2.02760525383483e-10
+Isocortex,CNU,rms_ap,79,79,0.8441,1.7128427853580624e-13,2.1239250538439974e-10
+TH,HPF,repolarisation_slope,917,917,0.8429,0.0,0.0
+CTXsp,CNU,aperiodic_offset,774,752,0.8362,0.0,0.0
+MB,HPF,csd_pc0,412,412,0.829,9.347315368279367e-107,1.1590671056666415e-103
+MB,Isocortex,cor_ratio,459,459,0.829,0.0,0.0
+root,MB,trough_val,57,57,0.8266,1.0412320962036037e-12,1.2911277992924686e-09
+TH,HPF,csd_pc1,917,917,0.8257,5.232087279722743e-203,6.487788226856201e-200
+root,MB,peak_time_secs,57,57,0.8237,1.967444719443742e-15,2.43963145211024e-12
+root,MB,depolarisation_slope,57,57,0.8206,1.3134296168032522e-15,1.6286527248360327e-12
+root,CNU,peak_time_secs,151,151,0.8176,3.141715351499212e-28,3.895727035859023e-25
+TH,CNU,repolarisation_slope,65,65,0.817,0.03005341626703739,1.0
+root,MB,repolarisation_slope,57,57,0.8168,6.14553845095997e-14,7.620467679190362e-11
+CB,MB,alpha_std,304,303,0.8168,0.0,0.0
+fiber tracts,HB,recovery_slope,468,468,0.8163,0.0,0.0
+TH,CNU,depolarisation_slope,65,65,0.8125,0.012629270553588867,1.0
+CB,MB,alpha_mean,304,303,0.8099,0.0,0.0
+CNU,TH,psd_pc1,283,283,0.8031,1.710889454776318e-28,2.1215029239226342e-25
+HPF,TH,aperiodic_exponent,51,51,0.8011,3.6273578984946653e-07,0.0004497923794133385
+HPF,TH,aperiodic_offset,51,51,0.7921,1.2016156460958882e-06,0.0014900034011589014
+CNU,TH,peak_val,283,283,0.7905,5.1046053217148156e-24,6.329710598926371e-21
+fiber tracts,HB,repolarisation_slope,468,468,0.7887,0.0,0.0
+CB,MB,aperiodic_exponent,304,303,0.7858,0.0,0.0
+TH,CNU,rms_ap,65,65,0.7851,0.021086690947413445,1.0
+root,MB,recovery_slope,57,57,0.7847,3.3960391465116813e-13,4.211088541674485e-10
+MB,CB,alpha_std,44,44,0.7833,1.4668949106615148e-13,1.8189496892202783e-10
+CTXsp,OLF,alpha_std,79,79,0.783,2.3624477334849366e-19,2.9294351895213214e-16
+root,MB,csd_pc1,57,57,0.7797,2.4492706040992175e-11,3.03709554908303e-08
+TH,HPF,alpha_std,917,917,0.7783,0.0,0.0
+VS,CB,cor_ratio,31,31,0.7747,1.4904211198540906e-08,1.8481221886190724e-05
+TH,HPF,depolarisation_slope,917,917,0.7683,0.0,0.0
+VS,CB,aperiodic_exponent,31,31,0.7671,4.88892315519962e-10,6.062264712447529e-07
+root,fiber tracts,peak_val,211,211,0.7659,2.965782899235038e-38,3.677570795051447e-35
+CTXsp,OLF,cor_ratio,79,79,0.7576,1.3644668872452619e-18,1.6919389401841247e-15
+HY,TH,trough_val,757,756,0.7547,0.0,0.0
+fiber tracts,HB,trough_val,468,468,0.7545,0.0,0.0
+MB,HY,aperiodic_exponent,182,181,0.7536,1.5974802493302915e-43,1.9808755091695614e-40
+CTXsp,OLF,alpha_mean,79,79,0.7519,2.1530154768550723e-18,2.6697391913002897e-15
+CB,MB,cor_ratio,304,303,0.7484,0.0,0.0
+CNU,HPF,rms_ap,109,109,0.7431,2.569696880527772e-05,0.03186424131854437
+MB,HY,csd_pc1,182,181,0.7426,1.6833496842275954e-45,2.0873536084422182e-42
+MB,HPF,cor_ratio,412,412,0.741,0.0,0.0
+HY,TH,aperiodic_exponent,757,756,0.7367,0.0,0.0
+Isocortex,CNU,psd_pc0,79,79,0.7366,1.1608648378825369e-09,1.4394723989743458e-06
+CNU,HY,peak_time_secs,342,284,0.7363,0.0,0.0
+VS,CB,alpha_mean,31,31,0.7336,4.804010700354411e-08,5.9569732684394694e-05
+CB,MB,rms_ap,304,303,0.7331,2.4102333586386854e-43,2.98868936471197e-40
+root,MB,rms_ap,57,57,0.7328,1.400413257579558e-10,1.736512439398652e-07
+MB,Isocortex,aperiodic_offset,459,459,0.7281,0.0,0.0
+fiber tracts,HB,peak_val,468,468,0.7274,0.0,0.0
+CNU,HPF,recovery_time_secs,109,109,0.7131,1.2963637345819734e-06,0.001607491030881647
+MB,CB,alpha_mean,44,44,0.7123,1.1292574643125605e-14,1.400279255747575e-11
+fiber tracts,MB,alpha_std,135,135,0.7103,7.567011707354012e-44,9.383094517118975e-41
+TH,CNU,psd_pc0,65,65,0.7101,0.06949314111811133,1.0
+root,MB,tip_time_secs,57,57,0.7091,1.0506742923274641e-16,1.3028361224860555e-13
+CB,MB,tip_time_secs,304,303,0.7087,0.0,0.0
+MB,HY,alpha_std,182,181,0.7065,6.922414413764596e-43,8.5837938730681e-40
+MB,Isocortex,psd_pc0,459,459,0.7046,5.257424990826509e-173,6.519206988624871e-170
+fiber tracts,MB,csd_pc1,135,135,0.7021,3.790011963738096e-40,4.6996148350352385e-37
+MB,HPF,recovery_slope,412,412,0.7006,0.0,0.0
+fiber tracts,HB,depolarisation_slope,468,468,0.7003,0.0,0.0
+CTXsp,CNU,psd_pc0,774,752,0.6943,2.464544336296641e-145,3.0560349770078347e-142
+root,fiber tracts,peak_time_secs,211,211,0.6927,6.196785978304681e-32,7.684014613097804e-29
+CB,MB,peak_time_secs,304,303,0.6907,0.0,0.0
+root,fiber tracts,trough_val,211,211,0.6896,8.288573356066103e-31,1.0277830961521968e-27
+fiber tracts,MB,psd_pc1,135,135,0.6875,8.446425924761384e-44,1.0473568146704116e-40
+CTXsp,OLF,repolarisation_slope,79,79,0.6821,8.344738309266832e-16,1.0347475503490872e-12
+HY,TH,peak_val,757,756,0.6766,0.0,0.0
+CNU,TH,aperiodic_offset,283,283,0.6732,1.163892826410026e-22,1.4432271047484324e-19
+MB,CB,peak_time_secs,44,44,0.6716,1.884680432551189e-11,2.3370037363634744e-08
+fiber tracts,HB,cor_ratio,468,468,0.6709,0.0,0.0
+MB,CB,peak_val,44,44,0.6696,9.95870703610069e-13,1.2348796724764854e-09
+MB,HPF,repolarisation_slope,412,412,0.6666,5.044674471569341e-44,6.255396344745983e-41
+MB,CB,cor_ratio,44,44,0.6646,6.022296376861913e-13,7.467647507308772e-10
+CB,MB,psd_pc1,304,303,0.6645,1.8676204072252837e-48,2.3158493049593517e-45
+CB,MB,tip_val,304,303,0.6625,0.0,0.0
+MB,Isocortex,rms_ap,459,459,0.6529,1.3321152437129058e-05,0.016518229022040032
+CTXsp,CNU,trough_time_secs,774,752,0.6521,0.0,0.0
+VS,CB,rms_ap,31,31,0.6494,6.236261356207251e-07,0.0007732964081696991
+CTXsp,OLF,rms_ap,79,79,0.6491,9.170823009416879e-14,1.137182053167693e-10
+HPF,TH,psd_pc0,51,51,0.6491,2.098677864728656e-05,0.026023605522635333
+CNU,TH,psd_pc0,283,283,0.6479,2.1538762512716155e-23,2.6708065515768033e-20
+MB,TH,csd_pc1,234,227,0.6461,3.4670712605047386e-51,4.299168363025876e-48
+MB,HY,peak_time_secs,182,181,0.6454,0.0,0.0
+OLF,CTXsp,alpha_std,1346,1345,0.6449,0.0,0.0
+CNU,Isocortex,alpha_std,1615,1615,0.6435,0.0,0.0
+root,fiber tracts,tip_val,211,211,0.6388,5.126261131284943e-24,6.356563802793329e-21
+CTXsp,OLF,recovery_slope,79,79,0.6361,1.6564947655749174e-13,2.0540535093128975e-10
+fiber tracts,HB,tip_val,468,468,0.6352,0.0,0.0
+HPF,MB,csd_pc1,208,208,0.6343,5.207442813143326e-19,6.457229088297724e-16
+root,MB,trough_time_secs,57,57,0.6338,5.513091719255847e-12,6.83623373187725e-09
+MB,CB,tip_val,44,44,0.6291,7.146789128380238e-13,8.862018519191495e-10
+CNU,HY,tip_val,342,284,0.6283,1.0847192102618105e-34,1.345051820724645e-31
+CTXsp,OLF,aperiodic_exponent,79,79,0.6277,2.1129570067949016e-19,2.620066688425678e-16
+root,fiber tracts,depolarisation_slope,211,211,0.6261,2.3120571232107022e-23,2.866950832781271e-20
+CNU,Isocortex,alpha_mean,1615,1615,0.625,0.0,0.0
+CNU,HY,tip_time_secs,342,284,0.6225,1.6307890797319295e-30,2.0221784588675926e-27
+CTXsp,CNU,alpha_std,774,752,0.622,0.0,0.0
+CNU,HY,psd_pc0,342,284,0.6218,5.325813369037656e-36,6.604008577606694e-33
+TH,HPF,peak_time_secs,917,917,0.621,0.0,0.0
+CNU,TH,tip_time_secs,283,283,0.6187,2.6365520589019256e-23,3.269324553038388e-20
+MB,HY,psd_pc1,182,181,0.6116,1.605025577325578e-34,1.9902317158837167e-31
+root,HY,trough_val,235,235,0.6107,8.833987060775126e-24,1.0954143955361156e-20
+CNU,HY,csd_pc0,342,284,0.6105,4.335983127870029e-35,5.376619078558836e-32
+HY,TH,alpha_mean,757,756,0.6103,0.0,0.0
+HPF,Isocortex,csd_pc0,2750,2750,0.6102,0.0,0.0
+MB,HY,tip_val,182,181,0.6094,0.0,0.0
+MB,Isocortex,alpha_std,459,459,0.6091,0.2928140163421631,1.0
+CNU,TH,alpha_mean,283,283,0.6067,6.875857416255494e-20,8.526063196156813e-17
+Isocortex,CNU,depolarisation_slope,79,79,0.6034,3.787829427892575e-08,4.696908490586793e-05
+CTXsp,OLF,csd_pc1,79,79,0.5984,2.8385991308575514e-18,3.5198629222633637e-15
+HPF,TH,trough_val,51,51,0.5964,3.4624128602445126e-05,0.042933919467031956
+MB,HY,alpha_mean,182,181,0.596,5.568181247664323e-28,6.90454474710376e-25
+MB,CB,trough_val,44,44,0.5958,4.0317457705718596e-11,4.999364755509106e-08
+MB,Isocortex,csd_pc1,459,459,0.5957,9.565784276243179e-06,0.011861572502541542
+root,MB,recovery_time_secs,57,57,0.5956,2.4147485226666543e-12,2.9942881681066513e-09
+MB,Isocortex,alpha_mean,459,459,0.5949,6.12026487942785e-05,0.07589128450490534
+TH,HPF,tip_val,917,917,0.5932,0.0,0.0
+CNU,TH,recovery_slope,283,283,0.5908,5.244411392857836e-25,6.503070127143716e-22
+root,HY,peak_time_secs,235,235,0.5853,1.207046010726076e-23,1.4967370533003342e-20
+MB,HB,recovery_time_secs,45,43,0.5853,7.215699149298871e-09,8.9474669451306e-06
+CB,MB,depolarisation_slope,304,303,0.5848,1.1210387714598537e-44,1.3900880766102185e-41
+CB,MB,recovery_slope,304,303,0.5841,1.877739942195255e-43,2.328397528322116e-40
+MB,HB,trough_time_secs,45,43,0.5837,2.006009935939801e-08,2.487452320565353e-05
+CB,MB,peak_val,304,303,0.5807,2.955955032585342e-40,3.6653842404058242e-37
+HPF,TH,cor_ratio,51,51,0.5783,0.0020705750212073326,1.0
+MB,Isocortex,tip_time_secs,459,459,0.5771,0.2579493224620819,1.0
+fiber tracts,root,trough_val,56,56,0.577,1.3339509905563318e-06,0.0016540992282898515
+CNU,TH,csd_pc0,283,283,0.5759,4.523700405375742e-30,5.6093885026659196e-27
+MB,HY,tip_time_secs,182,181,0.5743,1.1005585141440536e-38,1.3646925575386265e-35
+CTXsp,CNU,recovery_time_secs,774,752,0.5741,0.0,0.0
+Isocortex,CNU,recovery_slope,79,79,0.5726,4.7643217726545117e-07,0.0005907758998091595
+MB,HY,peak_val,182,181,0.5701,3.0999010743620766e-36,3.843877332208975e-33
+MB,HB,recovery_slope,45,43,0.5698,2.6651989060155756e-08,3.304846643459314e-05
+MB,HY,repolarisation_slope,182,181,0.567,1.653751689088398e-34,2.0506520944696135e-31
+HY,TH,tip_val,757,756,0.5668,0.0,0.0
+CB,MB,trough_val,304,303,0.5656,5.258535038000738e-39,6.520583447120915e-36
+MB,HB,depolarisation_slope,45,43,0.5634,2.2274075917039227e-08,2.761985413712864e-05
+root,HY,repolarisation_slope,235,235,0.5621,3.427180564753266e-24,4.24970390029405e-21
+MB,HPF,aperiodic_offset,412,412,0.5618,0.0,0.0
+CNU,HPF,psd_pc1,109,109,0.5615,1.0367745547676003e-06,0.0012856004479118244
+MB,CB,recovery_slope,44,44,0.5563,1.4460890263023884e-08,1.7931503926149617e-05
+root,fiber tracts,repolarisation_slope,211,211,0.5553,3.920520782251846e-17,4.861445769992289e-14
+CNU,HY,aperiodic_offset,342,284,0.5548,5.625358737335777e-28,6.975444834296364e-25
+root,fiber tracts,recovery_slope,211,211,0.5503,3.3036812806869675e-17,4.09656478805184e-14
+MB,HB,repolarisation_slope,45,43,0.5496,4.0817744206833595e-07,0.0005061400281647366
+CNU,HPF,trough_time_secs,109,109,0.5485,8.195385453291237e-05,0.10162277962081134
+HB,CB,recovery_slope,1623,1595,0.5474,0.0,0.0
+MB,Isocortex,csd_pc0,459,459,0.5457,2.872314982976156e-09,3.5616705788904336e-06
+CTXsp,OLF,depolarisation_slope,79,79,0.5457,1.0567583049944651e-12,1.3103802981931367e-09
+root,MB,aperiodic_exponent,57,57,0.5455,3.452101964285248e-07,0.00042806064357137075
+CNU,HY,depolarisation_slope,342,284,0.5454,2.0814449355366164e-26,2.5809917200654043e-23
+VS,CB,alpha_std,31,31,0.5454,0.00010115921759279445,0.12543742981506512
+MB,HY,aperiodic_offset,182,181,0.5441,1.3726217228838119e-33,1.7020509363759268e-30
+root,MB,cor_ratio,57,57,0.5438,4.725915459857788e-06,0.005860135170223657
+root,HY,alpha_std,235,235,0.5406,2.4053204062227626e-39,2.9825973037162256e-36
+CTXsp,Isocortex,psd_pc0,323,258,0.5368,3.419577761427273e-35,4.2402764241698185e-32
+MB,HB,tip_val,45,43,0.536,1.3009760380100488e-07,0.00016132102871324605
+MB,CB,depolarisation_slope,44,44,0.533,4.8629381771414515e-11,6.0300433396554e-08
+HPF,TH,rms_ap,51,51,0.5327,0.004518815316259861,1.0
+CTXsp,OLF,peak_val,79,79,0.528,6.649929495949891e-10,8.245912574977865e-07
+CNU,HY,alpha_std,342,284,0.5259,1.2326383308765646e-22,1.5284715302869402e-19
+root,MB,psd_pc1,57,57,0.5256,2.663850265368696e-06,0.003303174329057183
+MB,CB,repolarisation_slope,44,44,0.5235,6.943283281657386e-09,8.609671269255159e-06
+OLF,CTXsp,alpha_mean,1346,1345,0.5231,0.0,0.0
+MB,HB,tip_time_secs,45,43,0.5226,1.489333101289958e-07,0.0001846773045599548
+CB,MB,csd_pc0,304,303,0.5221,2.917522864461199e-23,3.617728351931887e-20
+CTXsp,OLF,trough_val,79,79,0.5204,1.6763157972832232e-08,2.0786315886311968e-05
+fiber tracts,HB,peak_time_secs,468,468,0.5198,7.270219495206945e-39,9.015072174056611e-36
+CB,MB,repolarisation_slope,304,303,0.5181,1.5006654756185028e-34,1.8608251897669435e-31
+fiber tracts,root,peak_val,56,56,0.517,1.1913116395589896e-05,0.01477226433053147
+MB,HB,trough_val,45,43,0.5166,5.426131792773958e-06,0.006728403423039708
+OLF,CTXsp,csd_pc0,1346,1345,0.5156,0.0,0.0
+MB,Isocortex,recovery_time_secs,459,459,0.5154,0.0,0.0
+root,HY,depolarisation_slope,235,235,0.515,3.18344958603565e-17,3.947477486684206e-14
+MB,HB,peak_val,45,43,0.5131,2.132260988219059e-06,0.0026440036253916332
+CNU,HPF,peak_time_secs,109,109,0.5109,5.922108812228544e-07,0.0007343414927163394
+HY,TH,csd_pc1,757,756,0.509,4.000145327660854e-97,4.96018020629946e-94
+TH,CNU,csd_pc0,65,65,0.5088,0.33743172678347144,1.0
+MB,HPF,psd_pc0,412,412,0.5083,6.252042764029052e-111,7.752533027396025e-108
+HY,TH,alpha_std,757,756,0.5078,0.0,0.0
+CTXsp,CNU,alpha_mean,774,752,0.5066,0.0,0.0
+Isocortex,CTXsp,trough_time_secs,149,149,0.5049,1.1548582728136692e-13,1.4320242582889497e-10
+MB,HPF,depolarisation_slope,412,412,0.5043,5.733687963365184e-27,7.109773074572828e-24
+CTXsp,HPF,peak_time_secs,393,392,0.504,0.0,0.0
+CNU,Isocortex,cor_ratio,1615,1615,0.5037,0.0,0.0
+root,CNU,cor_ratio,151,151,0.503,6.383596429238025e-11,7.915659572255151e-08
+fiber tracts,HY,trough_val,383,383,0.5019,2.3749801554065526e-27,2.9449753927041253e-24
+HB,CB,repolarisation_slope,1623,1595,0.5015,0.0,0.0
+TH,CNU,aperiodic_offset,65,65,0.4999,0.2742606997489929,1.0
+root,HY,tip_val,235,235,0.4995,7.772261562744357e-16,9.637604337803002e-13
+root,HY,peak_val,235,235,0.4991,1.0297824893812328e-16,1.2769302868327286e-13
+Isocortex,CNU,cor_ratio,79,79,0.4952,2.641513958678843e-07,0.0003275477308761765
+HB,CB,alpha_mean,1623,1595,0.4943,0.0,0.0
+MB,TH,psd_pc1,234,227,0.4939,6.69470001776648e-19,8.301428022030436e-16
+MB,Isocortex,psd_pc1,459,459,0.4911,3.6488242135451e-25,4.524542024795924e-22
+HY,TH,csd_pc0,757,756,0.4876,9.430605643450699e-75,1.1693950997878867e-71
+root,HPF,trough_val,32,32,0.4874,3.9880400436231866e-05,0.049451696540927514
+fiber tracts,root,alpha_std,56,56,0.4838,5.623991455649957e-05,0.06973749405005947
+OLF,HPF,tip_val,305,305,0.4831,2.802596928649634e-45,3.4752201915255463e-42
+fiber tracts,OLF,recovery_slope,986,986,0.4831,0.0,0.0
+fiber tracts,HY,csd_pc0,383,383,0.483,1.1503807829310648e-107,1.4264721708345203e-104
+fiber tracts,root,tip_val,56,56,0.4828,0.00013989873696118593,0.17347443383187056
+CNU,TH,repolarisation_slope,283,283,0.4827,2.096011358916746e-18,2.5990540850567652e-15
+CTXsp,HPF,recovery_slope,393,392,0.4823,1.4012704383555306e-40,1.737575343560858e-37
+CNU,OLF,depolarisation_slope,410,380,0.4805,0.0,0.0
+CNU,OLF,tip_val,410,380,0.4791,0.0,0.0
+CNU,HPF,alpha_std,109,109,0.4783,0.0003212756710126996,0.3983818320557475
+OLF,fiber tracts,depolarisation_slope,111,111,0.477,1.495071733081943e-09,1.8538889490216093e-06
+MB,HY,recovery_time_secs,182,181,0.4769,2.416859779381165e-25,2.9969061264326447e-22
+fiber tracts,OLF,repolarisation_slope,986,986,0.4767,0.0,0.0
+OLF,HPF,depolarisation_slope,305,305,0.4746,0.0,0.0
+HB,CB,alpha_std,1623,1595,0.4745,0.0,0.0
+CTXsp,HPF,repolarisation_slope,393,392,0.4742,0.0,0.0
+MB,HY,trough_time_secs,182,181,0.4732,3.3898197178515464e-24,4.2033764501359175e-21
+OLF,CTXsp,cor_ratio,1346,1345,0.473,0.0,0.0
+CNU,HY,psd_pc1,342,284,0.4699,6.007684175580425e-25,7.449528377719726e-22
+OLF,fiber tracts,repolarisation_slope,111,111,0.4696,1.3159061340584088e-10,1.631723606232427e-07
+root,CNU,aperiodic_offset,151,151,0.4678,2.9048656530288657e-30,3.6020334097557935e-27
+Isocortex,CTXsp,tip_time_secs,149,149,0.4675,1.1364432615443287e-12,1.4091896443149676e-09
+OLF,CTXsp,peak_time_secs,1346,1345,0.4651,0.0,0.0
+OLF,fiber tracts,trough_val,111,111,0.4647,9.817918006360671e-11,1.2174218327887232e-07
+CNU,HPF,csd_pc1,109,109,0.4646,7.309223886552309e-07,0.0009063437619324863
+OLF,fiber tracts,tip_val,111,111,0.4641,2.69861288870743e-09,3.3462799819972133e-06
+HB,CB,trough_val,1623,1595,0.464,0.0,0.0
+CNU,OLF,peak_val,410,380,0.4632,0.0,0.0
+OLF,fiber tracts,recovery_slope,111,111,0.4623,5.929764457235365e-10,7.352907926971852e-07
+CTXsp,OLF,tip_val,79,79,0.4623,1.8261182496703832e-11,2.264386629591275e-08
+CNU,HY,alpha_mean,342,284,0.4622,3.024246248761116e-19,3.750065348463784e-16
+OLF,fiber tracts,peak_val,111,111,0.4621,1.1229945862112345e-09,1.3925132869019308e-06
+root,HY,recovery_slope,235,235,0.4619,1.0469894673963364e-17,1.2982669395714571e-14
+MB,HB,psd_pc1,45,43,0.4605,1.9259133190959564e-07,0.00023881325156789858
+MB,HB,peak_time_secs,45,43,0.4602,3.4373476864857366e-07,0.00042623111312423134
+root,VS,csd_pc1,31,31,0.4592,0.034233235897212784,1.0
+CNU,HPF,tip_val,109,109,0.459,2.800362835841952e-06,0.0034724499164440203
+root,CNU,csd_pc0,151,151,0.4541,4.9854695465735406e-08,6.18198223775119e-05
+MB,HY,depolarisation_slope,182,181,0.4516,3.369511196425875e-26,4.178193883568085e-23
+OLF,HPF,peak_time_secs,305,305,0.4514,6.595609751628006e-38,8.178556092018727e-35
+CTXsp,HPF,depolarisation_slope,393,392,0.4513,5.4034068784364946e-42,6.700224529261253e-39
+CTXsp,Isocortex,trough_time_secs,323,258,0.4477,3.3764331427203984e-24,4.186777096973294e-21
+OLF,CNU,csd_pc0,264,255,0.4465,1.5882657265681871e-66,1.969449500944552e-63
+HPF,TH,recovery_slope,51,51,0.4463,0.009063846431672573,1.0
+TH,CNU,psd_pc1,65,65,0.4455,0.4169781953346551,1.0
+fiber tracts,HY,peak_val,383,383,0.445,2.5207340251522733e-24,3.125710191188819e-21
+root,CNU,psd_pc0,151,151,0.4439,4.073098849320785e-11,5.050642573157773e-08
+fiber tracts,CB,alpha_mean,47,47,0.4436,0.11103019118309021,1.0
+MB,Isocortex,trough_time_secs,459,459,0.4424,0.0,0.0
+CTXsp,Isocortex,aperiodic_offset,323,258,0.4409,3.2647713607005615e-25,4.0483164872686962e-22
+MB,HPF,csd_pc1,412,412,0.4407,2.1132500651819304e-46,2.620430080825594e-43
+HB,CB,depolarisation_slope,1623,1595,0.4393,0.0,0.0
+root,HPF,repolarisation_slope,32,32,0.4392,0.00016279386181849986,0.20186438865493983
+MB,Isocortex,aperiodic_exponent,459,459,0.4383,0.0,0.0
+fiber tracts,OLF,trough_val,986,986,0.4364,0.0,0.0
+MB,HY,rms_ap,182,181,0.4339,1.7087641023559724e-21,2.1188674869214057e-18
+HPF,TH,peak_val,51,51,0.4335,0.0018623537616804242,1.0
+CTXsp,CNU,csd_pc0,774,752,0.4323,1.93241331465533e-51,2.3961925101726093e-48
+root,HPF,peak_time_secs,32,32,0.4317,0.0003378571418579668,0.4189428559038788
+MB,HY,trough_val,182,181,0.4296,3.5698177092252886e-17,4.426573959439358e-14
+VS,CB,aperiodic_offset,31,31,0.4295,1.4371636098076124e-05,0.017820828761614393
+fiber tracts,HB,trough_time_secs,468,468,0.4279,0.0,0.0
+MB,HB,csd_pc0,45,43,0.426,0.00017902868751782622,0.2219955725221045
+HB,CB,peak_val,1623,1595,0.4252,0.0,0.0
+MB,HB,rms_ap,45,43,0.4238,0.0013389684027060866,1.0
+CNU,OLF,trough_val,410,380,0.4231,2.5223372357846707e-44,3.1276981723729917e-41
+MB,TH,recovery_time_secs,234,227,0.4224,6.057282019286348e-26,7.511029703915071e-23
+fiber tracts,CB,peak_val,47,47,0.4222,0.0019318792037665844,1.0
+OLF,fiber tracts,peak_time_secs,111,111,0.4216,1.6490314891370872e-08,2.044799046529988e-05
+MB,Isocortex,depolarisation_slope,459,459,0.4205,0.5612210631370544,1.0
+HPF,TH,csd_pc0,51,51,0.4201,0.002843458190516471,1.0
+fiber tracts,CB,trough_val,47,47,0.4197,0.003719947999343276,1.0
+MB,CB,tip_time_secs,44,44,0.4196,1.1858996423752544e-11,1.4705155565453154e-08
+fiber tracts,HY,aperiodic_offset,383,383,0.4179,0.0,0.0
+TH,CNU,recovery_time_secs,65,65,0.4175,0.14783869683742523,1.0
+Isocortex,CTXsp,recovery_time_secs,149,149,0.4168,1.990522191519517e-09,2.468247517484201e-06
+OLF,fiber tracts,cor_ratio,111,111,0.4166,3.5643937735585496e-05,0.044198482792126015
+HPF,TH,csd_pc1,51,51,0.4151,0.0013605403348937095,1.0
+HY,MB,csd_pc1,250,224,0.4146,5.0253971697736375e-18,6.2314924905193104e-15
+MB,HB,psd_pc0,45,43,0.4145,0.00012446299613049522,0.15433411520181406
+HY,TH,peak_time_secs,757,756,0.4138,1.2129161944678975e-37,1.5040160811401929e-34
+HB,CB,peak_time_secs,1623,1595,0.4135,0.0,0.0
+CNU,OLF,repolarisation_slope,410,380,0.4129,3.63693003430863e-41,4.5097932425427015e-38
+fiber tracts,root,depolarisation_slope,56,56,0.4127,0.00017480566748417914,0.21675902768038213
+TH,CNU,aperiodic_exponent,65,65,0.4126,0.20948036015033722,1.0
+TH,CNU,trough_time_secs,65,65,0.4107,0.12472595274448395,1.0
+root,CNU,rms_ap,151,151,0.4093,0.0005586596671491861,0.6927379872649908
+CNU,Isocortex,tip_time_secs,1615,1615,0.4075,0.0,0.0
+TH,CNU,csd_pc1,65,65,0.407,0.22061620652640057,1.0
+CNU,Isocortex,psd_pc1,1615,1615,0.4021,1.0548067909058878e-63,1.3079604207233008e-60
+root,VS,psd_pc1,31,31,0.4011,0.07586832520941555,1.0
+fiber tracts,root,repolarisation_slope,56,56,0.4008,0.00010563583782641217,0.1309884389047511
+HY,MB,tip_val,250,224,0.4001,2.1241181289506855e-18,2.63390647989885e-15
+MB,TH,trough_time_secs,234,227,0.3999,1.0451228435986006e-23,1.2959523260622648e-20
+root,HPF,depolarisation_slope,32,32,0.3992,0.0011323268990963697,1.0
+OLF,CNU,alpha_std,264,255,0.3984,0.0,0.0
+MB,HY,recovery_slope,182,181,0.3976,1.182702310432727e-16,1.4665508649365814e-13
+OLF,CNU,peak_time_secs,264,255,0.3966,1.8153403466110346e-21,2.251022029797683e-18
+Isocortex,CNU,csd_pc1,79,79,0.3955,2.7788865803869394e-05,0.03445819359679805
+HY,MB,peak_val,250,224,0.3955,1.512654068868289e-16,1.8756910453966784e-13
+MB,HB,csd_pc1,45,43,0.3946,1.974199740646645e-05,0.0244800767840184
+OLF,fiber tracts,rms_ap,111,111,0.3946,0.0008446515421383083,1.0
+fiber tracts,OLF,peak_val,986,986,0.3942,0.0,0.0
+HY,TH,recovery_slope,757,756,0.3937,2.802596928649634e-45,3.4752201915255463e-42
+HB,CB,tip_val,1623,1595,0.3935,0.0,0.0
+OLF,fiber tracts,aperiodic_offset,111,111,0.3909,0.17807134985923767,1.0
+OLF,fiber tracts,recovery_time_secs,111,111,0.3898,0.05811576545238495,1.0
+HY,TH,rms_ap,757,756,0.3897,0.0,0.0
+OLF,fiber tracts,alpha_mean,111,111,0.3886,0.006967555731534958,1.0
+root,HPF,tip_val,32,32,0.3886,0.0031608790159225464,1.0
+MB,CB,psd_pc1,44,44,0.3886,9.123264362890418e-07,0.001131284780998412
+OLF,fiber tracts,psd_pc0,111,111,0.3885,0.19398582341767523,1.0
+fiber tracts,HY,peak_time_secs,383,383,0.3879,2.260041222687223e-19,2.802451116132157e-16
+root,HPF,recovery_slope,32,32,0.3875,0.0007248611655086279,0.8988278452306986
+fiber tracts,CB,psd_pc1,47,47,0.3873,1.0151256337781696e-05,0.012587557858849303
+root,MB,alpha_std,57,57,0.387,0.0009938646107912064,1.0
+CNU,OLF,peak_time_secs,410,380,0.3867,8.126631459469842e-39,1.0077023009742605e-35
+CNU,TH,tip_val,283,283,0.3866,4.301706990617049e-09,5.334116668365141e-06
+HY,TH,cor_ratio,757,756,0.3856,0.0,0.0
+OLF,fiber tracts,tip_time_secs,111,111,0.3849,0.09301873296499252,1.0
+HY,TH,repolarisation_slope,757,756,0.3843,4.568232993698904e-43,5.6646089121866405e-40
+OLF,fiber tracts,trough_time_secs,111,111,0.3827,0.07306622713804245,1.0
+fiber tracts,CB,alpha_std,47,47,0.3801,0.10513561964035034,1.0
+fiber tracts,root,recovery_slope,56,56,0.3797,0.0016635666834190488,1.0
+fiber tracts,root,peak_time_secs,56,56,0.3789,0.0034473612904548645,1.0
+MB,HPF,trough_val,412,412,0.3788,1.484856617002539e-13,1.8412222050831484e-10
+MB,HPF,alpha_mean,412,412,0.3783,8.515610265716442e-16,1.0559356729488388e-12
+OLF,fiber tracts,psd_pc1,111,111,0.3772,0.06872069265248196,1.0
+fiber tracts,HB,aperiodic_exponent,468,468,0.3768,0.0,0.0
+OLF,fiber tracts,aperiodic_exponent,111,111,0.3764,6.968294474063441e-05,0.08640685147838667
+MB,Isocortex,repolarisation_slope,459,459,0.3763,0.1316763311624527,1.0
+OLF,fiber tracts,csd_pc0,111,111,0.3758,0.1521257986177104,1.0
+HY,MB,trough_val,250,224,0.3757,9.428275217840398e-13,1.1691061270122094e-09
+Isocortex,CTXsp,aperiodic_offset,149,149,0.3754,1.817498507250548e-08,2.2536981489906793e-05
+MB,Isocortex,recovery_slope,459,459,0.3753,0.06429945677518845,1.0
+CTXsp,HPF,tip_val,393,392,0.3742,4.375792193054865e-23,5.425982319388033e-20
+root,HPF,peak_val,32,32,0.3737,0.0035831627901643515,1.0
+fiber tracts,HY,psd_pc0,383,383,0.3736,1.5445548494848049e-145,1.9152480133611582e-142
+CNU,OLF,recovery_slope,410,380,0.3726,7.418582463858683e-32,9.199042255184767e-29
+fiber tracts,OLF,cor_ratio,986,986,0.3722,0.0,0.0
+fiber tracts,HY,repolarisation_slope,383,383,0.3715,1.3048519708050423e-21,1.6180164437982525e-18
+CB,MB,csd_pc1,304,303,0.3711,1.2799018689225323e-18,1.58707831746394e-15
+HPF,TH,repolarisation_slope,51,51,0.3695,0.016009902581572533,1.0
+CNU,HPF,tip_time_secs,109,109,0.3678,4.875919112912186e-10,6.046139700011111e-07
+TH,CNU,tip_time_secs,65,65,0.3677,0.10111075639724731,1.0
+OLF,fiber tracts,alpha_std,111,111,0.3653,0.05155334249138832,1.0
+CNU,Isocortex,csd_pc0,1615,1615,0.3643,5.943773583734471e-16,7.370279243830744e-13
+OLF,fiber tracts,csd_pc1,111,111,0.3642,0.3409061289165475,1.0
+CTXsp,Isocortex,recovery_time_secs,323,258,0.3625,1.4620386886628222e-15,1.8129279739418996e-12
+root,CNU,psd_pc1,151,151,0.3617,0.09851040565290342,1.0
+CB,MB,recovery_time_secs,304,303,0.3616,6.6972338158688e-16,8.304569931677312e-13
+CB,MB,trough_time_secs,304,303,0.3612,4.242237461381075e-17,5.260374452112533e-14
+HPF,Isocortex,csd_pc1,2750,2750,0.3608,7.423428930529256e-212,9.205051873856277e-209
+root,CNU,recovery_time_secs,151,151,0.3595,6.839032673511269e-10,8.480400515153974e-07
+root,CNU,alpha_mean,151,151,0.3581,0.009421167895197868,1.0
+CNU,HY,recovery_time_secs,342,284,0.3576,1.3004949117600972e-08,1.6126136905825206e-05
+CNU,TH,rms_ap,283,283,0.3571,1.0374239309404384e-15,1.2864056743661437e-12
+fiber tracts,CB,cor_ratio,47,47,0.3567,0.08793337643146515,1.0
+fiber tracts,OLF,depolarisation_slope,986,986,0.3556,4.915172072690299e-38,6.094813370135971e-35
+CNU,HPF,recovery_slope,109,109,0.3538,0.0023049581795930862,1.0
+MB,CB,csd_pc1,44,44,0.353,3.989047081379367e-07,0.0004946418380910415
+root,HPF,cor_ratio,32,32,0.3529,0.01722564548254013,1.0
+fiber tracts,MB,alpha_mean,135,135,0.3527,0.0002791113802231848,0.3460981114767492
+root,CNU,tip_time_secs,151,151,0.3516,2.5150237092930183e-07,0.00031186293995233427
+MB,HY,psd_pc0,182,181,0.3512,9.875789430327217e-12,1.2245978893605749e-08
+fiber tracts,HY,alpha_std,383,383,0.3509,4.3113800026578054e-30,5.346111203295679e-27
+fiber tracts,root,alpha_mean,56,56,0.3493,0.0008190424996428192,1.0
+CTXsp,Isocortex,alpha_std,323,258,0.3489,1.1947971468261303e-14,1.4815484620644016e-11
+HB,CB,trough_time_secs,1623,1595,0.3487,0.0,0.0
+CNU,HY,peak_val,342,284,0.3456,4.1142190099208165e-08,5.1016315723018124e-05
+HB,CB,tip_time_secs,1623,1595,0.3419,0.0,0.0
+HY,MB,peak_time_secs,250,224,0.3413,1.1169275445125585e-14,1.3849901551955725e-11
+MB,HB,aperiodic_offset,45,43,0.3401,0.0007020043558441103,0.8704854012466967
+CNU,TH,alpha_std,283,283,0.3399,1.1613393580134357e-10,1.4400608039366602e-07
+CNU,HY,csd_pc1,342,284,0.3384,5.4307930184320945e-12,6.734183342855797e-09
+TH,MB,psd_pc0,181,171,0.3382,1.1351155292678903e-14,1.4075432562921839e-11
+root,CNU,csd_pc1,151,151,0.3372,1.1974918003721102e-09,1.4848898324614167e-06
+fiber tracts,OLF,tip_val,986,986,0.3358,5.85897461438235e-37,7.265128521834114e-34
+CNU,TH,recovery_time_secs,283,283,0.335,1.3821084277054752e-09,1.7138144503547892e-06
+fiber tracts,HB,recovery_time_secs,468,468,0.3349,0.0,0.0
+Isocortex,CNU,csd_pc0,79,79,0.3342,0.0005396495989073,0.6691655026450519
+HY,TH,depolarisation_slope,757,756,0.3327,5.527429773747304e-29,6.854012919446657e-26
+CTXsp,HPF,peak_val,393,392,0.3298,2.582500885782405e-18,3.2023010983701824e-15
+CTXsp,HPF,alpha_std,393,392,0.3284,0.0,0.0
+CNU,TH,trough_time_secs,283,283,0.3272,3.2002325234259388e-09,3.968288329048164e-06
+OLF,Isocortex,cor_ratio,1403,1403,0.3265,0.0,0.0
+OLF,Isocortex,alpha_std,1403,1403,0.3254,0.0,0.0
+VS,CB,trough_val,31,31,0.3253,0.010810202918946743,1.0
+TH,HPF,tip_time_secs,917,917,0.325,1.1709681465586448e-33,1.4520005017327195e-30
+OLF,CTXsp,tip_val,1346,1345,0.3243,0.0,0.0
+fiber tracts,OLF,alpha_std,986,986,0.3233,0.0,0.0
+CTXsp,OLF,psd_pc1,79,79,0.3224,0.0005618454784275782,0.6966883932501969
+CTXsp,CNU,cor_ratio,774,752,0.3211,3.9709293673041745e-16,4.923952415457176e-13
+OLF,CNU,psd_pc0,264,255,0.3205,2.6259244827116985e-40,3.256146358562506e-37
+TH,HPF,recovery_time_secs,917,917,0.3198,8.57638090341504e-23,1.063471232023465e-19
+CTXsp,HPF,trough_val,393,392,0.3177,7.153004774731802e-16,8.869725920667435e-13
+Isocortex,CNU,repolarisation_slope,79,79,0.3152,0.0012527852086350322,1.0
+fiber tracts,HY,tip_val,383,383,0.3151,3.63701744502537e-13,4.509901631831459e-10
+TH,HPF,trough_time_secs,917,917,0.3129,2.5832365853890886e-20,3.20321336588247e-17
+OLF,CNU,aperiodic_offset,264,255,0.3121,1.0044087002740991e-39,1.245466788339883e-36
+root,CNU,aperiodic_exponent,151,151,0.3111,0.06014804169535637,1.0
+CNU,Isocortex,recovery_slope,1615,1615,0.3105,5.111154775377111e-15,6.337831921467618e-12
+root,CNU,trough_time_secs,151,151,0.3104,4.4379474054001555e-13,5.503054782696193e-10
+CTXsp,Isocortex,alpha_mean,323,258,0.3095,2.2668538053605136e-12,2.810898718647037e-09
+HY,MB,recovery_slope,250,224,0.3089,5.736069713831171e-13,7.112726445150652e-10
+fiber tracts,OLF,alpha_mean,986,986,0.3089,0.0,0.0
+CTXsp,Isocortex,tip_time_secs,323,258,0.308,1.5728144515981277e-17,1.9502899199816783e-14
+CNU,HY,trough_time_secs,342,284,0.3072,4.1936787056329194e-06,0.00520016159498482
+fiber tracts,CB,repolarisation_slope,47,47,0.306,0.00702520739287138,1.0
+MB,HB,alpha_std,45,43,0.3057,0.0292709618806839,1.0
+OLF,HPF,alpha_std,305,305,0.3054,2.0499912896144503e-17,2.5419891991219184e-14
+HY,MB,repolarisation_slope,250,224,0.3042,6.278492808119152e-14,7.785331082067748e-11
+HY,MB,depolarisation_slope,250,224,0.304,1.0651267787551008e-15,1.320757205656325e-12
+HB,CB,recovery_time_secs,1623,1595,0.3038,0.0,0.0
+CNU,TH,cor_ratio,283,283,0.3028,9.03239205651829e-10,1.120016615008268e-06
+HB,MB,trough_val,755,721,0.2994,5.940692735627916e-40,7.366458992178616e-37
+HY,TH,recovery_time_secs,757,756,0.2986,1.1780277912935074e-27,1.4607544612039492e-24
+HPF,TH,peak_time_secs,51,51,0.2973,0.07083628326654434,1.0
+root,HY,alpha_mean,235,235,0.2973,1.14174757673717e-18,1.4157669951540908e-15
+CTXsp,CNU,aperiodic_exponent,774,752,0.297,3.815303965968192e-35,4.730976917800558e-32
+CNU,HPF,depolarisation_slope,109,109,0.2968,1.5882642401265912e-05,0.01969447657756973
+OLF,HPF,repolarisation_slope,305,305,0.2932,2.519097398127196e-13,3.123680773677723e-10
+CTXsp,CNU,trough_val,774,752,0.293,3.7415959357940117e-35,4.6395789603845745e-32
+HY,TH,tip_time_secs,757,756,0.29,1.4524015489607462e-29,1.8009779207113253e-26
+root,HY,csd_pc0,235,235,0.289,9.1924361277263e-34,1.1398620798380612e-30
+CNU,Isocortex,trough_val,1615,1615,0.2884,3.7314212723473645e-16,4.626962377710732e-13
+HPF,Isocortex,psd_pc1,2750,2750,0.2881,3.565085782170957e-114,4.420706369891987e-111
+CTXsp,Isocortex,csd_pc0,323,258,0.2871,5.2702437032240354e-11,6.535102191997803e-08
+VS,CB,csd_pc0,31,31,0.287,0.007620290900939604,1.0
+Isocortex,CTXsp,depolarisation_slope,149,149,0.2859,3.898953309544595e-06,0.004834702103835298
+HY,MB,psd_pc1,250,224,0.2834,4.388512549776759e-08,5.4417555617231813e-05
+CNU,HY,cor_ratio,342,284,0.2834,2.5796320635151915e-09,3.1987437587588374e-06
+MB,CB,trough_time_secs,44,44,0.2808,0.02061120606958866,1.0
+OLF,CTXsp,depolarisation_slope,1346,1345,0.2805,0.0,0.0
+Isocortex,CNU,alpha_std,79,79,0.2803,0.005343037657439709,1.0
+OLF,HPF,recovery_slope,305,305,0.2799,5.64264008239522e-14,6.996873702170073e-11
+CTXsp,Isocortex,psd_pc1,323,258,0.2799,9.751240710528669e-18,1.2091538481055549e-14
+OLF,HPF,peak_val,305,305,0.2784,2.478345043085507e-19,3.0731478534260287e-16
+CNU,TH,peak_time_secs,283,283,0.2774,0.00023974153737071902,0.2972795063396916
+HPF,TH,alpha_std,51,51,0.2769,0.18346692621707916,1.0
+TH,MB,aperiodic_offset,181,171,0.2768,3.153746001771651e-05,0.039106450421968475
+CB,MB,psd_pc0,304,303,0.2767,1.291017247298451e-11,1.6008613866500792e-08
+OLF,CNU,rms_ap,264,255,0.2765,8.130810920528346e-26,1.0082205541455149e-22
+Isocortex,CNU,peak_val,79,79,0.2752,0.01866472139954567,1.0
+HPF,TH,alpha_mean,51,51,0.2745,0.23537951707839966,1.0
+fiber tracts,HY,depolarisation_slope,383,383,0.2732,3.960705985406321e-09,4.911275421903838e-06
+HY,MB,cor_ratio,250,224,0.2729,2.1383699788657395e-07,0.0002651578773793517
+OLF,HPF,trough_val,305,305,0.2717,2.1915533252855504e-17,2.7175261233540825e-14
+OLF,CNU,cor_ratio,264,255,0.2716,9.031219954791316e-28,1.1198712743941232e-24
+fiber tracts,HB,aperiodic_offset,468,468,0.2702,2.6900354083262808e-24,3.335643906324588e-21
+OLF,Isocortex,alpha_mean,1403,1403,0.27,0.0,0.0
+fiber tracts,HB,alpha_mean,468,468,0.2699,2.8375544101899575e-13,3.518567468635547e-10
+fiber tracts,CB,csd_pc1,47,47,0.2698,0.0008125202854491568,1.0
+MB,CB,recovery_time_secs,44,44,0.2697,0.012917591258883476,1.0
+HPF,TH,tip_val,51,51,0.2689,0.07713496685028076,1.0
+CNU,HY,recovery_slope,342,284,0.2684,0.0002937189128715545,0.3642114519607276
+HB,MB,repolarisation_slope,755,721,0.2664,7.530878744404725e-36,9.338289643061859e-33
+HPF,MB,psd_pc1,208,208,0.2622,1.5835482881642647e-06,0.001963599877323688
+HB,MB,psd_pc0,755,721,0.2615,9.68625245703129e-28,1.20109530467188e-24
+root,fiber tracts,cor_ratio,211,211,0.2609,2.7878807595804744e-10,3.4569721418797883e-07
+CTXsp,Isocortex,csd_pc1,323,258,0.2605,1.9184428442781113e-16,2.378869126904858e-13
+HB,MB,peak_val,755,721,0.2591,1.7000492433095022e-37,2.1080610617037827e-34
+Isocortex,CTXsp,psd_pc0,149,149,0.2583,4.115970023137217e-05,0.051038028286901495
+OLF,CNU,aperiodic_exponent,264,255,0.2575,6.624911475228146e-05,0.082148902292829
+fiber tracts,HB,tip_time_secs,468,468,0.2557,1.5080774073063681e-41,1.8700159850598965e-38
+HB,MB,rms_ap,755,721,0.253,4.193493731597894e-35,5.199932227181389e-32
+fiber tracts,HY,recovery_slope,383,383,0.2515,6.421696941566468e-14,7.96290420754242e-11
+CNU,HPF,trough_val,109,109,0.2514,0.0011956278467550874,1.0
+CNU,Isocortex,peak_val,1615,1615,0.2506,3.087193695128221e-11,3.828120181958994e-08
+OLF,HPF,alpha_mean,305,305,0.2478,9.245670398174647e-15,1.1464631293736562e-11
+HPF,Isocortex,aperiodic_exponent,2750,2750,0.2462,0.0,0.0
+fiber tracts,CB,depolarisation_slope,47,47,0.2461,0.011608690954744816,1.0
+HY,MB,tip_time_secs,250,224,0.2457,7.929848336811875e-16,9.833011937646725e-13
+OLF,Isocortex,csd_pc0,1403,1403,0.2456,1.5012647950706591e-87,1.8615683458876173e-84
+HY,TH,trough_time_secs,757,756,0.2446,1.9259521239625817e-18,2.3881806337136013e-15
+MB,HPF,peak_val,412,412,0.2445,7.055406967992894e-06,0.008748704640311189
+VS,CB,repolarisation_slope,31,31,0.2442,0.04678735509514809,1.0
+TH,MB,alpha_mean,181,171,0.2436,4.86852265169091e-08,6.036968088096728e-05
+HY,MB,trough_time_secs,250,224,0.2426,5.329547185991819e-16,6.608638510629855e-13
+root,CNU,alpha_std,151,151,0.2416,0.28778499364852905,1.0
+CNU,HPF,cor_ratio,109,109,0.2413,0.009767560288310051,1.0
+CNU,HY,repolarisation_slope,342,284,0.2404,0.0010327412746846676,1.0
+Isocortex,CTXsp,aperiodic_exponent,149,149,0.2403,0.0005432443576864898,0.6736230035312474
+root,HPF,aperiodic_offset,32,32,0.2392,0.5837303400039673,1.0
+OLF,HPF,cor_ratio,305,305,0.2379,1.4275054730406196e-14,1.7701067865703683e-11
+HB,MB,recovery_slope,755,721,0.2372,2.4958860127986843e-33,3.0948986558703685e-30
+fiber tracts,OLF,peak_time_secs,986,986,0.2355,4.8489221628740076e-17,6.012663481963769e-14
+OLF,CNU,csd_pc1,264,255,0.2351,0.011603636711317044,1.0
+HY,CNU,csd_pc1,487,400,0.2349,3.360191148977346e-10,4.166637024731909e-07
+fiber tracts,HY,aperiodic_exponent,383,383,0.2348,0.0,0.0
+root,HPF,aperiodic_exponent,32,32,0.2347,0.5494857430458069,1.0
+root,HPF,psd_pc0,32,32,0.2344,0.838522070523553,1.0
+root,HPF,csd_pc0,32,32,0.2338,0.5847549300531965,1.0
+OLF,CNU,tip_val,264,255,0.2335,0.011198466643691063,1.0
+root,HPF,psd_pc1,32,32,0.2318,0.9575585699503363,1.0
+CNU,HY,trough_val,342,284,0.2317,0.003522113896906376,1.0
+root,fiber tracts,tip_time_secs,211,211,0.2315,5.265952237689277e-19,6.529780774734704e-16
+root,HY,aperiodic_offset,235,235,0.231,1.625852001925607e-15,2.0160564823877526e-12
+HB,MB,csd_pc1,755,721,0.2294,8.222862290108095e-23,1.0196349239734038e-19
+MB,HPF,tip_val,412,412,0.2282,0.0013353836257010698,1.0
+root,HPF,rms_ap,32,32,0.2279,0.025025151669979095,1.0
+MB,HPF,rms_ap,412,412,0.2277,0.0,0.0
+HY,MB,rms_ap,250,224,0.2271,9.791062405284379e-11,1.214091738255263e-07
+fiber tracts,CB,tip_time_secs,47,47,0.2262,0.018601585179567337,1.0
+HB,MB,depolarisation_slope,755,721,0.2258,3.365831606155801e-29,4.1736311916331935e-26
+CNU,Isocortex,repolarisation_slope,1615,1615,0.2252,7.287562038982287e-05,0.09036576928338036
+root,VS,aperiodic_offset,31,31,0.225,0.40438517928123474,1.0
+OLF,CNU,recovery_time_secs,264,255,0.223,0.5436943769454956,1.0
+root,MB,alpha_mean,57,57,0.2215,0.033516667783260345,1.0
+fiber tracts,CB,trough_time_secs,47,47,0.2207,0.07368098944425583,1.0
+MB,CB,aperiodic_offset,44,44,0.2206,0.09481783211231232,1.0
+HY,MB,recovery_time_secs,250,224,0.2204,1.0870766846711303e-15,1.3479750889922016e-12
+HB,MB,tip_val,755,721,0.2193,1.806473575349329e-30,2.240027233433168e-27
+OLF,CNU,alpha_mean,264,255,0.2171,1.0956192173170015e-40,1.3585678294730818e-37
+CTXsp,OLF,trough_time_secs,79,79,0.2166,0.19498062133789062,1.0
+root,HPF,csd_pc1,32,32,0.2165,0.22390350334765052,1.0
+MB,TH,tip_time_secs,234,227,0.216,6.04609895135666e-13,7.497162699682258e-10
+CNU,TH,aperiodic_exponent,283,283,0.2149,2.5035435555764707e-06,0.0031043940089148236
+TH,MB,recovery_time_secs,181,171,0.2133,4.797481778950896e-06,0.005948877405899111
+root,HPF,alpha_mean,32,32,0.2132,0.3015035390853882,1.0
+CTXsp,CNU,peak_time_secs,774,752,0.2131,4.946776941842243e-29,6.134003407884381e-26
+MB,HPF,peak_time_secs,412,412,0.2125,0.0013592031318694353,1.0
+Isocortex,CNU,trough_val,79,79,0.2122,0.05442311242222786,1.0
+OLF,Isocortex,peak_time_secs,1403,1403,0.2121,2.0178697886277366e-43,2.5021585378983934e-40
+OLF,HPF,csd_pc0,305,305,0.2106,1.9701836656507218e-06,0.002443027745406895
+root,VS,alpha_mean,31,31,0.2101,0.3057253658771515,1.0
+root,VS,cor_ratio,31,31,0.2092,0.23809683322906494,1.0
+MB,TH,peak_val,234,227,0.2091,1.0873807696043514e-05,0.013483521543093957
+HB,MB,aperiodic_offset,755,721,0.2085,4.625568045012521e-16,5.735704375815526e-13
+TH,MB,trough_time_secs,181,171,0.2083,3.006080078193918e-06,0.003727539296960458
+MB,Isocortex,tip_val,459,459,0.2071,3.2669337457491565e-08,4.050997844728954e-05
+root,HPF,recovery_time_secs,32,32,0.2059,0.16285575926303864,1.0
+fiber tracts,CB,aperiodic_exponent,47,47,0.2058,0.025184763595461845,1.0
+CNU,HPF,repolarisation_slope,109,109,0.2054,0.007683182135224342,1.0
+fiber tracts,root,aperiodic_exponent,56,56,0.2041,0.0001540222583571449,0.19098760036285967
+MB,CB,psd_pc0,44,44,0.2033,0.059992607648399685,1.0
+MB,TH,trough_val,234,227,0.2032,9.141954251390416e-06,0.011336023271724116
+root,HY,psd_pc0,235,235,0.2029,1.0135836266329737e-17,1.2568436970248874e-14
+CTXsp,Isocortex,peak_time_secs,323,258,0.2027,3.230240110951854e-07,0.0004005497737580299
+HB,CB,psd_pc1,1623,1595,0.2024,9.334386388648365e-26,1.1574639121923973e-22
+CNU,TH,csd_pc1,283,283,0.2013,0.06367995812494756,1.0
+fiber tracts,root,csd_pc1,56,56,0.2013,5.4507708574361e-10,6.758955863220764e-07
+CNU,HPF,peak_val,109,109,0.2007,0.001303712371736765,1.0
+MB,HPF,alpha_std,412,412,0.2002,0.04484184831380844,1.0
+root,HPF,tip_time_secs,32,32,0.1995,0.1676330417394638,1.0
+root,fiber tracts,aperiodic_offset,211,211,0.1994,0.0059147304855287075,1.0
+fiber tracts,CB,recovery_slope,47,47,0.1994,0.13369424641132355,1.0
+OLF,CNU,psd_pc1,264,255,0.1976,0.25410321173472206,1.0
+HB,CB,csd_pc1,1623,1595,0.1967,5.496937687430081e-19,6.8162027324133e-16
+TH,MB,psd_pc1,181,171,0.1959,0.0017464906268710105,1.0
+root,VS,alpha_std,31,31,0.1957,0.3228153884410858,1.0
+HB,MB,psd_pc1,755,721,0.1947,3.03462101843909e-19,3.7629300628644715e-16
+HPF,TH,recovery_time_secs,51,51,0.1946,0.059735413640737534,1.0
+HPF,Isocortex,psd_pc0,2750,2750,0.1944,3.589538427211913e-66,4.451027649742772e-63
+root,fiber tracts,alpha_std,211,211,0.1939,0.0008087748428806663,1.0
+fiber tracts,root,cor_ratio,56,56,0.1937,0.004111682530492544,1.0
+HB,CB,aperiodic_exponent,1623,1595,0.1913,6.089273277202921e-20,7.550698863731622e-17
+TH,MB,csd_pc1,181,171,0.191,0.0008315347321768894,1.0
+HPF,Isocortex,tip_time_secs,2750,2750,0.1905,0.0,0.0
+MB,TH,cor_ratio,234,227,0.1899,6.190868373501246e-10,7.676676783141545e-07
+OLF,CNU,trough_time_secs,264,255,0.1897,0.0023833690211176872,1.0
+MB,CB,rms_ap,44,44,0.1892,4.0884136979002506e-05,0.05069632985396311
+OLF,CNU,depolarisation_slope,264,255,0.189,0.5757918357849121,1.0
+CTXsp,OLF,psd_pc0,79,79,0.1883,0.03273532796290721,1.0
+fiber tracts,MB,psd_pc0,135,135,0.1878,3.4194216683650015e-24,4.240082868772602e-21
+MB,TH,aperiodic_exponent,234,227,0.1878,1.364597392239375e-05,0.01692100766376825
+root,HPF,trough_time_secs,32,32,0.1869,0.16249175369739532,1.0
+VS,CB,peak_val,31,31,0.1866,0.1289958506822586,1.0
+CTXsp,OLF,csd_pc0,79,79,0.1865,1.7333433129624792e-05,0.021493457080734742
+CNU,HY,rms_ap,342,284,0.1848,5.148722266312689e-06,0.006384415610227734
+HY,MB,aperiodic_exponent,250,224,0.1839,3.2204548006120604e-06,0.003993363952758955
+root,VS,peak_time_secs,31,31,0.1828,0.4684155285358429,1.0
+HB,MB,csd_pc0,755,721,0.1826,1.0104717998518538e-19,1.2529850318162987e-16
+HPF,TH,depolarisation_slope,51,51,0.1822,0.19879242777824402,1.0
+OLF,CTXsp,aperiodic_offset,1346,1345,0.1814,0.0,0.0
+root,fiber tracts,csd_pc0,211,211,0.181,0.6968373479293204,1.0
+fiber tracts,CB,tip_val,47,47,0.1798,0.09721758216619492,1.0
+OLF,CTXsp,psd_pc0,1346,1345,0.1772,1.0146439225463991e-224,1.258158463957535e-221
+MB,CB,aperiodic_exponent,44,44,0.1765,0.1363338828086853,1.0
+fiber tracts,CB,aperiodic_offset,47,47,0.1752,0.02161799930036068,1.0
+HY,CNU,depolarisation_slope,487,400,0.1751,0.007883318699896336,1.0
+MB,TH,alpha_std,234,227,0.1746,1.2239996976859402e-05,0.015177596251305658
+MB,HPF,psd_pc1,412,412,0.1733,3.7827756061537855e-05,0.04690641751630694
+fiber tracts,CB,peak_time_secs,47,47,0.1716,0.10257434099912643,1.0
+CTXsp,CNU,peak_val,774,752,0.1705,1.2152397144138405e-12,1.5068972458731622e-09
+OLF,CTXsp,tip_time_secs,1346,1345,0.1704,0.0,0.0
+fiber tracts,HB,psd_pc0,468,468,0.17,4.421334282208617e-06,0.005482454509938685
+root,fiber tracts,psd_pc0,211,211,0.1691,0.008568343883494879,1.0
+HPF,MB,alpha_mean,208,208,0.1672,5.4696109145879745e-05,0.06782317534089088
+root,fiber tracts,aperiodic_exponent,211,211,0.1658,1.6659377211763115e-18,2.0657627742586263e-15
+MB,HB,alpha_mean,45,43,0.1657,0.7021560072898865,1.0
+VS,CB,recovery_slope,31,31,0.1656,0.2099425196647644,1.0
+root,MB,aperiodic_offset,57,57,0.1656,0.7217181921005249,1.0
+CTXsp,CNU,csd_pc1,774,752,0.1653,5.4403687509250545e-15,6.746057251147067e-12
+CB,MB,aperiodic_offset,304,303,0.1639,1.9924166760887374e-09,2.4705966783500344e-06
+root,VS,recovery_slope,31,31,0.1634,0.3530525863170624,1.0
+fiber tracts,CB,recovery_time_secs,47,47,0.1623,0.7483041882514954,1.0
+HY,TH,psd_pc0,757,756,0.1613,4.667295211060881e-07,0.0005787446061715492
+TH,MB,csd_pc0,181,171,0.1611,0.05505875423618271,1.0
+root,fiber tracts,trough_time_secs,211,211,0.1611,3.5347922505701845e-12,4.383142390707029e-09
+HY,CNU,alpha_std,487,400,0.161,6.202367244242568e-22,7.690935382860784e-19
+OLF,HPF,psd_pc1,305,305,0.1606,0.0001650561540786263,0.2046696310574966
+root,VS,rms_ap,31,31,0.1591,0.5512843132019043,1.0
+root,MB,csd_pc0,57,57,0.1584,0.23205724739747524,1.0
+Isocortex,CNU,aperiodic_exponent,79,79,0.1566,0.6214764714241028,1.0
+HB,CB,psd_pc0,1623,1595,0.1559,2.502310299756447e-42,3.102864771697994e-39
+CTXsp,HPF,cor_ratio,393,392,0.1548,0.6075522303581238,1.0
+HPF,Isocortex,aperiodic_offset,2750,2750,0.1539,1.601007877456601e-32,1.9852497680461853e-29
+fiber tracts,HB,psd_pc1,468,468,0.1528,0.40323189319760677,1.0
+OLF,CNU,tip_time_secs,264,255,0.1518,4.107486761745982e-17,5.093283584565017e-14
+fiber tracts,HY,alpha_mean,383,383,0.1515,2.0330336372720303e-11,2.5209617102173176e-08
+CTXsp,CNU,recovery_slope,774,752,0.1509,6.079572358430596e-06,0.007538669724453939
+CTXsp,Isocortex,depolarisation_slope,323,258,0.1499,0.0004560725355986506,0.5655299441423267
+TH,MB,alpha_std,181,171,0.1476,9.506575793238881e-07,0.0011788153983616212
+HPF,MB,alpha_std,208,208,0.1474,0.11009131371974945,1.0
+OLF,CTXsp,repolarisation_slope,1346,1345,0.1468,1.2332459178566531e-20,1.52922493814225e-17
+HY,CNU,trough_time_secs,487,400,0.1449,3.955252850573743e-06,0.004904513534711441
+OLF,HPF,aperiodic_exponent,305,305,0.1446,0.0008674574783071876,1.0
+Isocortex,CTXsp,rms_ap,149,149,0.1446,0.009161457419395447,1.0
+TH,MB,peak_time_secs,181,171,0.1439,0.7807902693748474,1.0
+HY,CNU,tip_time_secs,487,400,0.1437,0.00013079510245006531,0.162185927038081
+root,VS,tip_val,31,31,0.1406,0.4784894585609436,1.0
+MB,CB,csd_pc0,44,44,0.1405,0.006395103688035814,1.0
+root,HY,rms_ap,235,235,0.1404,0.12333114445209503,1.0
+OLF,Isocortex,tip_val,1403,1403,0.1404,3.792081192668181e-24,4.702180678908545e-21
+root,HPF,alpha_std,32,32,0.1403,0.5138213038444519,1.0
+HB,CB,cor_ratio,1623,1595,0.14,2.632511830052975e-12,3.264314669265689e-09
+HB,CB,csd_pc0,1623,1595,0.1399,1.2924956050410344e-07,0.00016026945502508827
+MB,HPF,trough_time_secs,412,412,0.1392,0.0,0.0
+OLF,Isocortex,psd_pc0,1403,1403,0.1382,9.352553167586795e-272,1.1597165927807626e-268
+HPF,TH,trough_time_secs,51,51,0.1378,0.0741894394159317,1.0
+HPF,TH,tip_time_secs,51,51,0.1371,0.2813611328601837,1.0
+CNU,TH,depolarisation_slope,283,283,0.1364,0.0014585517346858978,1.0
+MB,HY,cor_ratio,182,181,0.1361,0.06462446600198746,1.0
+HY,CNU,repolarisation_slope,487,400,0.136,0.040327318012714386,1.0
+CTXsp,OLF,aperiodic_offset,79,79,0.136,0.30919313430786133,1.0
+fiber tracts,root,tip_time_secs,56,56,0.1359,0.0028916324954479933,1.0
+fiber tracts,CB,psd_pc0,47,47,0.1358,0.8521945133191057,1.0
+MB,TH,rms_ap,234,227,0.1348,9.601848205420538e-09,1.1906291774721467e-05
+fiber tracts,HY,rms_ap,383,383,0.1346,0.12713401019573212,1.0
+HB,MB,tip_time_secs,755,721,0.1328,1.4632092870670022e-08,1.8143795159630827e-05
+fiber tracts,OLF,csd_pc0,986,986,0.1326,1.8344790302245574e-63,2.2747539974784512e-60
+TH,MB,recovery_slope,181,171,0.1324,1.0466786079632584e-05,0.012978814738744404
+TH,HPF,psd_pc1,917,917,0.1324,0.0025534745864780046,1.0
+Isocortex,CTXsp,tip_val,149,149,0.1321,0.010857872664928436,1.0
+Isocortex,CTXsp,cor_ratio,149,149,0.1311,0.00440478790551424,1.0
+root,VS,recovery_time_secs,31,31,0.1288,0.3681592047214508,1.0
+OLF,Isocortex,aperiodic_offset,1403,1403,0.1283,0.0,0.0
+fiber tracts,root,trough_time_secs,56,56,0.1281,0.0003990728873759508,0.494850380346179
+HB,MB,cor_ratio,755,721,0.1268,1.0428096374696244e-13,1.2930839504623343e-10
+Isocortex,CNU,alpha_mean,79,79,0.1264,0.15522514283657074,1.0
+HY,CNU,tip_val,487,400,0.1263,0.8703216314315796,1.0
+HPF,Isocortex,tip_val,2750,2750,0.1256,1.0123958450072777e-29,1.2553708478090243e-26
+VS,CB,depolarisation_slope,31,31,0.1254,0.28524890542030334,1.0
+Isocortex,CTXsp,peak_time_secs,149,149,0.1251,0.011100506410002708,1.0
+VS,CB,psd_pc0,31,31,0.1249,0.2994620870947463,1.0
+OLF,HPF,aperiodic_offset,305,305,0.1247,6.05609493504744e-05,0.07509557719458826
+fiber tracts,HY,csd_pc1,383,383,0.1239,0.0008553069329597344,1.0
+root,HY,cor_ratio,235,235,0.1235,0.002230834448710084,1.0
+root,fiber tracts,recovery_time_secs,211,211,0.1232,4.64665849200796e-13,5.761856530089871e-10
+OLF,HPF,rms_ap,305,305,0.123,1.5065452316775918e-05,0.01868116087280214
+CTXsp,HPF,aperiodic_exponent,393,392,0.1227,0.45603397488594055,1.0
+HY,CNU,aperiodic_exponent,487,400,0.1203,0.0006354459910653532,0.7879530289210379
+HPF,Isocortex,depolarisation_slope,2750,2750,0.1197,1.4378566486868218e-25,1.782942244371659e-22
+MB,TH,aperiodic_offset,234,227,0.1197,0.0004210464539937675,0.5220976029522717
+CTXsp,Isocortex,aperiodic_exponent,323,258,0.1194,1.3770211360064621e-10,1.707506208648013e-07
+CTXsp,CNU,repolarisation_slope,774,752,0.119,0.0004178209346719086,0.5180979589931667
+HY,TH,psd_pc1,757,756,0.1185,2.1997915276080873e-10,2.727741494234028e-07
+MB,TH,csd_pc0,234,227,0.1185,0.0024562057680905173,1.0
+root,fiber tracts,csd_pc1,211,211,0.118,7.640771545229844e-23,9.474556716085006e-20
+HB,MB,alpha_mean,755,721,0.1175,2.0662876920596318e-07,0.00025621967381539434
+CTXsp,CNU,depolarisation_slope,774,752,0.1173,2.496104711813274e-10,3.0951698426484597e-07
+root,VS,trough_val,31,31,0.1159,0.6974219083786011,1.0
+root,VS,psd_pc0,31,31,0.1142,0.8224485191324826,1.0
+OLF,HPF,recovery_time_secs,305,305,0.114,6.439734789864815e-08,7.98527113943237e-05
+TH,MB,aperiodic_exponent,181,171,0.1132,0.46673065423965454,1.0
+OLF,HPF,psd_pc0,305,305,0.1132,0.0022476588930605453,1.0
+OLF,CTXsp,aperiodic_exponent,1346,1345,0.1127,2.9230111664446667e-08,3.624533846391387e-05
+fiber tracts,root,psd_pc1,56,56,0.1122,0.007311404154550821,1.0
+CTXsp,HPF,rms_ap,393,392,0.1111,4.3059350007590885e-17,5.33935940094127e-14
+HPF,Isocortex,trough_time_secs,2750,2750,0.1109,2.3460133888875134e-06,0.0029090566022205167
+HPF,Isocortex,recovery_time_secs,2750,2750,0.1091,6.2664548750035465e-06,0.007770404045004398
+MB,TH,tip_val,234,227,0.1088,0.34893321990966797,1.0
+MB,TH,psd_pc0,234,227,0.1088,0.0003060941559706447,0.3795567534035994
+HY,CNU,peak_val,487,400,0.1075,0.7838952541351318,1.0
+root,VS,trough_time_secs,31,31,0.1067,0.4540078341960907,1.0
+CTXsp,HPF,csd_pc1,393,392,0.1065,0.87508976502431,1.0
+fiber tracts,HB,alpha_std,468,468,0.106,0.22181443870067596,1.0
+HPF,Isocortex,rms_ap,2750,2750,0.1056,7.724927604058421e-14,9.578910229032442e-11
+MB,TH,recovery_slope,234,227,0.1051,0.00010626760922605172,0.13177183544030413
+HB,CB,aperiodic_offset,1623,1595,0.1049,5.120573405292816e-07,0.0006349511022563092
+HY,CNU,peak_time_secs,487,400,0.1045,0.6743915677070618,1.0
+OLF,Isocortex,depolarisation_slope,1403,1403,0.1036,4.663819523514933e-16,5.783136209158517e-13
+TH,MB,repolarisation_slope,181,171,0.1032,6.137794844107702e-05,0.07610865606693551
+fiber tracts,OLF,trough_time_secs,986,986,0.1014,0.2885943651199341,1.0
+CNU,Isocortex,trough_time_secs,1615,1615,0.1011,0.03277164697647095,1.0
+TH,MB,tip_val,181,171,0.1005,0.539708137512207,1.0
+HB,MB,trough_time_secs,755,721,0.1002,7.845315508347994e-07,0.0009728191230351513
+HB,MB,recovery_time_secs,755,721,0.099,1.6867899148564902e-06,0.002091619494422048
+CTXsp,Isocortex,repolarisation_slope,323,258,0.0988,0.026196269318461418,1.0
+HY,CNU,recovery_time_secs,487,400,0.0988,0.0005425288691185415,0.6727357977069914
+HB,MB,peak_time_secs,755,721,0.0965,1.3380244467953162e-07,0.0001659150314026192
+TH,MB,cor_ratio,181,171,0.0957,8.048063318710774e-05,0.0997959851520136
+CTXsp,HPF,psd_pc0,393,392,0.0947,1.2973143424988601e-09,1.6086697846985866e-06
+OLF,CTXsp,rms_ap,1346,1345,0.0944,6.451556674078019e-16,7.999930275856743e-13
+OLF,Isocortex,recovery_slope,1403,1403,0.0935,0.00017733087588567287,0.21989028609823436
+fiber tracts,OLF,recovery_time_secs,986,986,0.0935,0.5518531203269958,1.0
+OLF,Isocortex,aperiodic_exponent,1403,1403,0.0935,1.0472703954045315e-10,1.298615290301619e-07
+fiber tracts,OLF,tip_time_secs,986,986,0.0917,0.3033311665058136,1.0
+VS,CB,trough_time_secs,31,31,0.0917,0.5633955597877502,1.0
+OLF,CTXsp,trough_time_secs,1346,1345,0.0912,0.0,0.0
+fiber tracts,root,recovery_time_secs,56,56,0.091,0.00036523182643577456,0.45288746478036046
+MB,HY,csd_pc0,182,181,0.0878,0.7652595166481504,1.0
+CTXsp,OLF,recovery_time_secs,79,79,0.0872,0.5544087886810303,1.0
+fiber tracts,HY,trough_time_secs,383,383,0.0867,0.0,0.0
+CTXsp,OLF,peak_time_secs,79,79,0.0862,0.130645290017128,1.0
+CNU,OLF,csd_pc1,410,380,0.0857,1.7872167822535947e-10,2.2161488099944573e-07
+MB,Isocortex,peak_time_secs,459,459,0.0853,2.649067631921298e-09,3.2848438635824095e-06
+MB,HPF,tip_time_secs,412,412,0.0852,0.0,0.0
+fiber tracts,root,aperiodic_offset,56,56,0.0849,0.0069302404299378395,1.0
+Isocortex,CNU,tip_val,79,79,0.0847,0.3025505840778351,1.0
+HPF,Isocortex,alpha_std,2750,2750,0.0846,1.3414325260394794e-13,1.6633763322889544e-10
+CNU,HPF,alpha_mean,109,109,0.0843,0.1198590025305748,1.0
+Isocortex,CNU,peak_time_secs,79,79,0.0843,0.1981223076581955,1.0
+CNU,OLF,tip_time_secs,410,380,0.0833,2.2461647509237633e-19,2.7852442911454666e-16
+HY,MB,csd_pc0,250,224,0.0831,0.27949703369552725,1.0
+CTXsp,HPF,aperiodic_offset,393,392,0.083,9.190773345830149e-15,1.1396558948829384e-11
+OLF,CTXsp,peak_val,1346,1345,0.0797,0.0008940745028667152,1.0
+TH,MB,tip_time_secs,181,171,0.0784,0.002876756712794304,1.0
+Isocortex,CTXsp,trough_val,149,149,0.077,0.2129194289445877,1.0
+CTXsp,Isocortex,rms_ap,323,258,0.0769,0.0012459232239052653,1.0
+root,fiber tracts,alpha_mean,211,211,0.0767,0.3313444256782532,1.0
+VS,CB,recovery_time_secs,31,31,0.0762,0.9190570712089539,1.0
+OLF,CNU,peak_val,264,255,0.0762,0.15577538311481476,1.0
+root,VS,repolarisation_slope,31,31,0.0753,0.528055727481842,1.0
+OLF,HPF,trough_time_secs,305,305,0.0752,0.029349515214562416,1.0
+fiber tracts,OLF,csd_pc1,986,986,0.0746,1.1093221131028852e-32,1.3755594202475778e-29
+fiber tracts,OLF,rms_ap,986,986,0.0746,0.0,0.0
+Isocortex,CTXsp,csd_pc1,149,149,0.0729,0.7512100214754106,1.0
+CNU,OLF,aperiodic_exponent,410,380,0.0728,0.07763776928186417,1.0
+CNU,Isocortex,tip_val,1615,1615,0.0724,5.90563500879604e-11,7.322987410907089e-08
+TH,MB,rms_ap,181,171,0.07,0.001694275764748454,1.0
+MB,TH,alpha_mean,234,227,0.0688,0.1250859647989273,1.0
+CNU,OLF,trough_time_secs,410,380,0.0678,0.01838504709303379,1.0
+CTXsp,CNU,tip_val,774,752,0.0672,0.00021387895685620606,0.2652099065016955
+CTXsp,Isocortex,recovery_slope,323,258,0.0671,0.13939082622528076,1.0
+HB,CB,rms_ap,1623,1595,0.0665,0.2858518958091736,1.0
+fiber tracts,HB,rms_ap,468,468,0.0653,0.0,0.0
+OLF,Isocortex,repolarisation_slope,1403,1403,0.0643,0.011332138441503048,1.0
+root,VS,tip_time_secs,31,31,0.0639,0.8086349368095398,1.0
+HB,MB,alpha_std,755,721,0.0638,0.0038656205870211124,1.0
+CTXsp,CNU,psd_pc1,774,752,0.0637,0.04091455990696427,1.0
+OLF,HPF,tip_time_secs,305,305,0.0634,1.6761934166034737e-18,2.0784798365883074e-15
+CTXsp,Isocortex,trough_val,323,258,0.0624,0.08368319272994995,1.0
+OLF,Isocortex,tip_time_secs,1403,1403,0.0621,8.834041434117423e-20,1.0954211378305605e-16
+MB,TH,depolarisation_slope,234,227,0.0611,7.166327122831717e-05,0.08886245632311329
+HY,CNU,recovery_slope,487,400,0.0607,0.4692698121070862,1.0
+OLF,Isocortex,rms_ap,1403,1403,0.0605,0.0,0.0
+CTXsp,CNU,rms_ap,774,752,0.0604,0.09240517020225525,1.0
+fiber tracts,HB,csd_pc1,468,468,0.0603,0.001389295965583197,1.0
+HY,MB,alpha_std,250,224,0.0594,0.9219586253166199,1.0
+HY,TH,aperiodic_offset,757,756,0.0582,0.3312476575374603,1.0
+CNU,Isocortex,depolarisation_slope,1615,1615,0.0568,5.179096084287349e-13,6.422079144516313e-10
+OLF,CTXsp,csd_pc1,1346,1345,0.0565,0.004245714268860923,1.0
+CNU,OLF,psd_pc1,410,380,0.0564,2.641791386548759e-07,0.00032758213193204616
+root,VS,aperiodic_exponent,31,31,0.0561,0.8241289854049683,1.0
+root,HY,aperiodic_exponent,235,235,0.055,0.07093413174152374,1.0
+CTXsp,HPF,csd_pc0,393,392,0.053,3.7975123929699663e-06,0.004708915367282758
+VS,CB,psd_pc1,31,31,0.0526,0.8842998631259079,1.0
+MB,TH,peak_time_secs,234,227,0.0526,0.8516892194747925,1.0
+CTXsp,HPF,psd_pc1,393,392,0.0523,2.733198173846815e-13,3.3891657355700503e-10
+OLF,CNU,repolarisation_slope,264,255,0.0514,0.12984022498130798,1.0
+HY,CNU,alpha_mean,487,400,0.0513,4.837358513753998e-09,5.998324557054957e-06
+OLF,Isocortex,peak_val,1403,1403,0.0505,0.0018390342593193054,1.0
+fiber tracts,root,csd_pc0,56,56,0.0499,0.05689059390662722,1.0
+HPF,Isocortex,repolarisation_slope,2750,2750,0.0496,0.0007697536493651569,0.9544945252127945
+fiber tracts,root,psd_pc0,56,56,0.0493,0.04262334085339631,1.0
+root,VS,peak_val,31,31,0.049,0.8764103651046753,1.0
+MB,HB,aperiodic_exponent,45,43,0.0483,0.8579739928245544,1.0
+OLF,HPF,csd_pc1,305,305,0.0483,1.9436431225144114e-06,0.00241011747191787
+fiber tracts,OLF,aperiodic_exponent,986,986,0.048,7.897668630185706e-10,9.793109101430275e-07
+TH,MB,trough_val,181,171,0.048,0.0423317551612854,1.0
+HY,CNU,rms_ap,487,400,0.047,0.00036943587474524975,0.4581004846841097
+HY,CNU,trough_val,487,400,0.047,0.16428402066230774,1.0
+CTXsp,Isocortex,peak_val,323,258,0.0462,0.231889545917511,1.0
+root,fiber tracts,psd_pc1,211,211,0.0461,0.0002457101257595559,0.3046805559418493
+MB,HB,cor_ratio,45,43,0.0461,0.3614726662635803,1.0
+root,HY,psd_pc1,235,235,0.046,7.668856022522105e-19,9.50938146792741e-16
+Isocortex,CTXsp,alpha_mean,149,149,0.046,0.9774962067604065,1.0
+Isocortex,CTXsp,peak_val,149,149,0.0454,0.6918964982032776,1.0
+HPF,Isocortex,peak_time_secs,2750,2750,0.044,9.475195072994325e-10,1.1749241890512963e-06
+MB,Isocortex,trough_val,459,459,0.0436,2.193518370413594e-12,2.7199627793128567e-09
+OLF,Isocortex,csd_pc1,1403,1403,0.0423,1.14485411251603e-06,0.0014196190995198774
+CNU,OLF,rms_ap,410,380,0.0402,0.0019596011843532324,1.0
+fiber tracts,HY,cor_ratio,383,383,0.0394,0.5968247056007385,1.0
+CTXsp,OLF,tip_time_secs,79,79,0.0392,2.604551685436718e-09,3.22964408994153e-06
+HPF,TH,psd_pc1,51,51,0.0388,0.7782476263624882,1.0
+HY,CNU,cor_ratio,487,400,0.038,0.016852984204888344,1.0
+Isocortex,CTXsp,psd_pc1,149,149,0.0377,0.08569670843801444,1.0
+HY,CNU,aperiodic_offset,487,400,0.0375,0.7963252067565918,1.0
+fiber tracts,OLF,aperiodic_offset,986,986,0.0374,1.3941532434552248e-38,1.7287500218844788e-35
+fiber tracts,HY,tip_time_secs,383,383,0.037,7.89840678038361e-21,9.794024407675676e-18
+OLF,CNU,trough_val,264,255,0.037,0.023246467113494873,1.0
+CNU,Isocortex,peak_time_secs,1615,1615,0.0368,9.434224235160826e-12,1.1698438051599425e-08
+HY,CNU,psd_pc1,487,400,0.0365,0.005985178400204078,1.0
+HPF,Isocortex,alpha_mean,2750,2750,0.0364,2.9783091548551965e-09,3.6931033520204437e-06
+OLF,Isocortex,psd_pc1,1403,1403,0.0362,4.532348447132975e-06,0.005620112074444889
+fiber tracts,CB,rms_ap,47,47,0.0347,0.07627665996551514,1.0
+VS,CB,csd_pc1,31,31,0.0343,0.9759575182607239,1.0
+OLF,CTXsp,recovery_slope,1346,1345,0.0332,1.3041847068961943e-06,0.0016171890365512809
+CNU,Isocortex,rms_ap,1615,1615,0.0323,2.3271062854490765e-09,2.885611793956855e-06
+fiber tracts,HY,psd_pc1,383,383,0.0318,9.317214544233635e-17,1.1553346034849709e-13
+Isocortex,CTXsp,recovery_slope,149,149,0.0317,0.6625266671180725,1.0
+fiber tracts,CB,csd_pc0,47,47,0.0306,0.0005698144582976747,0.7065699282891167
+root,HY,trough_time_secs,235,235,0.0303,7.92832810858938e-38,9.831126854650832e-35
+OLF,CNU,recovery_slope,264,255,0.0283,0.0025585805997252464,1.0
+fiber tracts,MB,aperiodic_offset,135,135,0.0277,3.7844803679742967e-11,4.692755656288128e-08
+root,HY,recovery_time_secs,235,235,0.0266,7.463035361301111e-41,9.254163848013377e-38
+CTXsp,HPF,tip_time_secs,393,392,0.0259,0.0,0.0
+Isocortex,CTXsp,alpha_std,149,149,0.0254,0.9783391356468201,1.0
+MB,Isocortex,peak_val,459,459,0.0251,8.028510205112464e-16,9.955352654339455e-13
+OLF,Isocortex,recovery_time_secs,1403,1403,0.0247,0.00045154790859669447,0.5599194066599011
+fiber tracts,HY,recovery_time_secs,383,383,0.0245,0.0,0.0
+CNU,OLF,alpha_mean,410,380,0.0238,0.4921788275241852,1.0
+CTXsp,Isocortex,cor_ratio,323,258,0.0234,0.559532642364502,1.0
+MB,TH,repolarisation_slope,234,227,0.0231,0.12203997373580933,1.0
+VS,CB,tip_val,31,31,0.0224,0.9430243968963623,1.0
+fiber tracts,OLF,psd_pc0,986,986,0.0222,6.615588341089846e-52,8.203329542951409e-49
+root,MB,psd_pc0,57,57,0.0205,0.7209511570891822,1.0
+OLF,Isocortex,trough_val,1403,1403,0.0201,0.11864972859621048,1.0
+HPF,Isocortex,trough_val,2750,2750,0.0195,0.07376448810100555,1.0
+HY,MB,psd_pc0,250,224,0.0192,0.8101297332528034,1.0
+TH,MB,depolarisation_slope,181,171,0.0191,0.006178456824272871,1.0
+TH,MB,peak_val,181,171,0.0191,0.2543613612651825,1.0
+OLF,CTXsp,trough_val,1346,1345,0.0184,0.871907651424408,1.0
+CTXsp,HPF,trough_time_secs,393,392,0.0181,9.851128204203464e-42,1.2215398973212295e-38
+CNU,OLF,cor_ratio,410,380,0.016,0.4145180284976959,1.0
+OLF,CTXsp,recovery_time_secs,1346,1345,0.0158,6.463102305007132e-33,8.014246858208844e-30
+CNU,OLF,recovery_time_secs,410,380,0.0146,2.5200241893230668e-08,3.124829994760603e-05
+HPF,Isocortex,cor_ratio,2750,2750,0.014,0.021592795848846436,1.0
+OLF,CTXsp,psd_pc1,1346,1345,0.014,0.01793618929390726,1.0
+CNU,HY,aperiodic_exponent,342,284,0.013,0.05875900015234947,1.0
+CNU,OLF,csd_pc0,410,380,0.013,0.6909299774677055,1.0
+root,fiber tracts,rms_ap,211,211,0.0129,4.861908401918025e-13,6.028766418378351e-10
+HPF,Isocortex,recovery_slope,2750,2750,0.0128,0.3374367952346802,1.0
+HY,MB,alpha_mean,250,224,0.0128,0.2243230640888214,1.0
+CNU,Isocortex,recovery_time_secs,1615,1615,0.0126,0.0045765764079988,1.0
+Isocortex,CTXsp,repolarisation_slope,149,149,0.0126,0.8194087743759155,1.0
+CNU,OLF,psd_pc0,410,380,0.0119,1.0538417302687494e-14,1.3067637455332492e-11
+CNU,OLF,aperiodic_offset,410,380,0.0111,2.5049366335523626e-14,3.1061214256049297e-11
+root,HY,csd_pc1,235,235,0.0111,1.4514358233653551e-12,1.7997804209730404e-09
+CNU,OLF,alpha_std,410,380,0.0111,0.5057786703109741,1.0
+HB,MB,aperiodic_exponent,755,721,0.0109,0.06441095471382141,1.0
+MB,HPF,recovery_time_secs,412,412,0.0106,0.0,0.0
+HY,CNU,csd_pc0,487,400,0.0103,0.6873906740874427,1.0
+HPF,Isocortex,peak_val,2750,2750,0.0102,0.8130239844322205,1.0
+CTXsp,HPF,recovery_time_secs,393,392,0.0089,1.2189253546464923e-38,1.5114674397616504e-35
+root,VS,csd_pc0,31,31,0.0074,0.9557055706174643,1.0
+root,VS,depolarisation_slope,31,31,0.0067,0.9840467572212219,1.0
+HY,CNU,psd_pc0,487,400,0.0061,0.9099304893960888,1.0
+OLF,Isocortex,trough_time_secs,1403,1403,0.0058,0.8596503138542175,1.0
+Isocortex,CTXsp,csd_pc0,149,149,0.0053,0.7446458622362523,1.0
+MB,HPF,aperiodic_exponent,412,412,0.0047,0.0,0.0
+VS,CB,tip_time_secs,31,31,0.0038,0.9931291937828064,1.0
+CTXsp,Isocortex,tip_val,323,258,0.0037,0.636868953704834,1.0
+HY,MB,aperiodic_offset,250,224,0.0024,0.8947514295578003,1.0
+fiber tracts,OLF,psd_pc1,986,986,0.0021,4.0963870704759166e-08,5.0795199673901366e-05
+CTXsp,HPF,alpha_mean,393,392,0.0017,2.152680811384755e-11,2.6693242061170963e-08
+root,HY,tip_time_secs,235,235,0.0016,1.2479880696740667e-20,1.5475052063958427e-17
+fiber tracts,HB,csd_pc0,468,468,0.0015,1.3327171812646063e-07,0.00016525693047681118
+VS,CB,peak_time_secs,31,31,0.0013,0.8678798079490662,1.0
+fiber tracts,root,rms_ap,56,56,0.0007,0.0441785529255867,1.0

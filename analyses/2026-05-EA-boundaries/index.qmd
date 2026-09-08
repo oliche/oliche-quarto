@@ -10,55 +10,81 @@ categories: [electrophysiology, ephys-atlas, anatomy, landmarks, classification]
 
 Sharp transitions in electrophysiological features at brain-region boundaries can serve as anatomical landmarks for Neuropixels probe localisation — a well-known example is the **hippocampus–thalamus boundary** ([Benson et al. eLife 2024](https://elifesciences.org/articles/100840#fig3), Fig. 3b).
 
-This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals.
-To do so we identify which transitions we observe on our dataset by computing a transition matrix. Then we build a dataset of the features at the transitions, for each couple
-of transitions that has more than 32 data points.
-To identify which transitions are the most salient, we train a classifier to predict the transition couple from the features around the transition. We then select the 6 most
-salient transitions and run a feature importance SHAP analysis to understand each feature contribution.
-
+This analysis mines the IBL Ephys Atlas to discover which Cosmos-level boundaries carry the strongest, most consistent feature jumps across animals. Discovery runs on the dense, noise-free **brainwide encoding volume** first (Step 1) — a 4-D reconstruction of ephys features across the whole brain — with real Neuropixels recordings used to sanity-check the top candidates it surfaces. The boundaries are then characterised in more detail with classifiers trained directly on measured data (Steps 2–5), and the measured-classifier accuracy ceiling is cross-checked against the same pipeline run on the volume (Step 6).
 
 ---
 
-## Step 1 — Cosmos boundary transition matrix
+## Step 1 — Volume-first landmark discovery (vintage 2026_W26)
 
+The encoding volume is used as the **primary** discovery substrate, with measured data used only to sanity-check the top candidates it surfaces — because the ceiling analysis (Step 6) shows the volume carries essentially all of the signal, at none of the recording noise.
 
-For each probe, channels are depth-aggregated (modal Cosmos region), adjacent-depth transitions are counted directionally, and interior unlabelled positions are replaced by nearest-neighbour interpolation along the probe (**21,435 positions replaced** in vintage 2026_W24).
+A dense 100 µm AP × ML virtual-probe grid (1.36M channels, `build_virtual_probe_df`) was sampled
+from the newest available encoding volume (**2026_W26**, 50 µm — the only vintage newer than
+2026_W12 with a volume on S3), and the same Cohen's-d boundary scan used for the original
+measured-data search (`compute_boundary_feature_stats`) was run on it unchanged. Because the dense
+grid removes the real-probe sparsity floor, **63 directed Cosmos pairs** now qualify (≥32
+crossings) versus the 18 reachable with real probes.
 
-![Directional Cosmos-level transition count matrix (vintage 2026_W24). Row = from-region, column = to-region. Colour clipped at the 97th percentile; diagonal masked.](figures/cosmos_transition_matrix.png){.lightbox}
+![Dense virtual-probe Cosmos transition matrix (2026_W26, 100 µm grid) — directional crossing counts across the whole brain, unconstrained by real recording coverage.](figures/vp_transition_matrix_2026_W26_100um.png){#fig-vp-transition-matrix .lightbox}
 
-Boundaries with **≥ 32 probe crossings** in either direction are retained for downstream analyses — **18 transitions** in total.
+Excluding trivial CSF/root/fiber-tract crossings, the top 20 tissue–tissue transitions by breadth
+of significant features (Cohen's d > 0.8, Bonferroni-corrected p < 0.01) then effect size are:
+
+```{python}
+#| echo: false
+#| label: tbl-significant-transitions
+#| tbl-cap: "Top 20 significant tissue–tissue boundary transitions from the dense encoding-volume scan, ranked by # significant features then max Cohen's d."
+
+import pandas as pd
+df_sig = pd.read_csv('figures/volume_landmark_ranking_2026_W26_tissue_only.csv').head(20)
+df_sig['transition'] = df_sig['from'] + ' → ' + df_sig['to']
+df_sig = df_sig.set_index('transition')[['max_cohens_d', 'n_significant_features', 'n_trans']]
+df_sig.columns = ["Max Cohen's d", '# significant features', '# crossings']
+df_sig
+```
+
+**TH → HPF reproduces the known DG–thalamus landmark** — a useful cross-check that the
+volume-first approach recovers the same landmark the measured-data classifier below (Step 3)
+independently ranks among its most reliably classified transitions.
+
+![TH → HPF depth profile from the encoding volume (dense grid, 150 of 917 crossings shown).](figures/volume_vs_measured/volume_TH_to_HPF.png){#fig-vol-th-hpf .lightbox}
+
+![The same TH → HPF profile from measured 2026_W26 recordings (150 of 206 crossings shown), same features as the volume figure above.](figures/volume_vs_measured/measured_TH_to_HPF.png){#fig-measured-th-hpf .lightbox}
+
+`csd_pc0` and `psd_pc0` show the same sign and timing of the transition in both panels; the
+measured panel is visibly noisier (single-recording variance) but the underlying step is the same
+— exactly what the Step 6 ceiling analysis would predict. (Each panel uses its own colour scale,
+scaled to its own 2nd–98th percentile range — a shared scale washes the smoother volume panel out,
+since it has far less spread than single-recording measured data.)
+
+Of the top 5 tissue–tissue candidates, **3 are directly corroborated** in measured 2026_W26 data
+(HPF → MB, TH → HPF, CNU → Isocortex). The other 2 (Isocortex → CNU, CNU → HPF) are not absent from
+real data so much as **direction-flipped or unobserved**: real Neuropixels trajectories only
+sample a limited set of entry angles, so a transition direction that's common in the dense,
+uniformly-sampled virtual grid can be rare or missing among the ~1,000 real insertions — this is
+flagged as encoding-volume-only rather than silently promoted to landmark status.
+
+### Feature importance on the volume data
+
+Reproducing Step 5's measured-data SHAP analysis directly on the volume: a GB classifier was
+trained on mean-diff feature vectors for the 20 significant transitions above (dense virtual-probe
+crossings, ±1000 µm window), reaching **94.6% accuracy** (85.7% balanced) over 4-fold CV — in the
+same range as the Step 6 ceiling classifier. SHAP (TreeExplainer) then identifies which features
+drive each of the 6 best-classified transitions specifically.
+
+![Volume-derived per-landmark feature importance — top 10 features per boundary (mean \|SHAP\|), for the 6 best-classified of the 20 significant transitions.](figures/landmark_feature_importance_volume.png){#fig-vol-feature-importance .lightbox}
+
+`aperiodic_offset`, `csd_pc0` and `rms_ap` dominate **TH → HPF** here too, consistent with the
+measured-data fingerprint in Step 5 — the volume-derived classifier recovers the same
+feature-level signature as the noisier real-data one, with none of the sampling limitations of
+real probe coverage.
+
+Full ranked tables: `figures/volume_landmark_ranking_2026_W26_tissue_only.csv` (all 33 tissue–tissue
+pairs) and `figures/volume_boundary_feature_stats_2026_W26.csv` (per-feature detail).
 
 ---
 
-## Step 2 — Depth-profile exploration
-
-For each qualifying transition the ±1000 µm window around each crossing depth was extracted, channels were aligned to zero, and features were plotted as heatmaps (probes × depth).
-
-### Example: TH → HPF
-
-![Depth-profile heatmap for TH → HPF (198 crossings). Each column is one probe; rows are depth relative to the transition. The sharp sign-reversal at depth 0 is consistent with the known DG landmark.](figures/profiles_TH_to_HPF.png){.lightbox}
-
-::: {layout-ncol=2}
-![TH→HPF transitions by AP position](figures/profiles_TH_to_HPF_ap.png){.lightbox}
-
-![TH→HPF transitions by ML position](figures/profiles_TH_to_HPF_ml.png){.lightbox}
-:::
-
-### Other representative boundaries
-
-::: {layout-ncol=2}
-![HPF → Isocortex (310 probes)](figures/profiles_HPF_to_Isocortex.png){.lightbox}
-
-![HB → CB (136 probes)](figures/profiles_HB_to_CB.png){.lightbox}
-
-![CNU → Isocortex (110 probes)](figures/profiles_CNU_to_Isocortex.png){.lightbox}
-
-![MB → HPF (119 probes)](figures/profiles_MB_to_HPF.png){.lightbox}
-:::
-
----
-
-## Step 3 — Dimensionality reduction (PCA)
+## Step 2 — Dimensionality reduction (PCA)
 
 Raw LFP features include 21 PSD-related columns (7 raw-PSD + 14 CSD-PSD) that are highly correlated due to the 1/f spectral background.
 Two independent PCAs compress these into 4 components:
@@ -77,11 +103,11 @@ The original PSD/CSD columns are dropped. After also removing `distance_to_tip_u
 
 After PCA, Cosmos-level regions are already partially separable in the 2D PC space:
 
-![PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along `psd_pc0`/`csd_pc0`, confirming the PCA components carry anatomical signal even without supervision.](figures/psd_pca_04_scatter_cosmos.png){.lightbox}
+![PC scores coloured by Cosmos region (40k channel subsample), for the PSD group (left) and CSD group (right). Isocortex and void/void_fluid channels separate along `psd_pc0`/`csd_pc0`, confirming the PCA components carry anatomical signal even without supervision.](figures/psd_pca_04_scatter_cosmos.png){#fig-psd-pca-scatter .lightbox}
 
 ---
 
-## Step 4 — Boundary classifier
+## Step 3 — Boundary classifier
 
 ### Feature vector construction
 
@@ -91,7 +117,7 @@ $$\mathbf{x} = \bar{\mathbf{f}}_{\text{below}} - \bar{\mathbf{f}}_{\text{above}}
 
 where "below" is the from-region side (deeper) and "above" is the to-region side (shallower), each averaged over the ±1000 µm window around the crossing depth.
 This yields a 26-dimensional vector per sample encoding the *direction and magnitude* of the feature change.
-1c
+
 ### Model
 
 A **Gradient Boosted classifier** (`HistGradientBoostingClassifier`, 300 iterations) is trained on the 18-class problem using **4-fold stratified cross-validation** (1,714 samples total).
@@ -125,21 +151,21 @@ Overall CV accuracy: **GB ≈ 47%** against a null of ~9.3% (permutation test, p
 
 ### Confusion matrix
 
-![GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.](figures/classifier_confusion_gb.png){.lightbox}
+![GB confusion matrix (row-normalised). Transitions that are geographically or functionally similar are the main sources of confusion.](figures/classifier_confusion_gb.png){#fig-confusion-gb .lightbox}
 
 ---
 
-## Step 5 — Top 6 transitions: brain-section visualisation
+## Step 4 — Top 6 transitions: brain-section visualisation
 
 The six most consistently classified transitions (by GB per-class accuracy) are identified automatically.
 
 ### Coronal sections
 
-![Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).](figures/classifier_coronal_boundaries.png){.lightbox}
+![Coronal brain sections for the top 6 transitions. Boundary contours are drawn in the Allen atlas colour for each region (solid = from-region, dashed = to-region).](figures/classifier_coronal_boundaries.png){#fig-coronal .lightbox}
 
 ### Sagittal sections
 
-![Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.](figures/classifier_sagittal_boundaries.png){.lightbox}
+![Sagittal brain sections for the top 6 transitions. Same colour convention as the coronal panels.](figures/classifier_sagittal_boundaries.png){#fig-sagittal .lightbox}
 
 ### Depth-profile heatmaps
 
@@ -162,18 +188,18 @@ top6 = df_gb.nlargest(6, 'accuracy')[['class', 'accuracy']].values.tolist()
 for cls, acc in top6:
     slug = cls.replace('_to_', '_to_')
     label = cls.replace('_to_', ' → ')
-    print(f'![{label} ({acc:.1%} GB accuracy)](figures/heatmap_profiles/heatmap_{slug}.png){{.lightbox}}\n')
+    print(f'![{label} ({acc:.1%} GB accuracy)](figures/heatmap_profiles/heatmap_{slug}.png){{#fig-heatmap-{slug} .lightbox}}\n')
 ```
 :::
 
 ---
 
-## Step 6 — Per-landmark feature importance
+## Step 5 — Per-landmark feature importance
 
 For each of the top-6 transitions, SHAP values (TreeExplainer on the full training set) identify which features the model relies on specifically for **that boundary**.
 Only the samples belonging to each class are used, so the result is a per-landmark fingerprint rather than a global importance ranking.
 
-![Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.](figures/landmark_feature_importance.png){.lightbox}
+![Top-10 features per landmark by mean |SHAP| value. Each panel shows one boundary (with CV accuracy); bars are colour-coded by feature group: green = LFP/CSD, purple = RMS AP / spikes / alpha, blue = waveform shape.](figures/landmark_feature_importance.png){#fig-landmark-feature-importance .lightbox}
 
 The per-landmark fingerprints reveal two distinct boundary types:
 
@@ -191,26 +217,16 @@ The clean split between LFP-power and waveform-shape landmarks suggests that **d
 
 ---
 
-## Step 7 — Ceiling validation: encoding-volume virtual probes
+## Step 6 — Ceiling validation: encoding-volume virtual probes
 
 The measured-probe classifier tops out at ~47% because real recordings are noisy and probes are sparse.
 To check whether this ceiling reflects *noise* rather than a lack of information in the features, the same pipeline (mean-diff feature vector → GB classifier, 4-fold stratified CV) was re-run on **synthetic virtual probes**: a dense 200 µm AP/ML grid of vertical probes sampled directly from the brainwide encoding volume, with no real Neuropixels data involved.
 Because the virtual-probe grid densely covers the whole brain (including CSF/`void_fluid` space), it yields a broader set of **26 transitions** rather than the 18 from real probes — a related but not identical label set.
 
-![Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.](figures/classifier_confusion_vol_gb.png){.lightbox}
+![Confusion matrix for the encoding-volume virtual-probe classifier — 94.5% overall accuracy, 93.8% balanced accuracy, essentially diagonal.](figures/classifier_confusion_vol_gb.png){#fig-confusion-vol-gb .lightbox}
 
 The noise-free volume classifier reaches **94.5% accuracy** (93.8% balanced) — near-perfect, versus ~47% on real data.
 This confirms the measured-probe accuracy is **limited by recording noise and biological variability, not by the discriminative power of the feature set or the classification method**: the same features, sampled without noise, almost perfectly separate every boundary.
-
----
-
-## Step 8 — Depth-resolved attribution (Integrated Gradients)
-
-SHAP (Step 6) summarises which *features* matter per boundary, collapsed across depth. To see *where* within the ±500 µm crossing window each feature matters, an MLP was trained on the full depth profile of each crossing (50 depth positions × 26 features = 1300-d input, 4-fold stratified CV) and Captum Integrated Gradients was used to attribute the prediction to every (depth, feature) pair.
-
-![Per-class Integrated Gradients heatmaps (depth × feature) for a subset of transitions. The dashed line marks the boundary (depth = 0); red/blue indicate positive/negative attribution.](figures/ig/ig_class_signatures.png){.lightbox}
-
-The attribution maps are spatially sharp around depth 0 for the strongest landmarks (e.g. `psd_pc0`/`csd_pc0` for TH → HPF), corroborating the SHAP fingerprints with an independent, depth-resolved method rather than a single averaged feature vector.
 
 ---
 
@@ -219,19 +235,19 @@ The attribution maps are spatially sharp around depth 0 for the strongest landma
 The classification result — ~47% accuracy against a 9.3% chance level — confirms that LFP features carry **strong, boundary-specific information** at every well-sampled Cosmos-level interface.
 The top transitions (TH → HPF, HPF → Isocortex, HB → CB, CNU → Isocortex) all achieve **70–74% per-class accuracy**.
 
-The repro-ephys DG–thalamus landmark corresponds roughly to **TH → HPF** in Cosmos space, consistent with our finding that this is among the most reliably classified transitions.
+The repro-ephys DG–thalamus landmark corresponds roughly to **TH → HPF** in Cosmos space, consistent with our finding that this is among the most reliably classified transitions, and the first landmark independently recovered by the volume-first scan in Step 1.
 The analysis extends this to 17 additional boundaries, several of which appear even more distinctive.
 
-The encoding-volume ceiling analysis (Step 7) shows the ~47% real-data accuracy is a **noise floor, not an information floor** — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features. The Integrated Gradients analysis (Step 8) independently corroborates the SHAP fingerprints with depth-resolved attributions.
+The encoding-volume ceiling analysis (Step 6) shows the ~47% real-data accuracy is a **noise floor, not an information floor** — the same feature set reaches 94.5% when sampled without recording noise — so future gains should come from denoising / averaging across repeats rather than new features.
 
 ### Caveats
 
 * Accuracies describe generalisation across probes, not expected precision in a single experiment.
 * Cosmos-level regions aggregate heterogeneous substructures; finer-grained Beryl-level analysis would reveal variability within each Cosmos boundary.
 * Transitions involving unlabelled tissue (void, root) are biologically less interpretable — they mark where probes exit the brain rather than genuine tissue differences.
-* The virtual-probe ceiling analysis (Step 7) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/`void_fluid` crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.
+* The virtual-probe ceiling analysis (Step 6) uses a broader 26-transition set than the 18 measured transitions (it includes CSF/`void_fluid` crossings absent from real probes), so its accuracy is not a strictly apples-to-apples upper bound on the measured-probe numbers, only a strong indication of the noise-vs-information split.
 
 ### Next steps
 
 * Unsupervised **SLIC supervoxel segmentation** of the encoding volume is being explored as a classifier-independent check of whether boundaries emerge without any labels; not yet quantified against Cosmos boundaries.
-* Coronal/sagittal **atlas-coverage QC panels** (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs. gaps, as a supplement to Step 5.
+* Coronal/sagittal **atlas-coverage QC panels** (per-feature slices with virtual-probe overlays) have been generated to visualise where the encoding volume has real recording support vs. gaps, as a supplement to Step 4.
