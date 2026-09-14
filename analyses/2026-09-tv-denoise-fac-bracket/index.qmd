@@ -123,5 +123,6 @@ waveform columns (`fac=5`) — the trade-off behind the small CV accuracy gain.
 
 ## Code
 
-`packages/ibleatools/examples/drafts/`: `sweep_tv_denoise_fac.py`,
-`sweep_waveforms_fine.py`, `cv_confirm_tv_denoise_candidate.py`.
+[`sweep_tv_denoise_fac.py`](scripts/sweep_tv_denoise_fac.py),
+[`sweep_waveforms_fine.py`](scripts/sweep_waveforms_fine.py),
+[`cv_confirm_tv_denoise_candidate.py`](scripts/cv_confirm_tv_denoise_candidate.py).
