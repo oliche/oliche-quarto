@@ -1,0 +1,107 @@
+---
+title: "Region Distinctiveness"
+description: "Pairwise electrophysiological distinctiveness between all sufficiently-sampled brain regions, in PCA-whitened feature space, from the brainwide ephys-atlas encoding volume."
+date: "2026-09-10"
+author: "Olivier Winter"
+categories: [ephys-atlas, anatomy, encoding-volume]
+format:
+  html:
+    lightbox:
+      match: auto
+---
+
+## Overview
+
+The ephys-atlas encoding volume gives, at every 50 µm voxel of the Allen CCF, 41
+electrophysiology features (LFP power/CSD/residual bands, spectral/aperiodic shape, spike
+waveform shape, spike amplitude and rate). This analysis asks: **how electrophysiologically
+distinctive is each brain region from every other brain region**, across the full set of regions
+the atlas samples well enough to trust?
+
+This is a narrower re-scoping of an earlier version of this analysis, which compared each region
+only to its immediate spatial neighbours via a distance-weighted buffer. That framing, and all the
+hierarchy-aggregation and neighbour-buffer machinery it required, has been dropped — see
+`PLAN.md` for why. What carries forward unchanged is the global PCA basis fitted on the earlier
+work: 41 correlated raw features are whitened into ~6 orthogonal components explaining 95% of
+brainwide variance, and every distance below is a Mahalanobis distance in that basis.
+
+This is a descriptive, exploratory analysis over one already-aggregated atlas volume, not a
+hypothesis test over experimental replicates — there's no natural per-subject/per-session split
+inside this file to hold out for confirmatory testing, so no p-values are reported. Effect sizes
+(Cohen's d / Mahalanobis distance) are the validation currency here.
+
+## Method
+
+**Data.** `brainwide_ephys_atlas_50um.npz`, `ephys_atlas_vol` (228, 264, 160, 41), axis order
+(ML, AP, DV, feature). The volume has no `NaN`s anywhere, including outside the brain (those
+voxels are extrapolated, not real), so every step below restricts to in-brain, in-mask voxels via
+`ephysatlas.anatomy.ClassifierAtlas(res_um=50).mask()` — a version of the Allen atlas that relabels
+void voxels trapped inside the skull to a `void_fluid` region rather than counting them as
+unlabelled background. Atlas volumes are (AP, ML, DV); the encoding volume is transposed
+`(1, 0, 2, 3)` to align. ~47k in-mask voxels (1.2%) are an unfilled "no probe coverage" sentinel
+(all 41 features exactly 0.0) rather than real data, and are excluded from every statistic below
+(`distinctiveness.no_coverage_mask`). `root`/`void`/`void_fluid` are excluded throughout too, since
+they aren't real tissue.
+
+**Regions.** Every named region in the atlas's own raw painted partition (`ba.label`) — not any
+Beryl/Cosmos/Swanson remapping — with more than 500 directly-painted voxels (~0.06 mm³). Each named
+region is painted across one or two raw atlas ids: a `+id` and, for most regions, a genuinely
+independently-painted `-id` "twin" (confirmed by inspection — e.g. piriform cortex's two ids hold
+46,286 and 46,289 voxels respectively, each spanning both hemispheres; cerebellum's hold 3,304 and
+3,317, one per ML side — not a near-empty duplicate either way). Since both hemispheres/twins of a
+region are anatomically symmetric for this analysis, they're pooled into one row per region before
+thresholding (`region_stats_table.pool_by_acronym`). 534 regions clear the bar.
+
+**PCA basis.** Fit once, brainwide, on all in-mask non-excluded voxels: z-score each of the 41
+features (using the encoding volume's own documented per-feature mean/std, not an empirical
+in-mask mean/std), then keep the top orthogonal components explaining 95% of variance. 6 components
+suffice, with variance spread fairly evenly across the first four (37/22/20/11%) — see the scree
+plot below.
+
+```{python}
+#| echo: false
+#| fig-cap: "PCA scree plot: 6 orthogonal components explain 95% of the brainwide variance across the 41 raw ephys-atlas features."
+from IPython.display import Image
+Image("figures/fig1_pca_scree.png")
+```
+
+**Pairwise Mahalanobis distance.** For every pair of qualifying regions, project both regions'
+per-PC (mean, variance, n) onto the PCA basis, compute a per-PC Cohen's d between the pair, and
+combine in quadrature (`sqrt(sum_k d_k^2)`) — a proper Mahalanobis distance, since the PCs are
+orthogonal so squaring-and-summing doesn't double-count the ~20 mutually-correlated LFP
+power/CSD/residual bands the way a naive sum over the raw 41 features would
+(`region_stats_table.mahalanobis_matrix`). This needs no neighbour definition, distance transform,
+or hierarchy walk at all — just a plain 534×534 matrix over already-pooled per-region statistics —
+so it's considerably cheaper than the superseded neighbour-buffer pipeline.
+
+## Result
+
+```{python}
+#| echo: false
+#| fig-cap: "Pairwise Mahalanobis distance between all 534 qualifying regions, ordered by CCF hierarchy traversal order. Colour strips along the top and left show each region's own Allen atlas colour in place of text labels (too many regions for legible per-row text); because anatomically related regions share colour families in the Allen scheme, the strip itself reads as a rough anatomical map of the matrix."
+from IPython.display import Image
+Image("figures/fig2_pairwise_mahalanobis.png")
+```
+
+The block structure along the diagonal is visible even without labels: closely related regions
+(e.g. adjacent cortical layers, or lobules within the cerebellum) sit in near-black low-distance
+blocks, while structurally very different tissue — grey matter vs. white-matter fiber tracts and
+ventricular structures (the grey strip at the bottom right) — shows up as bright, high-distance
+bands against most of the matrix. The single brightest cells in the matrix are pairs involving
+small (500-1500 voxel), unusually homogeneous regions — mostly slender fiber tracts and small
+brainstem nuclei — where a genuinely small within-region variance inflates Cohen's d even for a
+modest raw feature difference; this is an expected property of the effect-size metric for small,
+tightly-clustered regions, not an artefact specific to this dataset.
+
+## Caveats
+
+- **Descriptive, not inferential.** One already-aggregated atlas volume, not experimental
+  replicates — no significance testing, only effect sizes and anatomical plausibility checks.
+- **Small-region sensitivity.** The 500-voxel floor (same threshold used throughout this project's
+  earlier work) still admits some very small, very homogeneous regions whose Mahalanobis distance
+  against almost anything is large simply because their own variance is tiny — read the brightest
+  single cells in the matrix with that in mind rather than as the most biologically interesting
+  contrasts.
+- **No spatial context.** Unlike the superseded neighbour-buffer version, this matrix says nothing
+  about which regions are physically adjacent — two regions can be far apart in the brain and still
+  show a small Mahalanobis distance if their feature distributions happen to be similar.
