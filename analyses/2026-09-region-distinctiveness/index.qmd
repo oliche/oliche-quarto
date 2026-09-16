@@ -8,9 +8,6 @@ format:
   html:
     lightbox:
       match: auto
-resources:
-  - figures/fig1_pca_scree.png
-  - figures/fig2_pairwise_mahalanobis.png
 ---
 
 ## Overview
@@ -61,12 +58,7 @@ in-mask mean/std), then keep the top orthogonal components explaining 95% of var
 suffice, with variance spread fairly evenly across the first four (37/22/20/11%) — see the scree
 plot below.
 
-```{python}
-#| echo: false
-#| fig-cap: "PCA scree plot: 6 orthogonal components explain 95% of the brainwide variance across the 41 raw ephys-atlas features."
-from IPython.display import Image
-Image("figures/fig1_pca_scree.png")
-```
+![PCA scree plot: 6 orthogonal components explain 95% of the brainwide variance across the 41 raw ephys-atlas features.](figures/fig1_pca_scree.png)
 
 **Pairwise Mahalanobis distance.** For every pair of qualifying regions, project both regions'
 per-PC (mean, variance, n) onto the PCA basis, compute a per-PC Cohen's d between the pair, and
@@ -79,12 +71,7 @@ so it's considerably cheaper than the superseded neighbour-buffer pipeline.
 
 ## Result
 
-```{python}
-#| echo: false
-#| fig-cap: "Pairwise Mahalanobis distance between all 534 qualifying regions, ordered by CCF hierarchy traversal order. Colour strips along the top and left show each region's own Allen atlas colour in place of text labels (too many regions for legible per-row text); because anatomically related regions share colour families in the Allen scheme, the strip itself reads as a rough anatomical map of the matrix."
-from IPython.display import Image
-Image("figures/fig2_pairwise_mahalanobis.png")
-```
+![Pairwise Mahalanobis distance between all 534 qualifying regions, ordered by CCF hierarchy traversal order. Colour strips along the top and left show each region's own Allen atlas colour in place of text labels (too many regions for legible per-row text); because anatomically related regions share colour families in the Allen scheme, the strip itself reads as a rough anatomical map of the matrix.](figures/fig2_pairwise_mahalanobis.png)
 
 The block structure along the diagonal is visible even without labels: closely related regions
 (e.g. adjacent cortical layers, or lobules within the cerebellum) sit in near-black low-distance
