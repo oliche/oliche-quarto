@@ -8,6 +8,9 @@ format:
   html:
     lightbox:
       match: auto
+resources:
+  - figures/fig1_pca_scree.png
+  - figures/fig2_pairwise_mahalanobis.png
 ---
 
 ## Overview
