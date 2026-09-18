@@ -188,246 +188,129 @@ logger.info(
 )
 
 
-# %% Slowness (new, v3): Hanning-windowed per-channel cross-correlation pick, weighted
-# 1D fit of dt vs axial (dy, along the probe) offset from the reference channel.
-# v2 also fit a lateral (dx) component; dropped (see 2026-09-18 distributions figure,
-# 3rd panel, from that version): on this single-shank NP1.0 snippet the ~48um lateral
-# extent (4 columns) vs ~300um axial extent in a typical neighbourhood makes the
-# lateral slowness estimate noise-dominated (|slowness_x| systematically larger and
-# flatter-distributed than |slowness_y|), not a real fast lateral signal worth reporting
-# without a fundamentally more careful estimator (larger radius, pooled across spikes
-# per unit, ...).
-from ibldsp.utils import parabolic_max  # noqa: E402
-
+# %% Slowness (v4): now just calls the real ibldsp.waveforms.compute_slowness (moved
+# there from this script -- see int-brain-lab/ibl-neuropixel#94). Two changes from v3,
+# both from looking at the v3 diagnostic panel on real data:
+#
+# 1. Picks now come from wf.chained_xcorr_pick, walking outward from the reference
+#    (peak) channel by axial distance and cross-correlating only ADJACENT channels,
+#    instead of wf.xcorr_pick correlating every channel against one fixed distant
+#    reference. Spike 4592 (rightmost panel below) showed why: below channel 10 the
+#    v3 picks jumped to a different phase of the wavelet -- a cycle skip, where the
+#    waveform shape had drifted enough from the reference that a distant, unrelated
+#    lag of the correlogram became the taller peak. Adjacent channels are always
+#    similar enough that this can't happen; see chained_xcorr_pick's docstring and
+#    test_chained_xcorr_avoids_cycle_skip in ibl-neuropixel for a clean synthetic case.
+# 2. The fit is now a full 3D (dx, dy) plane, but only the axial term is kept as
+#    slowness_s_per_m. Not equivalent to ignoring dx: dx and dy are mildly correlated
+#    by the probe's channel layout (staggered columns), so including dx as a
+#    covariate controls for that and gives a less biased axial estimate than the v3
+#    1D-in-dy-only fit -- even though dx's own coefficient (the lateral slowness) is
+#    still too noise-dominated to report on its own, per the v2/v3 history above.
 HALF_WINDOW_MS = 0.5
-MIN_CHANNELS = 4
 MIN_WEIGHT_FRAC = 0.1
 half_win_samples = int(round(HALF_WINDOW_MS * 1e-3 * 30_000.0))
 hann_full = np.hanning(2 * half_win_samples + 1)
 
-
-def _windowed_segment(arr, i, pt, fs, half_win, hann):
-    t0_, t1_ = pt - half_win, pt + half_win + 1
-    w0, w1 = max(0, -t0_), len(hann) - max(0, t1_ - arr.shape[1])
-    t0c, t1c = max(0, t0_), min(arr.shape[1], t1_)
-    if t1c <= t0c:
-        return None, t0c, t1c
-    return arr[i, t0c:t1c, :] * hann[w0:w1, np.newaxis], t0c, t1c
-
-
-def picks_xcorr(seg, ref_row):
-    """Cross-correlate every channel's windowed snippet against the reference
-    (peak) channel's own windowed snippet; sub-sample lag via parabolic
-    interpolation (ibldsp.utils.parabolic_max) on |corr| so a phase-inverted
-    channel (negative correlation peak) is still matched on shape, not just
-    amplitude sign. Weight = normalized cross-correlation coefficient magnitude
-    (0-1) -- a fit-quality score, robust to gradual non-stationarity in waveform
-    shape across channels.
-
-    Sub-sample accuracy: validated against a frequency-domain phase-slope
-    regression alternative (ibldsp.waveforms.get_apf_from2spikes/get_phase_slope,
-    the basis of wave_shift_phase) in 2026-09-18_waveform_pick_accuracy_validation.py.
-    Parabolic interpolation is not locking to the nearest sample (~6% of real picks
-    land within 0.01 samples of an integer). Phase regression is exact in the
-    noiseless case, but under this snippet's actual denoised-channel residual noise
-    (what we pick against here) xcorr+parabolic is *more* accurate (RMSE 0.099 vs
-    0.147 samples) -- matching wave_shift_phase's own documented caveat that it
-    "does not work well with raw data sampled at 30kHz" without a per-template
-    calibration step (get_spike_slopeparams) too slow to run per spike per channel.
-    Kept xcorr+parabolic."""
-    win = seg.shape[0]
-    ref = seg[:, ref_row]
-    n_fft = 2 * win
-    R = np.fft.rfft(ref, n=n_fft)
-    S = np.fft.rfft(seg, n=n_fft, axis=0)
-    corr_full = np.fft.fftshift(np.fft.irfft(np.conj(R)[:, np.newaxis] * S, n=n_fft, axis=0), axes=0)
-    lags = np.arange(n_fft) - n_fft // 2
-    keep_lag = np.abs(lags) <= (win - 1)
-    corr, lags_c = corr_full[keep_lag, :], lags[keep_lag]
-    ipeak, cpeak = parabolic_max(np.abs(corr).T)  # per-channel (row) sub-sample peak
-    lag_at_peak = lags_c[0] + ipeak
-    norm = np.sqrt(np.sum(ref**2) * np.sum(seg**2, axis=0))
-    weight = np.where(norm > 0, cpeak / norm, np.nan)
-    return lag_at_peak, weight
-
-
-def _weighted_lstsq(X, y, w):
-    sw = np.sqrt(w)
-    beta, *_ = np.linalg.lstsq(X * sw[:, np.newaxis], y * sw, rcond=None)
-    return beta
-
-
-def compute_windowed_slowness(
-    arr,
-    df_peak,
-    xy_um,
-    fs=30_000.0,
-    half_window_ms=HALF_WINDOW_MS,
-    min_channels=MIN_CHANNELS,
-    min_weight_frac=MIN_WEIGHT_FRAC,
-):
-    """Signed slowness (s/m) per spike, from a weighted linear fit of per-channel
-    cross-correlation pick time vs axial (dy, along the probe) offset from the
-    reference (max-deflection) channel: dt = slowness_y * dy + t0.
-
-    Per issue #123: computes the *inverse* of velocity (slowness, proportional to
-    delta T) rather than fitting velocity directly, since velocity = 1/slowness
-    blows up whenever the fit's dt/dy slope is near zero (e.g. near-simultaneous
-    arrival across the local neighbourhood) -- confirmed on real data below (a
-    ~50/50 split of huge +-velocities right around slowness_y=0).
-
-    Picks come from picks_xcorr (see above): sub-sample cross-correlation lag of
-    each channel's windowed snippet against the reference channel's own windowed
-    snippet, with the peak picked on |corr| so a phase-inverted channel is still
-    matched on shape (not just amplitude sign), weighted by the normalized
-    correlation coefficient -- robust to gradual non-stationarity in waveform shape
-    across channels, and cheap (~0.45s for 5404 spikes, negligible next to the
-    ~110s waveform-extraction step).
-
-    Sign convention (channel geometry y increases away from the probe tip, i.e.
-    towards the brain surface, confirmed on this snippet: y in [20, 3840] um):
-    slowness_y > 0 means later pick times at larger y (up the probe) -> wave moving
-    "up". velocity_m_s = 1 / slowness_y carries the same sign.
-
-    A lateral (dx, across shank columns) component was tried and dropped -- see the
-    module docstring comment above this function.
-
-    Parameters
-    ----------
-    arr : np.ndarray
-        Multi-channel waveform snippets, shape (n_spikes, nsw, ncw), Volts.
-    df_peak : pd.DataFrame
-        Output of ibldsp.waveforms.find_peak(arr): peak_trace_idx, peak_time_idx,
-        peak_val.
-    xy_um : np.ndarray
-        Per-spike neighbour channel (x, y) coordinates, shape (n_spikes, ncw, 2),
-        micrometres, NaN for padded/unused channel slots.
-    fs : float
-        Sampling frequency (Hz).
-    half_window_ms : float
-        Half-width of the Hanning window in ms, centred on the reference peak time.
-    min_channels : int
-        Minimum number of channels kept after thresholding for a fit to be attempted.
-    min_weight_frac : float
-        Channels with a weight below this fraction of the neighbourhood's max are
-        dropped before fitting (keeps the fit local to channels with a real pick,
-        not noise floor).
-
-    Returns
-    -------
-    pd.DataFrame
-        slowness_y_s_per_m (signed) and n_channels_used, one row per spike.
-    """
-    n_spikes, nsw, ncw = arr.shape
-    half_win = int(round(half_window_ms * 1e-3 * fs))
-    hann = np.hanning(2 * half_win + 1)
-
-    peak_time = df_peak["peak_time_idx"].to_numpy()
-    peak_trace = df_peak["peak_trace_idx"].to_numpy()
-
-    sy = np.full(n_spikes, np.nan)
-    n_used = np.zeros(n_spikes, dtype=int)
-    for i in range(n_spikes):
-        seg, t0c, t1c = _windowed_segment(arr, i, peak_time[i], fs, half_win, hann)
-        if seg is None:
-            continue
-        lag, weight = picks_xcorr(seg, peak_trace[i])
-        dt = lag / fs
-
-        dy = xy_um[i, :, 1] - xy_um[i, peak_trace[i], 1]
-        valid = np.isfinite(weight) & np.isfinite(dy) & (weight > 0)
-        if valid.sum() < min_channels:
-            continue
-        w = weight[valid]
-        keep = w >= min_weight_frac * w.max()
-        if keep.sum() < min_channels:
-            continue
-        X = np.c_[dy[valid][keep] * 1e-6, np.ones(keep.sum())]
-        beta = _weighted_lstsq(X, dt[valid][keep], w[keep])
-        sy[i] = beta[0]
-        n_used[i] = keep.sum()
-    return pd.DataFrame({"slowness_y_s_per_m": sy, "n_channels_used": n_used})
-
-
 t0 = time.time()
-df_slowness = compute_windowed_slowness(denoised, df_peak, neighbor_xy_um)
+df_peak_slowness = wf.compute_slowness(
+    denoised, df_peak.copy(), channel_geometry_3d, half_window_ms=HALF_WINDOW_MS
+)
 dt_slowness = time.time() - t0
-n_valid = int(df_slowness["slowness_y_s_per_m"].notna().sum())
+slowness_s_per_m = df_peak_slowness["slowness_s_per_m"].to_numpy()
+n_valid = int(np.isfinite(slowness_s_per_m).sum())
 logger.info(
-    "compute_windowed_slowness: %.2fs for %d spikes (%.3f ms/spike), %d/%d valid, %.2f%% upgoing",
+    "wf.compute_slowness: %.2fs for %d spikes (%.3f ms/spike), %d/%d valid, %.2f%% upgoing",
     dt_slowness,
     n_spikes,
     dt_slowness / n_spikes * 1e3,
     n_valid,
     n_spikes,
-    float((df_slowness["slowness_y_s_per_m"] > 0).mean()) * 100,
+    float(np.mean(slowness_s_per_m[np.isfinite(slowness_s_per_m)] > 0)) * 100,
 )
 
-# %% 5. Diagnostic panel: same 6 spikes as the stage-1 wiggle plot. Top row: wiggle with
-# the Hanning window shaded and each channel's pick overlaid. Bottom row: the weighted
-# dt-vs-dy fit behind slowness_y, dt x-axis shared across all 6 spikes for comparability.
-dt_ms_by_spike = {}
-dy_um_by_spike = {}
-w_by_spike = {}
-keep_by_spike = {}
-for i in idx_show:
-    seg, t0c, t1c = _windowed_segment(denoised, i, int(df_peak["peak_time_idx"].iloc[i]), 30_000.0, half_win_samples, hann_full)
-    trace = int(df_peak["peak_trace_idx"].iloc[i])
-    lag, weight = picks_xcorr(seg, trace)
-    dt_ms = lag / 30_000.0 * 1e3
-    dy_um = neighbor_xy_um[i, :, 1] - neighbor_xy_um[i, trace, 1]
-    valid = np.isfinite(weight) & np.isfinite(dy_um) & (weight > 0)
-    w_all = np.where(valid, weight, 0.0)
-    keep = valid & (w_all >= MIN_WEIGHT_FRAC * w_all.max())
-    dt_ms_by_spike[i], dy_um_by_spike[i], w_by_spike[i], keep_by_spike[i] = dt_ms, dy_um, w_all, keep
 
-dt_xlim = 1.15 * max(np.abs(dt_ms_by_spike[i][keep_by_spike[i]]).max() for i in idx_show)
+# %% 5. Diagnostic panels: chained-pick walk order, Hanning window, and picks overlaid
+# on the wiggle plot (top row); the weighted dt-vs-dy fit behind slowness_s_per_m
+# (bottom row), dt axis shared within each panel for comparability. Three sets of 6
+# spikes for variety -- the first repeats stage 1's random sample (includes spike 4592,
+# the cycle-skip example above), the other two are fresh random draws.
+def plot_slowness_diagnostic(idx_set, fname_suffix, seed_label):
+    dt_ms_by_spike, dy_um_by_spike, w_by_spike, keep_by_spike, order_by_spike = {}, {}, {}, {}, {}
+    for i in idx_set:
+        trace = int(df_peak["peak_trace_idx"].iloc[i])
+        seg, t0c, t1c = wf.hanning_window_segment(
+            denoised, i, int(df_peak["peak_time_idx"].iloc[i]), half_win_samples, hann_full
+        )
+        x_i, y_i = neighbor_xy_um[i, :, 0], neighbor_xy_um[i, :, 1]
+        valid_ch = np.isfinite(x_i) & np.isfinite(y_i)
+        order = np.flatnonzero(valid_ch)
+        order = order[np.argsort(y_i[order])]
+        lag, weight = wf.chained_xcorr_pick(seg, trace, order)
+        dt_ms = lag / 30_000.0 * 1e3
+        dy_um = y_i - y_i[trace]
+        valid = valid_ch & np.isfinite(weight) & np.isfinite(dt_ms) & (weight > 0)
+        w_all = np.where(valid, weight, 0.0)
+        keep = valid & (w_all >= MIN_WEIGHT_FRAC * w_all.max())
+        dt_ms_by_spike[i], dy_um_by_spike[i] = dt_ms, dy_um
+        w_by_spike[i], keep_by_spike[i], order_by_spike[i] = w_all, keep, order
 
-fig, axes = plt.subplots(2, n_show, figsize=(3.2 * n_show, 8))
-for col, i in enumerate(idx_show):
-    pt = int(df_peak["peak_time_idx"].iloc[i])
-    trace = int(df_peak["peak_trace_idx"].iloc[i])
-    seg, t0c, t1c = _windowed_segment(denoised, i, pt, 30_000.0, half_win_samples, hann_full)
-    dt_ms, dy_um, w_all, keep = dt_ms_by_spike[i], dy_um_by_spike[i], w_by_spike[i], keep_by_spike[i]
-    sy_i = df_slowness["slowness_y_s_per_m"].iloc[i]
-    velocity = 1 / sy_i if np.isfinite(sy_i) and sy_i != 0 else np.nan
-    direction = "up" if sy_i > 0 else "down" if sy_i < 0 else "?"
+    dt_xlim = 1.15 * max(np.abs(dt_ms_by_spike[i][keep_by_spike[i]]).max() for i in idx_set)
 
-    ax = axes[0, col]
-    wav = denoised[i].T
-    wf.double_wiggle(wav, fs=30_000, ax=ax, scale=wiggle_scale)
-    ax.axvspan(t0c / 30_000.0 * 1e3, t1c / 30_000.0 * 1e3, color="green", alpha=0.15)
-    ax.axhline(trace + 1, color="red", lw=0.5, ls="--")
-    # overlay each channel's xcorr pick (absolute time = ref peak time + lag)
-    pick_ms = pt / 30_000.0 * 1e3 + dt_ms
-    ch_rows = np.arange(ncw) + 1
-    ax.scatter(pick_ms[keep], ch_rows[keep], c=w_all[keep], cmap="viridis", s=18, zorder=3, edgecolors="none")
-    ax.scatter(pick_ms[~keep], ch_rows[~keep], color="lightgrey", s=8, zorder=2)
-    ax.set(title=f"spike {i}: ref ch={trace}")
+    fig, axes = plt.subplots(2, len(idx_set), figsize=(3.2 * len(idx_set), 8))
+    for col, i in enumerate(idx_set):
+        pt = int(df_peak["peak_time_idx"].iloc[i])
+        trace = int(df_peak["peak_trace_idx"].iloc[i])
+        seg, t0c, t1c = wf.hanning_window_segment(denoised, i, pt, half_win_samples, hann_full)
+        dt_ms, dy_um = dt_ms_by_spike[i], dy_um_by_spike[i]
+        w_all, keep = w_by_spike[i], keep_by_spike[i]
+        sy_i = slowness_s_per_m[i]
+        velocity = 1 / sy_i if np.isfinite(sy_i) and sy_i != 0 else np.nan
+        direction = "up" if sy_i > 0 else "down" if sy_i < 0 else "?"
 
-    ax = axes[1, col]
-    ax.scatter(dt_ms[keep], dy_um[keep], c=w_all[keep], cmap="viridis", s=25)
-    ax.scatter(dt_ms[~keep], dy_um[~keep], color="lightgrey", s=10)
-    ax.axvline(0, color="k", lw=0.5)
-    ax.axhline(0, color="k", lw=0.5)
-    if np.isfinite(sy_i) and keep.sum() >= 2:
-        dy_mean = np.average(dy_um[keep] * 1e-6, weights=w_all[keep])
-        dt_mean = np.average(dt_ms[keep] * 1e-3, weights=w_all[keep])
-        yy = np.array([dy_um[keep].min(), dy_um[keep].max()])
-        tt_ms = (dt_mean + sy_i * (yy * 1e-6 - dy_mean)) * 1e3
-        ax.plot(tt_ms, yy, color="crimson", lw=1.5)
-    ax.set(
-        xlim=(-dt_xlim, dt_xlim),
-        xlabel="dt (ms)",
-        ylabel="dy from ref (um)",
-        title=f"slowness={sy_i:.3g} s/m\nv={velocity:.3g} m/s ({direction})",
+        ax = axes[0, col]
+        wf.double_wiggle(denoised[i].T, fs=30_000, ax=ax, scale=wiggle_scale)
+        ax.axvspan(t0c / 30_000.0 * 1e3, t1c / 30_000.0 * 1e3, color="green", alpha=0.15)
+        ax.axhline(trace + 1, color="red", lw=0.5, ls="--")
+        # overlay each channel's chained pick (absolute time = ref peak time + dt)
+        pick_ms = pt / 30_000.0 * 1e3 + dt_ms
+        ch_rows = np.arange(ncw) + 1
+        ax.scatter(pick_ms[keep], ch_rows[keep], c=w_all[keep], cmap="viridis", s=18, zorder=3, edgecolors="none")
+        ax.scatter(pick_ms[~keep], ch_rows[~keep], color="lightgrey", s=8, zorder=2)
+        ax.set(title=f"spike {i}: ref ch={trace}")
+
+        ax = axes[1, col]
+        ax.scatter(dt_ms[keep], dy_um[keep], c=w_all[keep], cmap="viridis", s=25)
+        ax.scatter(dt_ms[~keep], dy_um[~keep], color="lightgrey", s=10)
+        ax.axvline(0, color="k", lw=0.5)
+        ax.axhline(0, color="k", lw=0.5)
+        if np.isfinite(sy_i) and keep.sum() >= 2:
+            dy_mean = np.average(dy_um[keep] * 1e-6, weights=w_all[keep])
+            dt_mean = np.average(dt_ms[keep] * 1e-3, weights=w_all[keep])
+            yy = np.array([dy_um[keep].min(), dy_um[keep].max()])
+            tt_ms = (dt_mean + sy_i * (yy * 1e-6 - dy_mean)) * 1e3
+            ax.plot(tt_ms, yy, color="crimson", lw=1.5)
+        ax.set(
+            xlim=(-dt_xlim, dt_xlim),
+            xlabel="dt (ms)",
+            ylabel="dy from ref (um)",
+            title=f"slowness={sy_i:.3g} s/m (axial term of 3D fit)\nv={velocity:.3g} m/s ({direction})",
+        )
+    fig.suptitle(
+        f"Chained-pick slowness fit ({seed_label}), 0.5ms half-window (green=window, "
+        "red dashed=ref channel, dots=picks colour-coded by weight, dt axis shared "
+        "within this panel)"
     )
-fig.suptitle(
-    "xcorr-pick slowness fit, 0.5ms half-window (green=window, red dashed=ref channel, "
-    "dots=picks colour-coded by weight, dt axis shared across spikes)"
-)
-fig.tight_layout()
-fig.savefig(FIG_DIR.joinpath(f"{DATE}_waveform_proto_slowness_diagnostic.png"), dpi=150)
+    fig.tight_layout()
+    fig.savefig(FIG_DIR.joinpath(f"{DATE}_waveform_proto_slowness_diagnostic{fname_suffix}.png"), dpi=150)
+    plt.close(fig)
+
+
+plot_slowness_diagnostic(idx_show, "", "same 6 spikes as Figure 1")
+rng2 = np.random.default_rng(1)
+plot_slowness_diagnostic(rng2.choice(n_spikes, size=n_show, replace=False), "_2", "random set 2")
+rng3 = np.random.default_rng(2)
+plot_slowness_diagnostic(rng3.choice(n_spikes, size=n_show, replace=False), "_3", "random set 3")
 
 # %% 6. Global distributions across all spikes in the snippet
 fig2, axes2 = plt.subplots(1, 2, figsize=(11, 4.5))
@@ -435,8 +318,7 @@ finite_spread = spatial_spread_um[np.isfinite(spatial_spread_um)]
 axes2[0].hist(finite_spread, bins=60, color="steelblue")
 axes2[0].set(xlabel="spatial spread (um)", ylabel="count", title=f"n={finite_spread.size}")
 
-sy_all = df_slowness["slowness_y_s_per_m"].to_numpy()
-sy_all = sy_all[np.isfinite(sy_all)]
+sy_all = slowness_s_per_m[np.isfinite(slowness_s_per_m)]
 axes2[1].hist(np.clip(sy_all, -2, 2), bins=80, color="darkorange")
 axes2[1].axvline(0, color="k", lw=0.5)
 axes2[1].set(

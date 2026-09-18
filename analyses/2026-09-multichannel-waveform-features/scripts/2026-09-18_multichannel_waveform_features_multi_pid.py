@@ -1,11 +1,12 @@
 """Consistency check across a few more benchmark PIDs for ibleatools #123.
 
-Reruns the spatial-spread + xcorr-pick slowness pipeline from
+Reruns the spatial-spread + slowness pipeline from
 2026-09-18_multichannel_waveform_features.py on additional BENCHMARKS.py PIDs to
 check the feature distributions and timing hold up outside the single PID used to
-develop it. Same window (t_start=300s, 2s AP) and same method (final version:
-xcorr+parabolic picks, axial-only slowness, no lateral component -- see that
-script's history for why).
+develop it. Same window (t_start=300s, 2s AP) and same method: now just calls
+ibldsp.waveforms.compute_spatial_spread/compute_slowness directly (moved there,
+int-brain-lab/ibl-neuropixel#93/#94) instead of a local copy -- see that script's
+history for the method's derivation/validation notes.
 
 Run cell-by-cell (# %% cells). Needs the same environment as the main script --
 see its docstring for the spikeinterface/dartsort compatibility note.
@@ -32,7 +33,6 @@ from ephysatlas.feature_calculators import (
     SnippetWindow,
 )
 from ibldsp import waveforms as wf
-from ibldsp.utils import parabolic_max
 
 sns.set_theme(context="notebook")
 logging.basicConfig(level=logging.INFO)
@@ -46,87 +46,6 @@ SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
 from BENCHMARKS import pids  # noqa: E402
 
 one = ONE()
-
-HALF_WINDOW_MS = 0.5
-MIN_CHANNELS = 4
-MIN_WEIGHT_FRAC = 0.1
-
-
-# %% Core pipeline, copied verbatim from 2026-09-18_multichannel_waveform_features.py
-# (picks_xcorr / _weighted_lstsq / compute_windowed_slowness / spatial spread call) --
-# kept identical there so any drift between the two scripts would be a bug, not a
-# feature. See that script for the full derivation/validation notes.
-def _windowed_segment(arr, i, pt, fs, half_win, hann):
-    t0_, t1_ = pt - half_win, pt + half_win + 1
-    w0, w1 = max(0, -t0_), len(hann) - max(0, t1_ - arr.shape[1])
-    t0c, t1c = max(0, t0_), min(arr.shape[1], t1_)
-    if t1c <= t0c:
-        return None, t0c, t1c
-    return arr[i, t0c:t1c, :] * hann[w0:w1, np.newaxis], t0c, t1c
-
-
-def picks_xcorr(seg, ref_row):
-    win = seg.shape[0]
-    ref = seg[:, ref_row]
-    n_fft = 2 * win
-    R = np.fft.rfft(ref, n=n_fft)
-    S = np.fft.rfft(seg, n=n_fft, axis=0)
-    corr_full = np.fft.fftshift(np.fft.irfft(np.conj(R)[:, np.newaxis] * S, n=n_fft, axis=0), axes=0)
-    lags = np.arange(n_fft) - n_fft // 2
-    keep_lag = np.abs(lags) <= (win - 1)
-    corr, lags_c = corr_full[keep_lag, :], lags[keep_lag]
-    ipeak, cpeak = parabolic_max(np.abs(corr).T)
-    lag_at_peak = lags_c[0] + ipeak
-    norm = np.sqrt(np.sum(ref**2) * np.sum(seg**2, axis=0))
-    weight = np.where(norm > 0, cpeak / norm, np.nan)
-    return lag_at_peak, weight
-
-
-def _weighted_lstsq(X, y, w):
-    sw = np.sqrt(w)
-    beta, *_ = np.linalg.lstsq(X * sw[:, np.newaxis], y * sw, rcond=None)
-    return beta
-
-
-def compute_windowed_slowness(
-    arr, df_peak, xy_um, fs=30_000.0, half_window_ms=HALF_WINDOW_MS,
-    min_channels=MIN_CHANNELS, min_weight_frac=MIN_WEIGHT_FRAC,
-):
-    n_spikes, nsw, ncw = arr.shape
-    half_win = int(round(half_window_ms * 1e-3 * fs))
-    hann = np.hanning(2 * half_win + 1)
-    peak_time = df_peak["peak_time_idx"].to_numpy()
-    peak_trace = df_peak["peak_trace_idx"].to_numpy()
-    sy = np.full(n_spikes, np.nan)
-    n_used = np.zeros(n_spikes, dtype=int)
-    for i in range(n_spikes):
-        seg, t0c, t1c = _windowed_segment(arr, i, peak_time[i], fs, half_win, hann)
-        if seg is None:
-            continue
-        lag, weight = picks_xcorr(seg, peak_trace[i])
-        dt = lag / fs
-        dy = xy_um[i, :, 1] - xy_um[i, peak_trace[i], 1]
-        valid = np.isfinite(weight) & np.isfinite(dy) & (weight > 0)
-        if valid.sum() < min_channels:
-            continue
-        w = weight[valid]
-        keep = w >= min_weight_frac * w.max()
-        if keep.sum() < min_channels:
-            continue
-        X = np.c_[dy[valid][keep] * 1e-6, np.ones(keep.sum())]
-        beta = _weighted_lstsq(X, dt[valid][keep], w[keep])
-        sy[i] = beta[0]
-        n_used[i] = keep.sum()
-    return pd.DataFrame({"slowness_y_s_per_m": sy, "n_channels_used": n_used})
-
-
-def spatial_spread(denoised, df_peak, neighbor_xy_um):
-    channel_geometry_3d = np.dstack(
-        [neighbor_xy_um[:, :, 0], neighbor_xy_um[:, :, 1], np.zeros_like(neighbor_xy_um[:, :, 0])]
-    )
-    eu_dist_um = wf.dist_chanel_from_peak(channel_geometry_3d, df_peak["peak_trace_idx"].to_numpy())
-    weights_abs = np.abs(wf.weights_spk_ch(denoised, weight_type="peak"))
-    return wf.spatial_spread_weighted(eu_dist_um, weights_abs)
 
 
 def run_pid(pid, window, one, scratch_dir):
@@ -155,15 +74,18 @@ def run_pid(pid, window, one, scratch_dir):
     xy_padded = np.vstack([xy_um, [np.nan, np.nan]])
     neighbor_real_idx = channel_index[df_spikes["channel"].to_numpy()]
     neighbor_xy_um = xy_padded[neighbor_real_idx]
+    channel_geometry_3d = np.dstack(
+        [neighbor_xy_um[:, :, 0], neighbor_xy_um[:, :, 1], np.zeros_like(neighbor_xy_um[:, :, 0])]
+    )
 
     df_peak = wf.find_peak(denoised)
 
     t0 = time.time()
-    spread_um = spatial_spread(denoised, df_peak, neighbor_xy_um)
+    df_peak = wf.compute_spatial_spread(denoised, df_peak, channel_geometry_3d)
     dt_spread = time.time() - t0
 
     t0 = time.time()
-    df_slowness = compute_windowed_slowness(denoised, df_peak, neighbor_xy_um)
+    df_peak = wf.compute_slowness(denoised, df_peak, channel_geometry_3d)
     dt_slowness = time.time() - t0
 
     return dict(
@@ -173,8 +95,8 @@ def run_pid(pid, window, one, scratch_dir):
         dt_compute=dt_compute,
         dt_spread=dt_spread,
         dt_slowness=dt_slowness,
-        spread_um=spread_um,
-        slowness_y_s_per_m=df_slowness["slowness_y_s_per_m"].to_numpy(),
+        spread_um=df_peak["spatial_spread"].to_numpy(),
+        slowness_s_per_m=df_peak["slowness_s_per_m"].to_numpy(),
     )
 
 
@@ -202,7 +124,7 @@ for pid in pids_to_run:
 rows = []
 for r in results:
     spread = r["spread_um"]
-    slow = r["slowness_y_s_per_m"]
+    slow = r["slowness_s_per_m"]
     spread_f = spread[np.isfinite(spread)]
     slow_f = slow[np.isfinite(slow)]
     rows.append(dict(
@@ -227,7 +149,7 @@ n_pid = len(results)
 fig, axes = plt.subplots(n_pid, 2, figsize=(11, 3 * n_pid), sharex="col", squeeze=False)
 for row, r in enumerate(results):
     spread_f = r["spread_um"][np.isfinite(r["spread_um"])]
-    slow_f = r["slowness_y_s_per_m"][np.isfinite(r["slowness_y_s_per_m"])]
+    slow_f = r["slowness_s_per_m"][np.isfinite(r["slowness_s_per_m"])]
 
     ax = axes[row, 0]
     ax.hist(spread_f, bins=60, color="steelblue")
