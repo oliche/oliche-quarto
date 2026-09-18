@@ -111,66 +111,38 @@ logger.info(
     len(df_valid), len(df_all), df_valid["pid"].nunique(), df_valid["cosmos_acronym"].nunique(),
 )
 
-# %% Cross-plot: spatial_spread_um vs slowness_s_per_m, coloured by Cosmos region
-fig, ax = plt.subplots(figsize=(8, 6.5))
-region_order = (
+# %% Per-region distributions (horizontal violins), same Cosmos colours, sorted by spread
+region_order = list(
     df_valid.groupby("cosmos_acronym")["spatial_spread_um"].median().sort_values().index
 )
-for region in region_order:
-    sub = df_valid[df_valid["cosmos_acronym"] == region]
-    ax.scatter(
-        sub["slowness_s_per_m"], sub["spatial_spread_um"],
-        color=sub["cosmos_hex"].iloc[0], label=f"{region} (n={len(sub)})", s=18, alpha=0.7,
-        edgecolors="none",
-    )
-ax.set(
-    xlim=(-2, 2),
-    xlabel="signed slowness (s/m)",
-    ylabel="spatial spread (um)",
-    title=f"Per-channel waveform features by Cosmos region\n"
-    f"({df_valid['pid'].nunique()} PIDs, {len(df_valid)} channels, {window.duration_ap}s AP @ t={window.t_start}s)",
+n_by_region = df_valid.groupby("cosmos_acronym").size()
+region_labels = [f"{r} (n={n_by_region[r]})" for r in region_order]
+region_hex = df_valid.drop_duplicates("cosmos_acronym").set_index("cosmos_acronym")["cosmos_hex"]
+palette = [region_hex[r] for r in region_order]
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 5.5), sharey=True)
+sns.violinplot(
+    data=df_valid, x="spatial_spread_um", y="cosmos_acronym", order=region_order,
+    hue="cosmos_acronym", hue_order=region_order, palette=palette, legend=False,
+    orient="h", density_norm="width", inner="quart", linewidth=0.8,
+    ax=axes[0],
 )
-ax.axvline(0, color="k", lw=0.5, zorder=0)
-ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8, markerscale=1.5, frameon=False)
+axes[0].set(xlabel="spatial spread (um)", ylabel="", yticklabels=region_labels)
+
+sns.violinplot(
+    data=df_valid, x="slowness_s_per_m", y="cosmos_acronym", order=region_order,
+    hue="cosmos_acronym", hue_order=region_order, palette=palette, legend=False,
+    orient="h", density_norm="width", inner="quart", linewidth=0.8,
+    ax=axes[1],
+)
+axes[1].axvline(0, color="k", lw=0.5, zorder=0)
+axes[1].set(xlabel="signed slowness (s/m)", ylabel="", xlim=(-2, 2))
+
+fig.suptitle(
+    f"Per-channel waveform feature distributions by Cosmos region\n"
+    f"({df_valid['pid'].nunique()} PIDs, {len(df_valid)} channels, {window.duration_ap}s AP @ t={window.t_start}s)"
+)
 fig.tight_layout()
-fig.savefig(FIG_DIR.joinpath(f"{DATE}_waveform_features_by_region_scatter.png"), dpi=150)
-
-# %% Per-region summary (median + IQR), same Cosmos colours, sorted by spread
-fig2, axes2 = plt.subplots(1, 2, figsize=(11, 5), sharey=True)
-summary = (
-    df_valid.groupby("cosmos_acronym")
-    .agg(
-        n=("pid", "size"),
-        spread_p50=("spatial_spread_um", "median"),
-        spread_p25=("spatial_spread_um", lambda x: np.percentile(x, 25)),
-        spread_p75=("spatial_spread_um", lambda x: np.percentile(x, 75)),
-        slowness_p50=("slowness_s_per_m", "median"),
-        slowness_p25=("slowness_s_per_m", lambda x: np.percentile(x, 25)),
-        slowness_p75=("slowness_s_per_m", lambda x: np.percentile(x, 75)),
-        hex=("cosmos_hex", "first"),
-    )
-    .sort_values("spread_p50")
-)
-y = np.arange(len(summary))
-axes2[0].barh(
-    y, summary["spread_p75"] - summary["spread_p25"], left=summary["spread_p25"],
-    color=summary["hex"], alpha=0.7,
-)
-axes2[0].scatter(summary["spread_p50"], y, color="k", s=15, zorder=3)
-axes2[0].set(yticks=y, yticklabels=[f"{a} (n={n})" for a, n in zip(summary.index, summary["n"])])
-axes2[0].set_xlabel("spatial spread (um), IQR")
-
-axes2[1].barh(
-    y, summary["slowness_p75"] - summary["slowness_p25"], left=summary["slowness_p25"],
-    color=summary["hex"], alpha=0.7,
-)
-axes2[1].scatter(summary["slowness_p50"], y, color="k", s=15, zorder=3)
-axes2[1].axvline(0, color="k", lw=0.5, zorder=0)
-axes2[1].set_xlabel("signed slowness (s/m), IQR")
-axes2[1].set_xlim(-1, 1)
-
-fig2.suptitle("Per-Cosmos-region median + IQR, sorted by spatial spread")
-fig2.tight_layout()
-fig2.savefig(FIG_DIR.joinpath(f"{DATE}_waveform_features_by_region_summary.png"), dpi=150)
+fig.savefig(FIG_DIR.joinpath(f"{DATE}_waveform_features_by_region_violin.png"), dpi=150)
 
 logger.info("Done.")

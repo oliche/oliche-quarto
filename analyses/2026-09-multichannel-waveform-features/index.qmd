@@ -120,12 +120,7 @@ so every channel actually sitting in a fiber tract — `arb`, `int`, `fp`,
 288 channels as `fiber tracts` with their own colour, rather than leave a
 misleading `root` category in the plot.)
 
-![**Figure 6.** Signed slowness vs. spatial spread, every channel, coloured by Cosmos region.](figures/by_region_scatter.png)
-
-The scatter itself is heavily overplotted at this density — the clearer read
-is each region's median and IQR side by side:
-
-![**Figure 7.** Per-Cosmos-region median + IQR, sorted by spatial spread.](figures/by_region_summary.png)
+![**Figure 6.** Spatial spread and signed slowness, per-channel distributions by Cosmos region, sorted by spread.](figures/by_region_violin.png)
 
 **Spatial spread does distinguish region**, and fairly consistently: hindbrain,
 cerebellum, fiber tracts and olfactory areas run largest (median 60-63.5µm),

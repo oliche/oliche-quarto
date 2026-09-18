@@ -331,15 +331,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>(One correction along the way: Cosmos has no leaf category for white matter, so every channel actually sitting in a fiber tract — <code>arb</code>, <code>int</code>, <code>fp</code>, <code>dhc</code>, <code>opt</code>, … — fell back to the generic <code>root</code> bucket. Relabelled those 288 channels as <code>fiber tracts</code> with their own colour, rather than leave a misleading <code>root</code> category in the plot.)</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/by_region_scatter.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Signed slowness vs.&nbsp;spatial spread, every channel, coloured by Cosmos region."><img src="figures/by_region_scatter.png" class="img-fluid figure-img" alt="Figure 6. Signed slowness vs.&nbsp;spatial spread, every channel, coloured by Cosmos region."></a></p>
-<figcaption><strong>Figure 6.</strong> Signed slowness vs.&nbsp;spatial spread, every channel, coloured by Cosmos region.</figcaption>
-</figure>
-</div>
-<p>The scatter itself is heavily overplotted at this density — the clearer read is each region’s median and IQR side by side:</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/by_region_summary.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Per-Cosmos-region median + IQR, sorted by spatial spread."><img src="figures/by_region_summary.png" class="img-fluid figure-img" alt="Figure 7. Per-Cosmos-region median + IQR, sorted by spatial spread."></a></p>
-<figcaption><strong>Figure 7.</strong> Per-Cosmos-region median + IQR, sorted by spatial spread.</figcaption>
+<p><a href="figures/by_region_violin.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Spatial spread and signed slowness, per-channel distributions by Cosmos region, sorted by spread."><img src="figures/by_region_violin.png" class="img-fluid figure-img" alt="Figure 6. Spatial spread and signed slowness, per-channel distributions by Cosmos region, sorted by spread."></a></p>
+<figcaption><strong>Figure 6.</strong> Spatial spread and signed slowness, per-channel distributions by Cosmos region, sorted by spread.</figcaption>
 </figure>
 </div>
 <p><strong>Spatial spread does distinguish region</strong>, and fairly consistently: hindbrain, cerebellum, fiber tracts and olfactory areas run largest (median 60-63.5µm), thalamus, hypothalamus and cerebral nuclei run smallest (median 55-56µm) — an ~8µm gradient across regions, larger than the gap between any two of the 4 individual PIDs in the consistency check above. <strong>Slowness does not</strong> — every region’s median sits close to 0 with a similar IQR, no separation visible. Plausible given what the two features are: spatial spread reflects how far a spike’s signal physically extends across channels (a spatial/anatomical property, e.g.&nbsp;related to local cell density or fiber packing), while slowness reflects an axonal/dendritic propagation speed that isn’t obviously tied to which Cosmos-scale macro-structure the recording sites happen to sit in.</p>
@@ -937,49 +930,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>288 channels as <span class="in">`fiber tracts`</span> with their own colour, rather than leave a</span>
 <span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>misleading <span class="in">`root`</span> category in the plot.)</span>
 <span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="al">![**Figure 6.** Signed slowness vs. spatial spread, every channel, coloured by Cosmos region.](figures/by_region_scatter.png)</span></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="al">![**Figure 6.** Spatial spread and signed slowness, per-channel distributions by Cosmos region, sorted by spread.](figures/by_region_violin.png)</span></span>
 <span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>The scatter itself is heavily overplotted at this density — the clearer read</span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>is each region's median and IQR side by side:</span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="al">![**Figure 7.** Per-Cosmos-region median + IQR, sorted by spatial spread.](figures/by_region_summary.png)</span></span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>**Spatial spread does distinguish region**, and fairly consistently: hindbrain,</span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>cerebellum, fiber tracts and olfactory areas run largest (median 60-63.5µm),</span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>thalamus, hypothalamus and cerebral nuclei run smallest (median 55-56µm) — an</span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>~8µm gradient across regions, larger than the gap between any two of the 4</span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>individual PIDs in the consistency check above. **Slowness does not** — every</span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>region's median sits close to 0 with a similar IQR, no separation visible.</span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>Plausible given what the two features are: spatial spread reflects how far a</span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>spike's signal physically extends across channels (a spatial/anatomical</span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>property, e.g. related to local cell density or fiber packing), while</span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>slowness reflects an axonal/dendritic propagation speed that isn't obviously</span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>tied to which Cosmos-scale macro-structure the recording sites happen to sit</span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>in.</span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## A bug found along the way</span></span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="in">`ibldsp.waveforms.compute_spatial_spread`</span> (already in the codebase, unused</span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>until this work started calling it) called <span class="in">`dist_chanel_from_peak`</span> with the</span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>whole dataframe where an index array was expected, and fed a *signed*</span>
-<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>per-channel weight into a mean that needs non-negative weights — whenever a</span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>spike's signed weights nearly cancelled out, the reported spread could come</span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>out negative, which is meaningless for a distance. Fixed with a regression</span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>test reproducing exactly that cancellation case</span>
-<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>(<span class="co">[</span><span class="ot">ibl-neuropixel#93</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/93)</span>).</span>
-<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a><span class="fu">## Outcome</span></span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>Three stacked PRs, following the existing split between <span class="in">`ibldsp.waveforms`</span></span>
-<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>(generic, ephys-atlas-independent multi-channel waveform math) and</span>
-<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.features`</span> (orchestration):</span>
-<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibl-neuropixel#93</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/93)</span> — the <span class="in">`compute_spatial_spread`</span> bug fix. **Merged, released as [ibl-neuropixel 1.13.0](https://github.com/int-brain-lab/ibl-neuropixel/releases/tag/1.13.0).**</span>
-<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibl-neuropixel#94</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/94)</span> — new <span class="in">`compute_slowness`</span> (chained picks, 3D fit), stacked on #93. **Merged, same release.**</span>
-<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibleatools#125</span><span class="co">](https://github.com/int-brain-lab/ibleatools/pull/125)</span> — wires both into <span class="in">`spikes()`</span> as <span class="in">`spatial_spread_um`</span>/<span class="in">`slowness_s_per_m`</span>, stacked on <span class="co">[</span><span class="ot">#124</span><span class="co">](https://github.com/int-brain-lab/ibleatools/pull/124)</span>. Open, pending #124.</span>
-<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a>The prototype scripts behind every figure above are alongside this report in</span>
-<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a><span class="in">`scripts/`</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>**Spatial spread does distinguish region**, and fairly consistently: hindbrain,</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>cerebellum, fiber tracts and olfactory areas run largest (median 60-63.5µm),</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>thalamus, hypothalamus and cerebral nuclei run smallest (median 55-56µm) — an</span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>~8µm gradient across regions, larger than the gap between any two of the 4</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>individual PIDs in the consistency check above. **Slowness does not** — every</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>region's median sits close to 0 with a similar IQR, no separation visible.</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>Plausible given what the two features are: spatial spread reflects how far a</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>spike's signal physically extends across channels (a spatial/anatomical</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>property, e.g. related to local cell density or fiber packing), while</span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>slowness reflects an axonal/dendritic propagation speed that isn't obviously</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>tied to which Cosmos-scale macro-structure the recording sites happen to sit</span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>in.</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a><span class="fu">## A bug found along the way</span></span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a><span class="in">`ibldsp.waveforms.compute_spatial_spread`</span> (already in the codebase, unused</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>until this work started calling it) called <span class="in">`dist_chanel_from_peak`</span> with the</span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>whole dataframe where an index array was expected, and fed a *signed*</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a>per-channel weight into a mean that needs non-negative weights — whenever a</span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>spike's signed weights nearly cancelled out, the reported spread could come</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a>out negative, which is meaningless for a distance. Fixed with a regression</span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>test reproducing exactly that cancellation case</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>(<span class="co">[</span><span class="ot">ibl-neuropixel#93</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/93)</span>).</span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a><span class="fu">## Outcome</span></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>Three stacked PRs, following the existing split between <span class="in">`ibldsp.waveforms`</span></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>(generic, ephys-atlas-independent multi-channel waveform math) and</span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.features`</span> (orchestration):</span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibl-neuropixel#93</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/93)</span> — the <span class="in">`compute_spatial_spread`</span> bug fix. **Merged, released as [ibl-neuropixel 1.13.0](https://github.com/int-brain-lab/ibl-neuropixel/releases/tag/1.13.0).**</span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibl-neuropixel#94</span><span class="co">](https://github.com/int-brain-lab/ibl-neuropixel/pull/94)</span> — new <span class="in">`compute_slowness`</span> (chained picks, 3D fit), stacked on #93. **Merged, same release.**</span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">ibleatools#125</span><span class="co">](https://github.com/int-brain-lab/ibleatools/pull/125)</span> — wires both into <span class="in">`spikes()`</span> as <span class="in">`spatial_spread_um`</span>/<span class="in">`slowness_s_per_m`</span>, stacked on <span class="co">[</span><span class="ot">#124</span><span class="co">](https://github.com/int-brain-lab/ibleatools/pull/124)</span>. Open, pending #124.</span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a>The prototype scripts behind every figure above are alongside this report in</span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="in">`scripts/`</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
