@@ -1,11 +1,14 @@
 project:
   type: website
   output-dir: _site
+  resources:
+    - analyses/2026-05-phylostratigraphy/figures
   render:
     - index.qmd
     - analyses/2026-05-lfp/index.qmd
     - analyses/2026-05-EA-boundaries/index.qmd
     - analyses/2026-05-car-rms/index.qmd
+    - analyses/2026-05-phylostratigraphy/index.qmd
     - analyses/2026-06-lfp-compression-svd/index.qmd
     - analyses/2026-06-lfp-compression-svd/functional_validation.qmd
     - analyses/2026-07-lfp-encoders/index.qmd

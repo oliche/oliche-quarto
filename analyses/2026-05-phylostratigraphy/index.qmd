@@ -1,0 +1,81 @@
+---
+title: "Phylostratigraphy of Mouse Brain Gene Expression"
+description: "Mapping evolutionary gene ages onto volumetric AGEA expression to reveal spatial organisation of phylogenetic strata across the brain."
+date: "2026-05-20"
+author: "Olivier Winter"
+categories: [gene-expression, phylostratigraphy, AGEA, evolution, Allen-atlas]
+---
+
+## Overview
+
+This analysis assigns evolutionary ages to mouse brain gene expression data from the Allen Gene Expression Atlas (AGEA), then visualises how expression from each phylogenetic age group is spatially distributed across the brain.
+
+**Central question:** do anatomically distinct brain regions preferentially express genes that arose at different points in vertebrate evolution?
+
+## Phylostratum scheme
+
+Genes are grouped into 12 phylostrata (PS) by the oldest clade in which an ortholog can be detected. PS1 is the most ancient, PS12 the most recent.
+
+| PS | Clade | Age (Mya) | N genes |
+|----|-------|-----------|---------|
+| 1 | Cellular organisms | 3500 | 0 |
+| 2 | Eukaryota | 1500 | 0 |
+| 3 | Opisthokonta | 1000 | 859 |
+| 4 | Metazoa | 650 | 0 |
+| 5 | Bilateria | 550 | 1438 |
+| 6 | Chordata | 525 | 348 |
+| 7 | Vertebrata | 500 | 631 |
+| 8 | Gnathostomata | 450 | 518 |
+| 9 | Tetrapoda | 350 | 72 |
+| 10 | Mammalia | 200 | 93 |
+| 11 | Euarchontoglires | 90 | 4 |
+| 12 | Rodentia | 25 | 27 |
+
+**Important caveat:** Ensembl Compara does not include prokaryotes or most unicellular eukaryotes. As a result, genes shared with all life (true PS1) or all eukaryotes (true PS2) have no detectable ortholog in the database and end up assigned to PS3–PS5. The displayed PS labels are therefore systematically 2–4 strata younger than the true evolutionary age. The relative ordering across phylostrata is preserved, but the absolute labels should be interpreted with caution.
+
+In practice, PS1, PS2 and PS4 are empty in our cache; PS3 (Opisthokonta) is the oldest populated stratum.
+
+## Results
+
+### Coronal slices
+
+![] (figures/phylostratum_grid_coronal.png)
+
+### Sagittal slices
+
+![] (figures/phylostratum_grid_sagittal.png)
+
+### Heatmap (Cosmos)
+
+![] (figures/phylostratum_heatmap_cosmos.png)
+
+### Gene age distribution
+
+![] (figures/gene_age_distribution.png)
+
+## Method
+
+### Step 1 — Fetch gene evolutionary ages
+For each mouse gene symbol the Ensembl REST API is queried for orthologues. Each homology record contains a `taxonomy_level` field — the most recent common ancestor (MRCA) between mouse and the ortholog species. This taxonomy level is mapped to a phylostratum number. The gene is assigned the **minimum** PS across all detected orthologs (oldest clade where a homolog exists).
+
+Results are cached in `gene_ages_cache.parquet`.
+
+### Step 2 — Sum expression volumes per phylostratum
+Loads the pre-processed AGEA expression volumes via `iblatlas.genomics.agea.load(label='processed')`. For each phylostratum, all gene volumes are summed into a single volume per stratum.
+
+Output: `summed_volumes_by_phylostratum.npy`, shape `(12, 58, 41, 67)`.
+
+### Step 3 — Visualise deviation from baseline
+Each of the 12 summed volumes is z-scored over in-brain voxels. The voxel-wise mean across all 12 z-scored volumes forms the **baseline**. Each panel then shows the deviation `z-scored volume − baseline`, making it easy to see which phylostrata are regionally enriched or depleted relative to the average across all evolutionary ages.
+
+The grid display shows 12 evenly-spaced slices spanning the full brain, with the Allen atlas annotation as reference.
+
+## Key files
+
+| File | Purpose |
+|------|---------|
+| `phylostratigraphy_pipeline.py` | Fetch gene ages from Ensembl, cache to parquet |
+| `sum_volumes_by_age.py` | Sum AGEA volumes by phylostratum |
+| `view_volumes_by_age.py` | Z-score, subtract baseline, display grid |
+| `gene_ages_cache.parquet` | Cached gene → phylostratum assignments |
+| `summed_volumes_by_phylostratum.npy` | Summed expression per PS |
