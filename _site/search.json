@@ -459,7 +459,7 @@
     "href": "analyses/2026-05-phylostratigraphy/index.html#results",
     "title": "Phylostratigraphy of Mouse Brain Gene Expression",
     "section": "Results",
-    "text": "Results\n\nCoronal slices\n![] (figures/phylostratum_grid_coronal.png)\n\n\nSagittal slices\n![] (figures/phylostratum_grid_sagittal.png)\n\n\nHeatmap (Cosmos)\n![] (figures/phylostratum_heatmap_cosmos.png)\n\n\nGene age distribution\n![] (figures/gene_age_distribution.png)"
+    "text": "Results\n\nCoronal slices\n\n\n\nSagittal slices\n\n\n\nHeatmap (Cosmos)\n\n\n\nGene age distribution"
   },
   {
     "objectID": "analyses/2026-05-phylostratigraphy/index.html#method",

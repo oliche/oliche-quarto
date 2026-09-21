@@ -39,19 +39,19 @@ In practice, PS1, PS2 and PS4 are empty in our cache; PS3 (Opisthokonta) is the 
 
 ### Coronal slices
 
-![] (figures/phylostratum_grid_coronal.png)
+![](figures/phylostratum_grid_coronal.png)
 
 ### Sagittal slices
 
-![] (figures/phylostratum_grid_sagittal.png)
+![](figures/phylostratum_grid_sagittal.png)
 
 ### Heatmap (Cosmos)
 
-![] (figures/phylostratum_heatmap_cosmos.png)
+![](figures/phylostratum_heatmap_cosmos.png)
 
 ### Gene age distribution
 
-![] (figures/gene_age_distribution.png)
+![](figures/gene_age_distribution.png)
 
 ## Method
 
