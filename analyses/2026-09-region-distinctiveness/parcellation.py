@@ -27,6 +27,20 @@ from the same PCA-projected leaf-level stats `pairwise_mahalanobis.py` already c
 separate module rather than folded into `region_stats_table.py` since the tree-DP machinery here is
 a different kind of problem (choosing a hierarchy-respecting partition) from that file's pairwise
 distance utilities, even though it consumes the same PCA fit.
+
+**Size-balanced variant (2026-09-17).** `optimal_cut`'s `size_penalty` adds a quadratic penalty on
+each group's deviation from an equal K-way voxel split (`group_cost`), trading pure separation for
+more equiprobable-by-voxel-count groups — motivated by the classifier comparison in `index.qmd`
+showing severe class imbalance (gini up to ~0.7) drives a lot of the accuracy/balanced-accuracy gap
+there. `auto_scaled_size_penalty` picks the absolute penalty weight from the unregularized
+solution's own cost scale (so one dimensionless `alpha` transfers across K without hand-tuning per
+K); swept `alpha` on the grey-matter K=100 cut and found gini improves from 0.533 to a floor around
+0.50 by `alpha≈2.5` (larger `alpha` doesn't help further) — some imbalance is structural, not fixable
+by this penalty at all: the single biggest group at K=100 (`STRd`, dorsal striatum, ~208k voxels)
+has exactly one ontology child, so there's nowhere for it to split to no matter how it's weighted.
+At coarse K=13 the effect is much smaller (0.430 -> 0.426) since the standard Cosmos-like divisions
+leave little room to redistribute without changing K. Only `optimal_cut` got this extension, not
+`greedy_nested_cuts` — the nested search was already the less-controllable of the two.
 """
 
 import heapq
@@ -46,9 +60,15 @@ VOL_PATH = Path(
 CACHE_DIR = Path(__file__).parent / "cache"
 VARIANCE_THRESHOLD = 0.95
 TARGET_SIZES = {"cosmos": 13, "mid": 100, "beryl": 250}
+GREY_MATTER_ONLY = True
+SIZE_PENALTY_ALPHA = 2.5  # see auto_scaled_size_penalty; swept on K=100, past the point of
+                          # diminishing returns (gini plateaus well before this) but not extreme
 
 
-def build_ontology_forest(ba):
+GREY_MATTER_ONLY_ROOTS = {"grey"}
+
+
+def build_ontology_forest(ba, grey_matter_only=False):
     """Direct parent -> children graph over the CCF ontology's canonical (unlateralized, id>=0)
     nodes, plus each node's own raw-position indices (self + its `-id` hemisphere twin, if
     painted — see `pairwise_mahalanobis.py`'s note on why both twins hold real, independent
@@ -63,7 +83,12 @@ def build_ontology_forest(ba):
         registration-edge noise, not a valid group, and sits at ontology level 0 with no parent,
         so it structurally isn't an ancestor of grey/fiber tracts/VS anyway); `grv`/`retina` are
         real level-1 branches but carry zero voxels in this mask and are left in as roots — they
-        just end up with `leaves_under == 0` downstream and drop out on their own.
+        just end up with `leaves_under == 0` downstream and drop out on their own. If
+        `grey_matter_only`, `fiber tracts`/`VS`/`grv`/`retina` are dropped from `roots` too (same
+        motivation as `region_distance_by_level.py`'s `GREY_MATTER_ONLY`: white matter/ventricles
+        are trivially separable from grey matter and otherwise dominate the group budget at low
+        K without being the interesting comparison) — `children`/`own_positions` still cover their
+        subtrees structurally, they're just never reached since nothing in `roots` leads there.
       - `canon`: the canonical-row dataframe (`acronym`/`hexcolor`/`order`/... ), row-aligned with
         `children`/`own_positions`, for labelling the final groups.
     """
@@ -92,7 +117,8 @@ def build_ontology_forest(ba):
         # a parent that's missing, or itself excluded (root, for grey/fiber tracts/VS/...),
         # means this node has no *valid* ancestor left in the tree - treat it as a root.
         if parent_row is None or canon["acronym"].iat[parent_row] in EXCLUDE_ACRONYMS:
-            roots.append(i)
+            if not grey_matter_only or row.acronym in GREY_MATTER_ONLY_ROOTS:
+                roots.append(i)
         else:
             children[parent_row].append(i)
 
@@ -141,6 +167,25 @@ def ss(stat):
     return 0.0 if n == 0 else float(n * np.sum(var))
 
 
+def group_cost(n, ss_value, target_n, size_penalty):
+    """`ss_value` plus an optional size-balance penalty, quadratic in the group's relative
+    deviation from `target_n` (= total voxels / K, the size a perfectly-equal K-way split would
+    give every group) — `((n - target_n) / target_n) ** 2`, dimensionless so `size_penalty` (its
+    weight, "lambda") is comparable in spirit across different K/target_n choices.
+
+    Applied only where a node actually *becomes* an emitted group (`optimal_cut`'s `j=1`/"self"
+    leaf costs) — internal split points never appear as a group themselves, so they don't need it,
+    and a child's own emitted-group costs are already folded into its `dp` array by the time a
+    parent's merge sees it, so nothing here risks double-counting.
+
+    `size_penalty=0` (the default) reproduces plain `ss_value` exactly, i.e. the original
+    pure-separation objective — this is an additive extension of it, not a different codepath.
+    """
+    if size_penalty == 0 or target_n == 0:
+        return ss_value
+    return ss_value + size_penalty * ((n - target_n) / target_n) ** 2
+
+
 def _knapsack_merge(parts, k):
     """Minimum-cost way to allocate a total budget across `parts` (each `(leaves_under, dp_array,
     info)`), giving every part at least 1 of the budget. Returns `{total: (cost, alloc)}` where
@@ -161,19 +206,24 @@ def _knapsack_merge(parts, k):
     return running
 
 
-def optimal_cut(children, own, sub, roots, k):
-    """Exact tree DP: the minimum-within-SS hierarchy-respecting frontier of exactly `k` groups.
+def optimal_cut(children, own, sub, roots, k, size_penalty=0.0):
+    """Exact tree DP: the minimum-cost hierarchy-respecting frontier of exactly `k` groups.
 
-    `dp[i][j]` = minimum within-group SS from partitioning node `i`'s subtree into exactly `j`
-    groups. `j=1` means "keep this whole subtree as one group" (`ss(sub[i])`). `j>1` means split
-    it up, via a knapsack-style min-cost merge (`_knapsack_merge`) over `i`'s *parts*: its real
-    children (each contributing their own `leaves_under[c]`/`dp[c]`), plus, if `i` itself has any
-    directly-painted voxels not belonging to any child (common — 86 of 1329 ontology nodes here,
-    1.4M voxels total, e.g. a generic "layer unspecified" residual under a named area), a synthetic
-    "self" leaf part representing exactly those voxels. Without that self-part, splitting a node
-    with own voxels would silently drop them from every group entirely — caught by a coverage
-    check (`frontier_to_label_map`'s total raw-position count dropping as `k` grew, instead of
-    staying constant) during development.
+    `dp[i][j]` = minimum cost from partitioning node `i`'s subtree into exactly `j` groups. `j=1`
+    means "keep this whole subtree as one group" (`group_cost(n, ss(sub[i]), ...)`). `j>1` means
+    split it up, via a knapsack-style min-cost merge (`_knapsack_merge`) over `i`'s *parts*: its
+    real children (each contributing their own `leaves_under[c]`/`dp[c]`), plus, if `i` itself has
+    any directly-painted voxels not belonging to any child (common — 86 of 1329 ontology nodes
+    here, 1.4M voxels total, e.g. a generic "layer unspecified" residual under a named area), a
+    synthetic "self" leaf part representing exactly those voxels. Without that self-part, splitting
+    a node with own voxels would silently drop them from every group entirely — caught by a
+    coverage check (`frontier_to_label_map`'s total raw-position count dropping as `k` grew,
+    instead of staying constant) during development.
+
+    `size_penalty` (the DP's cost is `ss + size_penalty * relative deviation from an equal K-way
+    voxel split, squared` — see `group_cost`) trades the pure between-group-separation objective
+    for one that also discourages very unequal group sizes; `0` (default) is the original,
+    unregularized objective exactly.
 
     Children/self-parts with zero real voxels anywhere (`leaves_under == 0`, e.g. `grv`/`retina`)
     are skipped rather than forced to consume a budget slot. Runs once up to `k`, so a smaller
@@ -187,6 +237,8 @@ def optimal_cut(children, own, sub, roots, k):
     dp = [None] * n_nodes
     choice = [None] * n_nodes
     leaves_under = [0] * n_nodes
+    total_n = sum(sub[r][0] for r in roots if r is not None)
+    target_n = total_n / k
 
     def rec(i):
         if dp[i] is not None:
@@ -197,7 +249,7 @@ def optimal_cut(children, own, sub, roots, k):
         parts = []
         if own[i][0] > 0:
             self_dp = np.full(k + 1, np.inf)
-            self_dp[1] = ss(own[i])
+            self_dp[1] = group_cost(own[i][0], ss(own[i]), target_n, size_penalty)
             parts.append((1, self_dp, ("self", i)))
         for c in children[i]:
             if leaves_under[c] > 0:
@@ -206,7 +258,7 @@ def optimal_cut(children, own, sub, roots, k):
         arr = np.full(k + 1, np.inf)
         ch = [None] * (k + 1)
         if sub[i][0] > 0:
-            arr[1] = ss(sub[i])
+            arr[1] = group_cost(sub[i][0], ss(sub[i]), target_n, size_penalty)
         if parts:
             for total, (cost, alloc) in _knapsack_merge(parts, k).items():
                 if total >= 2 and cost < arr[total]:
@@ -245,6 +297,25 @@ def optimal_cut(children, own, sub, roots, k):
     for info, jc in alloc:
         backtrack(info, jc)
     return frontier
+
+
+def auto_scaled_size_penalty(children, own, sub, roots, k, alpha):
+    """Pick an absolute `optimal_cut(..., size_penalty=...)` weight scaled to this tree/K's own
+    cost magnitude, rather than a hand-tuned constant: run the unregularized (`size_penalty=0`)
+    cut once, and use `alpha` times its mean per-group SS as the absolute penalty weight.
+
+    Needed because `group_cost`'s penalty term is O(1) per group (a squared *relative* deviation)
+    while `ss` is O(total_voxels) — passing a raw `size_penalty` of, say, `1.0` directly has no
+    detectable effect at all (checked: identical output from `size_penalty=0` up to `~1e5` on this
+    project's grey-matter tree at K=100, where per-group SS runs ~2-4e5). Scaling by the
+    unregularized solution's own mean group cost keeps one dimensionless `alpha` comparably
+    "strong" whether `k` is 13 or 250, instead of needing a separately-tuned absolute number for
+    each — despite `target_n` and typical per-group SS both changing by orders of magnitude
+    between those two.
+    """
+    frontier0 = optimal_cut(children, own, sub, roots, k, size_penalty=0.0)
+    total_ss = sum(ss(sub[i] if kind == "subtree" else own[i]) for i, kind in frontier0)
+    return alpha * (total_ss / k)
 
 
 def greedy_nested_cuts(children, own, sub, roots, target_sizes):
@@ -334,12 +405,12 @@ def main():
     )
     print(f"PCA: k={pca['k']} components, {pca['explained_ratio'].sum():.1%} variance")
 
-    children, own_positions, roots, canon = build_ontology_forest(ba)
+    children, own_positions, roots, canon = build_ontology_forest(ba, grey_matter_only=GREY_MATTER_ONLY)
     own = own_stats(own_positions, count_pc, mean_pc, var_pc)
     sub = subtree_stats(children, own)
     total_n = sum(sub[r][0] for r in roots)
-    print(f"ontology forest: {len(children)} canonical nodes, {len(roots)} top-level branches, "
-          f"{total_n} total voxels pooled")
+    print(f"ontology forest: {len(children)} canonical nodes, {len(roots)} top-level branches"
+          f"{' (grey matter only)' if GREY_MATTER_ONLY else ''}, {total_n} total voxels pooled")
 
     # raw 41-feature voxel counts, for a voxel-exact coverage check (not just raw-*position*
     # count — many ontology positions are pure organisational placeholders with zero voxels of
@@ -355,6 +426,20 @@ def main():
         meta.to_csv(CACHE_DIR / f"parcellation_optimal_{tag}.csv", index=False)
         print(f"[optimal/{tag}] k={k}: {covered_voxels} voxels covered (exact), "
               f"top groups by acronym: {meta['acronym'].tolist()[:5]}...")
+
+    for tag, k in TARGET_SIZES.items():
+        lam = auto_scaled_size_penalty(children, own, sub, roots, k, SIZE_PENALTY_ALPHA)
+        frontier = optimal_cut(children, own, sub, roots, k, size_penalty=lam)
+        assert len(frontier) == k
+        raw_to_acr, meta = frontier_to_label_map(children, own_positions, canon, frontier)
+        covered_voxels = int(sum(count[p] for p in raw_to_acr))
+        assert covered_voxels == total_n, f"voxel coverage mismatch at k={k}: {covered_voxels}"
+        meta.to_csv(CACHE_DIR / f"parcellation_balanced_{tag}.csv", index=False)
+        voxels_per_group = meta["acronym"].map(
+            lambda a, r2a=raw_to_acr: sum(count[p] for p, a2 in r2a.items() if a2 == a)
+        )
+        print(f"[balanced/{tag}] k={k}: size_penalty={lam:.2e}, "
+              f"voxel/group min={voxels_per_group.min()} max={voxels_per_group.max()}")
 
     nested = greedy_nested_cuts(children, own, sub, roots, TARGET_SIZES.values())
     prev_raw_to_acr = None

@@ -35,7 +35,8 @@ FEATURES_PATH = Path(
 )
 FEATURE_SET = ["raw_lf", "raw_lf_csd", "raw_ap", "localisation", "waveforms"]
 NEW_PARCELLATIONS = ["optimal_cosmos", "optimal_mid", "optimal_beryl",
-                     "nested_cosmos", "nested_mid", "nested_beryl"]
+                     "nested_cosmos", "nested_mid", "nested_beryl",
+                     "balanced_cosmos", "balanced_mid", "balanced_beryl"]
 TARGETS = ["Allen", "Cosmos", "Beryl"] + NEW_PARCELLATIONS
 TEST_FRACTION = 0.2
 RANDOM_SEED = 12345
@@ -71,8 +72,12 @@ def load_labelled_features():
 
     children, own_positions, roots, canon = build_ontology_forest(ba)
     for tag in NEW_PARCELLATIONS:
-        kind = "optimal" if tag.startswith("optimal") else "nested"
-        size = tag.split("_", 1)[1]
+        # tag is always "<kind>_<size>" (e.g. "optimal_cosmos", "balanced_beryl") - split on the
+        # first underscore rather than hardcoding the two original kinds, since a naive
+        # `"optimal" if tag.startswith("optimal") else "nested"` silently mis-routed every
+        # "balanced_*" tag to the *nested* cache file instead (caught when balanced_cosmos's
+        # trained accuracy came out identical to nested_cosmos's - same file, same result).
+        kind, size = tag.split("_", 1)
         mapping = id_to_label_map(children, own_positions, canon, ba.regions,
                                    CACHE_DIR / f"parcellation_{kind}_{size}.csv")
         df[tag] = df["Allen"].map(mapping)

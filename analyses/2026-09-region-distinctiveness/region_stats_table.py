@@ -40,6 +40,42 @@ def direct_paint_stats(vol, feature_names, ba, extra_exclude=None):
     return count, mean, var
 
 
+def direct_paint_stats_for_mapping(vol, feature_names, ba, mapping, extra_exclude=None):
+    """Like `direct_paint_stats`, but pools voxels through a named `ba.regions.mappings` entry
+    (e.g. `"Cosmos"`/`"Beryl"`) first, instead of using the atlas's raw per-position partition.
+
+    `ba.regions.mappings[mapping]` is itself an array indexed by raw position (0..len(br.id)-1,
+    same indexing as `ba.label`) whose *values* are also raw positions — the position of that
+    voxel's `mapping`-level ancestor — so remapping is just `mapping_lut[ba.label]` before the
+    same bincount pass `direct_paint_stats` does. This already merges hemisphere `+id`/`-id`
+    "twins" for free (checked directly: both of PIR's raw positions map to the same Cosmos-level
+    OLF position), unlike the raw partition, where `pool_by_acronym` has to do that merge by hand.
+
+    Returns `(count, mean, var)` indexed by raw position exactly like `direct_paint_stats` — every
+    raw position under the same `mapping`-level group carries identical (pooled) statistics, so
+    the group's own row (`ba.regions.mappings[mapping][p] == p`) can be read directly off any
+    member position.
+    """
+    n_regions = len(ba.regions.id)
+    n_features = len(feature_names)
+    mask = ba.mask()
+    if extra_exclude is not None:
+        mask = mask & ~extra_exclude
+    mapping_lut = ba.regions.mappings[mapping]
+    flat_labels = mapping_lut[ba.label[mask].astype(np.int64)]
+    x = vol[mask]
+
+    count = np.bincount(flat_labels, minlength=n_regions).astype(np.int64)
+    total = np.zeros((n_regions, n_features))
+    total_sq = np.zeros((n_regions, n_features))
+    np.add.at(total, flat_labels, x)
+    np.add.at(total_sq, flat_labels, x ** 2)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        mean = total / count[:, None]
+        var = total_sq / count[:, None] - mean ** 2
+    return count, mean, var
+
+
 def pool_stats(count, mean, var, idx):
     """Pool (n, mean, var) over positions `idx` into one combined (n, mean, var) — an "online"/
     parallel mean-variance combination (Chan et al.), exact rather than approximate.
@@ -92,25 +128,48 @@ def pool_by_acronym(count, mean, var, ba, min_voxels=0):
     traversal order, identical between twins — useful for sorting a report table or figure
     anatomically); `mean_pooled`/`var_pooled` are `(len(df), n_channels)`, row-aligned with `df`.
     """
+    return pool_by_group_label(count, mean, var, ba, ba.regions.acronym, min_voxels)
+
+
+def pool_by_group_label(count, mean, var, ba, group_label, min_voxels=0):
+    """Generalisation of `pool_by_acronym` to an arbitrary label per raw position instead of that
+    position's own acronym — needed for groupings that don't already merge hemisphere `+id`/`-id`
+    twins into a shared value the way the atlas's named mappings (`Cosmos`/`Beryl`) do.
+
+    Concretely: `BrainRegions.hierarchy()` (after `br.compute_hierarchy()`) gives, per raw
+    position, the raw position of its ancestor at a given ontology level — but walks each
+    hemisphere twin's *own* parent chain independently (checked directly: level-1 alone gives 6
+    distinct ancestor positions for what are anatomically only ~5 top-level branches), so two
+    twins' level-L ancestors are two different raw *positions* that nonetheless share the same
+    *acronym*. Passing `group_label = br.acronym[br.hierarchy[L]]` here (rather than a raw
+    position) merges them correctly, the same way `pool_by_acronym` merges twins at the leaf level.
+
+    `group_label` must be row-aligned with `count`/`mean`/`var` (0..len(br.id)-1); positions whose
+    label is in `EXCLUDE_ACRONYMS` are dropped. Otherwise identical contract to `pool_by_acronym`:
+    returns `(df, mean_pooled, var_pooled)`, `df` with `acronym` (here, the group label),
+    `n_voxels`, `hexcolor`/`order` (from an arbitrary member position, assumed consistent across
+    a label's members).
+    """
     br = ba.regions
     present = np.where(count > 0)[0]
-    present = present[~np.isin(br.acronym[present], list(EXCLUDE_ACRONYMS))]
-    acronyms_present = br.acronym[present]
-    uniq_acr = np.unique(acronyms_present)
+    labels_present = np.asarray(group_label)[present]
+    keep_excl = ~np.isin(labels_present, list(EXCLUDE_ACRONYMS))
+    present, labels_present = present[keep_excl], labels_present[keep_excl]
+    uniq_labels = np.unique(labels_present)
 
-    n_pooled = np.zeros(len(uniq_acr), dtype=np.int64)
-    mean_pooled = np.zeros((len(uniq_acr), mean.shape[1]))
-    var_pooled = np.zeros((len(uniq_acr), mean.shape[1]))
-    hexcolor = np.empty(len(uniq_acr), dtype=object)
-    order = np.zeros(len(uniq_acr), dtype=np.int64)
-    for i, a in enumerate(uniq_acr):
-        idx = present[acronyms_present == a]
+    n_pooled = np.zeros(len(uniq_labels), dtype=np.int64)
+    mean_pooled = np.zeros((len(uniq_labels), mean.shape[1]))
+    var_pooled = np.zeros((len(uniq_labels), mean.shape[1]))
+    hexcolor = np.empty(len(uniq_labels), dtype=object)
+    order = np.zeros(len(uniq_labels), dtype=np.int64)
+    for i, lab in enumerate(uniq_labels):
+        idx = present[labels_present == lab]
         n_pooled[i], mean_pooled[i], var_pooled[i] = pool_stats(count, mean, var, idx)
         hexcolor[i] = br.hexcolor[idx[0]]
         order[i] = br.order[idx[0]]
 
     df = pd.DataFrame({
-        "acronym": uniq_acr, "n_voxels": n_pooled, "hexcolor": hexcolor, "order": order,
+        "acronym": uniq_labels, "n_voxels": n_pooled, "hexcolor": hexcolor, "order": order,
     })
     keep = n_pooled >= min_voxels
     df = df[keep].reset_index(drop=True)
