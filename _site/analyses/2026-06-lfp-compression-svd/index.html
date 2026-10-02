@@ -8,9 +8,9 @@
 
 <meta name="author" content="Olivier Winter">
 <meta name="dcterms.date" content="2026-06-09">
-<meta name="description" content="Benchmarking SVD-based LFP compression methods on 11 Neuropixels insertions, evaluating RMSE and SNR across compression ratios up to 3000×.">
+<meta name="description" content="lfpack’s SVD + wavelet-packet LFP codec on 11 Neuropixels insertions: format 2, a shared spatial basis that halves the file, and the three α tiers chosen for the v04 archive.">
 
-<title>LFP Compression Benchmark: SVD and Adaptive SVD+WP Methods – Analysis Hub</title>
+<title>LFP Compression: lfpack v04 Tiers – Analysis Hub</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -192,19 +192,13 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#pre-processing-pipeline" id="toc-pre-processing-pipeline" class="nav-link" data-scroll-target="#pre-processing-pipeline">Pre-processing pipeline</a></li>
-  <li><a href="#compression-methods" id="toc-compression-methods" class="nav-link" data-scroll-target="#compression-methods">Compression methods</a></li>
-  <li><a href="#metrics" id="toc-metrics" class="nav-link" data-scroll-target="#metrics">Metrics</a></li>
-  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
-  <ul class="collapse">
-  <li><a href="#aggregate-benchmark-11-pids" id="toc-aggregate-benchmark-11-pids" class="nav-link" data-scroll-target="#aggregate-benchmark-11-pids">Aggregate benchmark (11 PIDs)</a></li>
-  <li><a href="#svd-spectrum-and-ε-calibration" id="toc-svd-spectrum-and-ε-calibration" class="nav-link" data-scroll-target="#svd-spectrum-and-ε-calibration">SVD spectrum and ε calibration</a></li>
-  <li><a href="#adaptive-wp-threshold-calibration" id="toc-adaptive-wp-threshold-calibration" class="nav-link" data-scroll-target="#adaptive-wp-threshold-calibration">Adaptive WP threshold calibration</a></li>
-  <li><a href="#parameter-sweep-gallery-svd-ε-wp-α" id="toc-parameter-sweep-gallery-svd-ε-wp-α" class="nav-link" data-scroll-target="#parameter-sweep-gallery-svd-ε-wp-α">Parameter sweep gallery (SVD-ε × WP-α)</a></li>
-  <li><a href="#csd-gallery-pid-dab512bd" id="toc-csd-gallery-pid-dab512bd" class="nav-link" data-scroll-target="#csd-gallery-pid-dab512bd">CSD gallery (PID dab512bd)</a></li>
-  </ul></li>
-  <li><a href="#appendix-per-insertion-results" id="toc-appendix-per-insertion-results" class="nav-link" data-scroll-target="#appendix-per-insertion-results">Appendix: Per-insertion results</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link active" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#codec-in-brief" id="toc-codec-in-brief" class="nav-link" data-scroll-target="#codec-in-brief">Codec in brief</a></li>
+  <li><a href="#file-format-2" id="toc-file-format-2" class="nav-link" data-scroll-target="#file-format-2">File format 2</a></li>
+  <li><a href="#shared-spatial-basis" id="toc-shared-spatial-basis" class="nav-link" data-scroll-target="#shared-spatial-basis">Shared spatial basis</a></li>
+  <li><a href="#size-vs-decoding" id="toc-size-vs-decoding" class="nav-link" data-scroll-target="#size-vs-decoding">Size vs decoding</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next steps</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
   </ul>
 </nav>
     </div>
@@ -213,7 +207,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">LFP Compression Benchmark: SVD and Adaptive SVD+WP Methods</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">LFP Compression: lfpack v04 Tiers</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
   <div class="quarto-categories">
     <div class="quarto-category">electrophysiology</div>
     <div class="quarto-category">LFP</div>
@@ -224,7 +218,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    Benchmarking SVD-based LFP compression methods on 11 Neuropixels insertions, evaluating RMSE and SNR across compression ratios up to 3000×.
+    lfpack’s SVD + wavelet-packet LFP codec on 11 Neuropixels insertions: format 2, a shared spatial basis that halves the file, and the three α tiers chosen for the v04 archive.
   </div>
 </div>
 
@@ -245,6 +239,12 @@ window.Quarto = {
     </div>
   </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">September 27, 2026</p>
+    </div>
+  </div>
     
   </div>
   
@@ -253,105 +253,366 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2">
-<h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>The IBL holds <strong>936 hours</strong> of Brainwide Map (BWM) recordings and <strong>1472 hours</strong> from the Ephys Atlas. Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone. After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming. The goal is to identify a lossy compression strategy that reduces this further.</p>
-<p><strong>Practical recommendation: SVD + WP (ε≈150, α≈28) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.</strong> <strong>This would shrink the 936-hour BWM dataset to ~9.6 Gb.</strong></p>
-</section>
-<section id="pre-processing-pipeline" class="level2">
-<h2 class="anchored" data-anchor-id="pre-processing-pipeline">Pre-processing pipeline</h2>
-<p>Raw LFP (NP1, 2500 Hz, <code>.cbin</code>) was preprocessed before benchmarking:</p>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>lfpack decimates Neuropixels LFP to 250 Hz, denoises it with Cadzow, and compresses each 8 s chunk with an SVD (spatial) followed by wavelet-packet thresholding of the temporal rows. Two lossless-to-negligible changes and one decoding-driven choice set the next archive release, <strong>v04</strong> (v03 deprecated):</p>
 <ol type="1">
-<li><strong>Bad-channel detection</strong> — channels with anomalous variance flagged and excluded.</li>
-<li><strong>Bandpass + CAR + decimation</strong> — 2–250 Hz FIR bandpass, common-average referencing, ×10 FIR decimation → 250 Hz float32.</li>
-<li><strong>Cadzow PPCA spatial denoising</strong> — F-X Cadzow on 3 s snippets (nw=64, f_max=100 Hz, max rank r=5, adaptive rank via singular-value gap threshold=2.0, PPCA outlier k=2.0) to remove incoherent channel noise.</li>
+<li><strong>File format 2</strong> (lossless): <strong>−29 %</strong> against format 1, same random-access latency.</li>
+<li><strong>Shared spatial basis</strong> per recording (m = 32, float16 coefficients): makes every tier <strong>20–50 % smaller</strong> at identical decoding.</li>
+<li><strong>α, the temporal threshold, is the only parameter that moves behaviour decoding.</strong> v04 ships three tiers at ε = 100: α = 14, 7 and 2.5.</li>
 </ol>
-<p>All methods were benchmarked on the Cadzow-denoised snippets so residuals reflect compression loss, not pre-existing noise.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale)."><img src="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="img-fluid figure-img" alt="Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale)."></a></p>
-<figcaption>Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale).</figcaption>
-</figure>
-</div>
-</section>
-<section id="compression-methods" class="level2">
-<h2 class="anchored" data-anchor-id="compression-methods">Compression methods</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Method</th>
-<th>Principle</th>
-<th>CR formula</th>
-<th>Parameters</th>
+<th>v04 tier (ε = 100, m = 32)</th>
+<th style="text-align: right;">1/CR</th>
+<th style="text-align: right;">size / mild</th>
+<th style="text-align: right;">SNR (dB)</th>
+<th style="text-align: right;">wheel R² below uncompressed (mean / median over probes)</th>
+<th style="text-align: right;">Ephys Atlas (1099 PIDs)</th>
+<th style="text-align: right;">BWM</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>SVD-adapt</strong></td>
-<td>First-stage: truncated SVD with adaptive rank: retain components where <span class="math inline">\(s_k &gt; \varepsilon \cdot \sigma_0\)</span>, with <span class="math inline">\(\sigma_0 = \text{median}(\text{lower half of } s)\)</span> as the noise-floor estimate. <span class="math inline">\(\varepsilon\)</span> is swept to cover the full CR range.</td>
-<td><span class="math inline">\(n_c n_s / (r_\varepsilon(n_c+n_s))\)</span></td>
-<td>ε ∈ logspace(10⁴, 10⁻¹, 30)</td>
+<td>α = 14</td>
+<td style="text-align: right;">0.82 %</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">14.4</td>
+<td style="text-align: right;">0.0054 / 0.0039</td>
+<td style="text-align: right;">~12 GB</td>
+<td style="text-align: right;">~8.5 GB</td>
 </tr>
 <tr class="even">
-<td><strong>WP</strong></td>
-<td>Second-stage: db4 wavelet-packet adaptive thresholding on the <span class="math inline">\(r\)</span> temporal rows of <span class="math inline">\(V_r^\top\)</span>. Per-component threshold <span class="math inline">\(\tau_k = \alpha \sigma_0 / \sigma_k\)</span> ensures uniform error contribution across all ranks.</td>
-<td><span class="math inline">\(\text{CR}_\text{SVD} \times \text{CR}_\text{WP}\)</span></td>
-<td>ε (SVD stage), α (WP stage)</td>
+<td>α = 7</td>
+<td style="text-align: right;">1.55 %</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">18.5</td>
+<td style="text-align: right;">0.0030 / 0.0016</td>
+<td style="text-align: right;">~24 GB</td>
+<td style="text-align: right;">~16 GB</td>
+</tr>
+<tr class="odd">
+<td>α = 2.5</td>
+<td style="text-align: right;">3.09 %</td>
+<td style="text-align: right;">1.94</td>
+<td style="text-align: right;">23.4</td>
+<td style="text-align: right;">0.0005 / 0.0003</td>
+<td style="text-align: right;">~47 GB</td>
+<td style="text-align: right;">~32 GB</td>
+</tr>
+<tr class="even">
+<td><em>v03 mild (format 1, per-chunk U, α = 14)</em></td>
+<td style="text-align: right;"><em>2.24 %</em></td>
+<td style="text-align: right;"><em>1.41</em></td>
+<td style="text-align: right;"><em>14.4</em></td>
+<td style="text-align: right;"><em>0.0053 / 0.0027</em></td>
+<td style="text-align: right;"><em>34.2 GB</em></td>
+<td style="text-align: right;"><em>23.3 GB</em></td>
+</tr>
+</tbody>
+</table>
+<p>Sizes: 1/CR = file / uncompressed float32 at 250 Hz, and file / mild tier (format 2, per-chunk U, ε = 100, α = 14), both on summed file sizes over 11 benchmark probes. Archive sizes scale the real v03 mild files by 0.71 (format 2) and by size / mild; the Ephys Atlas cohort includes BWM. Choice and feedback decoding stay within noise at every tier; the effect of the tiers on region decoding is on the <a href="../../analyses/2026-06-lfp-compression-svd/functional_validation.html">functional validation page</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/2026-09-27_pareto_v04-tiers.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 probes, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding)."><img src="figures/2026-09-27_pareto_v04-tiers.png" class="img-fluid figure-img" alt="The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 probes, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding)."></a></p>
+<figcaption>The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 probes, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding).</figcaption>
+</figure>
+</div>
+</section>
+<section id="codec-in-brief" class="level2">
+<h2 class="anchored" data-anchor-id="codec-in-brief">Codec in brief</h2>
+<p>Each 8 s chunk <span class="math inline">\(X_j\)</span> (384 channels × 2048 samples, plus 128 guard samples each side) is factorised as</p>
+<p><span class="math display">\[X_j \approx U_r\,\mathrm{diag}(s_r)\,\hat V_r^\top, \qquad r = \#\{k : s_k &gt; \varepsilon\,\sigma_0\}, \qquad
+\tau_k = \alpha\,\sigma_0 / s_k\]</span></p>
+<p>where <span class="math inline">\(\sigma_0\)</span> is the median of the lower half of the singular values, ε sets the rank (≈ 17 at ε = 100) and α the hard threshold on the db4 level-5 wavelet-packet coefficients of each temporal row. Every discarded coefficient therefore costs less than α σ₀ of reconstruction error, whatever its component. The dominant row always keeps its 64 largest coefficients, so a low-SNR chunk never reconstructs to zero. A walk-through of every array is in the <strong>lfpack Matrix Anatomy</strong> page (<a href="https://claude.ai/artifact/3KqmXv3z7tsrbWSrMXTsU1" class="uri">https://claude.ai/artifact/3KqmXv3z7tsrbWSrMXTsU1</a>).</p>
+</section>
+<section id="file-format-2" class="level2">
+<h2 class="anchored" data-anchor-id="file-format-2">File format 2</h2>
+<p>Format 2 (lfpack branch <code>feat/container-v2</code>) stores all chunks of a scale in four flat datasets (<code>chunk_table</code>, <code>u_values</code>, <code>vh_deltas</code>, <code>vh_values</code>) with offsets from the chunk table, so a random read still touches one or two 64 kB storage blocks. Indices are uint16 deltas, and the ~9 % of kept wavelet coefficients whose synthesis function is zero over the written samples are dropped, which is exactly lossless. Old files stay readable; <code>lfpack.upgrade_h5</code> converts them.</p>
+<p>Per 8 s chunk, mild tier, 1a276285 (1.4 h, 607 chunks):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Layout</th>
+<th style="text-align: right;">HDF5 overhead</th>
+<th style="text-align: right;">spatial U</th>
+<th style="text-align: right;">temporal Vh</th>
+<th style="text-align: right;">total</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Format 1: one HDF5 group per chunk, int32 indices</td>
+<td style="text-align: right;">9.5 kB</td>
+<td style="text-align: right;">22.7 kB</td>
+<td style="text-align: right;">31.7 kB</td>
+<td style="text-align: right;">63.8 kB</td>
+</tr>
+<tr class="even">
+<td>Format 2</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">21.6 kB</td>
+<td style="text-align: right;">25.1 kB</td>
+<td style="text-align: right;">46.7 kB</td>
+</tr>
+<tr class="odd">
+<td>Format 2 + shared basis m = 48</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">1.7 kB</td>
+<td style="text-align: right;">25.1 kB</td>
+<td style="text-align: right;">26.8 kB</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="metrics" class="level2">
-<h2 class="anchored" data-anchor-id="metrics">Metrics</h2>
-<p><span class="math display">\[\text{RMSE}(c) = \left\langle \sqrt{\left\langle (x - \hat{x})^2 \right\rangle_t} \right\rangle_{\text{snippets}} \quad [\mu\text{V}] \qquad \text{SNR}(c) = 20 \cdot \log_{10} \left( \frac{\text{RMS}(c)}{\text{RMSE}(c)} \right) \quad [\text{dB}]\]</span></p>
-<p>Aggregated as median over channels, then mean over 11 PIDs.</p>
+<section id="shared-spatial-basis" class="level2">
+<h2 class="anchored" data-anchor-id="shared-spatial-basis">Shared spatial basis</h2>
+<p>In format 2 the per-chunk U matrices are nearly half of the file, while the spatial subspace of a recording barely moves (cos² 0.98 between neighbouring chunks, 0.95 at 40 min apart). The codec runs per chunk unchanged; only the spatial factor is replaced:</p>
+<p><span class="math display">\[C_j = B^\top U_j \;(m \times r,\ \text{float16, float32 per-column scale folded into } s), \qquad U_j \approx B\,C_j\]</span></p>
+<p><span class="math inline">\(B\)</span> (384 × m, float32, once per recording) holds the top-m eigenvectors of <span class="math inline">\(\sum_j U_j s_j^2 U_j^\top / \lVert U_j s_j
+\rVert^2\)</span>, with <span class="math inline">\(U_j\)</span> truncated at the chunk’s rank so every chunk weighs the same. The temporal rows and thresholds do not depend on <span class="math inline">\(B\)</span>, so an encoder can write them as it goes and keep only <span class="math inline">\(U_j s_j\)</span> in memory (~26 kB per chunk) until <span class="math inline">\(B\)</span> is computed at the end. Re-decomposing each chunk inside <span class="math inline">\(B\)</span> instead gives the same result (bytes 0.003 %, SNR 0.001 dB, wheel R² 0.0001).</p>
 </section>
-<section id="results" class="level2">
-<h2 class="anchored" data-anchor-id="results">Results</h2>
-<section id="aggregate-benchmark-11-pids" class="level3">
-<h3 class="anchored" data-anchor-id="aggregate-benchmark-11-pids">Aggregate benchmark (11 PIDs)</h3>
+<section id="size-vs-decoding" class="level2">
+<h2 class="anchored" data-anchor-id="size-vs-decoding">Size vs decoding</h2>
+<p><strong>Protocol.</strong> 11 benchmark probes, every point fully decoded with the functional-validation pipeline (wheel R², choice and feedback balanced accuracy) on the in-memory reconstruction. α ∈ {2.5, 3.5, 5, 7, 10, 14}; m = 48 at ε ∈ {50, 70, 100}; m ∈ {32, 24, 16} and int8 C (m = 48, 24) at ε = 100; per-chunk U at ε = 100. Code: <code>shared_basis_sweep.py</code>, <code>pareto_sweep.py</code>, <code>plot_pareto.py</code>; results <code>2026-09-26_pareto_*.csv</code>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_aggregate.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point."><img src="figures/2026-06-12_adaptive_wp_aggregate.png" class="img-fluid figure-img" alt="Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point."></a></p>
-<figcaption>Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point.</figcaption>
+<p><a href="figures/2026-09-26_pareto_size-vs-decoding.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="File size vs wheel-R² change against the mild tier (top) and SNR (bottom), mean ± s.e.m. over 11 probes (error bars on the per-chunk-U and m = 48, ε = 100 references only). Left: rank threshold ε at m = 48; right: basis size and C precision at ε = 100. Dotted: uncompressed; star: mild tier."><img src="figures/2026-09-26_pareto_size-vs-decoding.png" class="img-fluid figure-img" alt="File size vs wheel-R² change against the mild tier (top) and SNR (bottom), mean ± s.e.m. over 11 probes (error bars on the per-chunk-U and m = 48, ε = 100 references only). Left: rank threshold ε at m = 48; right: basis size and C precision at ε = 100. Dotted: uncompressed; star: mild tier."></a></p>
+<figcaption>File size vs wheel-R² change against the mild tier (top) and SNR (bottom), mean ± s.e.m. over 11 probes (error bars on the per-chunk-U and m = 48, ε = 100 references only). Left: rank threshold ε at m = 48; right: basis size and C precision at ε = 100. Dotted: uncompressed; star: mild tier.</figcaption>
 </figure>
 </div>
-<p>Each curve sweeps α from 0 (single stage SVD) through 64 (aggressive WP thresholding). All curves eventually converge from CR≈100 (α≈24), meaning the wavepack is eventually catching up.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>ε = 100</th>
+<th style="text-align: right;">α</th>
+<th style="text-align: right;">1/CR</th>
+<th style="text-align: right;">size / mild</th>
+<th style="text-align: right;">SNR (dB)</th>
+<th style="text-align: right;">worst-decile SNR</th>
+<th style="text-align: right;">Δ wheel R² mean</th>
+<th style="text-align: right;">median</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>per-chunk U (mild)</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">1.59 %</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">14.4</td>
+<td style="text-align: right;">13.3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>per-chunk U</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2.33 %</td>
+<td style="text-align: right;">1.46</td>
+<td style="text-align: right;">18.5</td>
+<td style="text-align: right;">17.3</td>
+<td style="text-align: right;">+0.0025</td>
+<td style="text-align: right;">+0.0015</td>
+</tr>
+<tr class="odd">
+<td>per-chunk U</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">3.87 %</td>
+<td style="text-align: right;">2.43</td>
+<td style="text-align: right;">23.5</td>
+<td style="text-align: right;">22.2</td>
+<td style="text-align: right;">+0.0047</td>
+<td style="text-align: right;">+0.0031</td>
+</tr>
+<tr class="even">
+<td>shared m = 32</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">0.82 %</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">14.4</td>
+<td style="text-align: right;">13.3</td>
+<td style="text-align: right;">−0.0002</td>
+<td style="text-align: right;">−0.0001</td>
+</tr>
+<tr class="odd">
+<td>shared m = 32</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1.13 %</td>
+<td style="text-align: right;">0.71</td>
+<td style="text-align: right;">16.4</td>
+<td style="text-align: right;">15.2</td>
+<td style="text-align: right;">+0.0016</td>
+<td style="text-align: right;">+0.0007</td>
+</tr>
+<tr class="even">
+<td>shared m = 32</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">1.55 %</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">18.5</td>
+<td style="text-align: right;">17.3</td>
+<td style="text-align: right;">+0.0022</td>
+<td style="text-align: right;">+0.0017</td>
+</tr>
+<tr class="odd">
+<td>shared m = 32</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2.02 %</td>
+<td style="text-align: right;">1.27</td>
+<td style="text-align: right;">20.4</td>
+<td style="text-align: right;">19.2</td>
+<td style="text-align: right;">+0.0032</td>
+<td style="text-align: right;">+0.0017</td>
+</tr>
+<tr class="even">
+<td>shared m = 32</td>
+<td style="text-align: right;">3.5</td>
+<td style="text-align: right;">2.57 %</td>
+<td style="text-align: right;">1.61</td>
+<td style="text-align: right;">22.2</td>
+<td style="text-align: right;">20.9</td>
+<td style="text-align: right;">+0.0040</td>
+<td style="text-align: right;">+0.0026</td>
+</tr>
+<tr class="odd">
+<td>shared m = 32</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">3.09 %</td>
+<td style="text-align: right;">1.94</td>
+<td style="text-align: right;">23.4</td>
+<td style="text-align: right;">22.1</td>
+<td style="text-align: right;">+0.0048</td>
+<td style="text-align: right;">+0.0030</td>
+</tr>
+<tr class="even">
+<td>uncompressed</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">100 %</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">+0.0053</td>
+<td style="text-align: right;">+0.0027</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Only α moves decoding.</strong> At equal α the shared basis and per-chunk U decode identically (median paired difference 0.00001); the basis makes each α 20–50 % cheaper, more at high α.</li>
+<li><strong>More rank does not pay:</strong> ε = 70 matches ε = 100 and ε = 50 is slightly worse per byte.</li>
+<li><strong>The spatial part is exhausted at m ≈ 24–32</strong> (1–4 % of the file); m = 24–48 decode alike, m = 16 loses up to 1.6 dB SNR.</li>
+<li><strong>int8 C is a trap:</strong> −1 to −5 % bytes and &lt; 0.12 dB SNR, but wheel R² drops on 83 % of probe-α pairs (up to −0.011 on dab512bd). SNR is a poor proxy for decoding; keep C in float16.</li>
+<li><strong>The mean gap is carried by two probes</strong> (e8f9fba4 +0.031, eebcaf65 +0.014 uncompressed vs mild). Per probe, lowering α moves R² monotonically towards its own uncompressed value; the median probe reaches it at α ≈ 3.5.</li>
+<li><strong>dab512bd is the exception:</strong> worst at intermediate α (−0.013 at α = 5–7) and the probe most sensitive to any spatial approximation; unexplained.</li>
+</ul>
 </section>
-<section id="svd-spectrum-and-ε-calibration" class="level3">
-<h3 class="anchored" data-anchor-id="svd-spectrum-and-ε-calibration">SVD spectrum and ε calibration</h3>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
+<ol type="1">
+<li>Port the shared basis (projection, m = 32, float16 C) into lfpack format 2 and write v04 with <code>sdsc-slurms/2026-06-lfpack/compress.py</code> (tiers α = 14 / 7 / 2.5, reusing the archived Cadzow checkpoints).</li>
+<li><del>Region decoding on the v04 tiers</del> (done 2026-10-01, <a href="../../analyses/2026-06-lfp-compression-svd/functional_validation.html">functional validation</a>): α = 14 matches v03 mild at 0.33× the size, and unlike behaviour decoding, region decoding still improves at lower α (CV accuracy 0.518 / 0.538 / 0.544 at α = 14 / 7 / 2.5). Remaining: look into dab512bd.</li>
+</ol>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<p>Earlier work, kept for reference: a 250 Hz decimation + Cadzow denoising pipeline; a transform-method comparison where SVD dominated; an SVD-ε × WP-α calibration (which set the v03 default ε = 150, α = 28 and aggressive ε = 450, α = 96 tiers); and a gap-based rank criterion that was discarded.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Pre-processing pipeline
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Bad-channel detection</strong>: channels with anomalous variance flagged and excluded.</li>
+<li><strong>Bandpass + CAR + decimation</strong>: 2–250 Hz FIR bandpass, common-average reference, ×10 FIR decimation → 250 Hz float32.</li>
+<li><strong>Cadzow F-X denoising</strong>: per frequency bin ≤ 100 Hz, rank-r (≤ 5, adaptive by singular-value gap 2.0) SVD of the block-Toeplitz trajectory matrix of the channel vector, with outlier channels (median + 2 MAD) imputed from the model and the SVD repeated; 3 s snippets, nw = 64.</li>
+</ol>
+<p>All benchmarks run on the Cadzow-denoised signal, so residuals reflect compression loss only.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-10_epsilon_vs_rank.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Left: for each PID, \varepsilon(r) = s_r / \sigma_0 — the signal-to-noise-floor ratio of the r-th singular value — vs rank (bottom axis, 1–96). This is the \varepsilon that would select exactly rank r. Right: singular value s_r (µV) vs rank, with the per-PID noise floor \sigma_0 shown as a dashed horizontal line. The secondary top axis shows the compression ratio at each rank."><img src="figures/2026-06-10_epsilon_vs_rank.png" class="img-fluid figure-img" alt="Left: for each PID, \varepsilon(r) = s_r / \sigma_0 — the signal-to-noise-floor ratio of the r-th singular value — vs rank (bottom axis, 1–96). This is the \varepsilon that would select exactly rank r. Right: singular value s_r (µV) vs rank, with the per-PID noise floor \sigma_0 shown as a dashed horizontal line. The secondary top axis shows the compression ratio at each rank."></a></p>
-<figcaption>Left: for each PID, <span class="math inline">\(\varepsilon(r) = s_r / \sigma_0\)</span> — the signal-to-noise-floor ratio of the <span class="math inline">\(r\)</span>-th singular value — vs rank (bottom axis, 1–96). This is the <span class="math inline">\(\varepsilon\)</span> that would select exactly rank <span class="math inline">\(r\)</span>. Right: singular value <span class="math inline">\(s_r\)</span> (µV) vs rank, with the per-PID noise floor <span class="math inline">\(\sigma_0\)</span> shown as a dashed horizontal line. The secondary top axis shows the <strong>compression ratio</strong> at each rank.</figcaption>
+<p><a href="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale)."><img src="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="img-fluid figure-img" alt="Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale)."></a></p>
+<figcaption>Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale).</figcaption>
 </figure>
 </div>
-<p>Median ε values (and range across 11 PIDs) that select each evaluated rank:</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Metrics
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The Pareto and shared-basis sweeps pool signal and error energy over all written samples of a recording, SNR = 10·log₁₀ Σx² / Σe² (worst decile: 10th percentile of per-chunk SNR). The earlier SVD/WP benchmark used the median over channels of <span class="math inline">\(20\log_{10}(\mathrm{RMS}/\mathrm{RMSE})\)</span> on snippets, then the mean over 11 PIDs.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>ε and α calibration
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/2026-06-10_epsilon_vs_rank.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Left: for each PID, \varepsilon(r) = s_r / \sigma_0, the ε that selects exactly rank r, vs rank. Right: singular values (µV) with the per-PID noise floor σ₀ (dashed). Top axis: SVD-stage compression ratio."><img src="figures/2026-06-10_epsilon_vs_rank.png" class="img-fluid figure-img" alt="Left: for each PID, \varepsilon(r) = s_r / \sigma_0, the ε that selects exactly rank r, vs rank. Right: singular values (µV) with the per-PID noise floor σ₀ (dashed). Top axis: SVD-stage compression ratio."></a></p>
+<figcaption>Left: for each PID, <span class="math inline">\(\varepsilon(r) = s_r / \sigma_0\)</span>, the ε that selects exactly rank r, vs rank. Right: singular values (µV) with the per-PID noise floor σ₀ (dashed). Top axis: SVD-stage compression ratio.</figcaption>
+</figure>
+</div>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: right;">Rank</th>
 <th style="text-align: right;">ε median</th>
-<th style="text-align: left;">ε range</th>
+<th style="text-align: left;">ε range (11 PIDs)</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4073</td>
-<td style="text-align: left;">2772–4697</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2252</td>
-<td style="text-align: left;">1540–2898</td>
-</tr>
 <tr class="odd">
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">909</td>
@@ -372,249 +633,21 @@ window.Quarto = {
 <td style="text-align: right;">47</td>
 <td style="text-align: left;">22–73</td>
 </tr>
-<tr class="odd">
-<td style="text-align: right;">64</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: left;">4–22</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">96</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: left;">1–10</td>
-</tr>
 </tbody>
 </table>
-</section>
-<section id="adaptive-wp-threshold-calibration" class="level3">
-<h3 class="anchored" data-anchor-id="adaptive-wp-threshold-calibration">Adaptive WP threshold calibration</h3>
-<p>After SVD truncation at rank <span class="math inline">\(r\)</span>, each temporal component <span class="math inline">\(V_k\)</span> (a row of <span class="math inline">\(V_r^\top\)</span>, unit-L2-norm) is wavelet-packet compressed with a per-component hard threshold:</p>
-<p><span class="math display">\[\tau_k = \frac{\alpha \cdot \sigma_0}{\sigma_k}\]</span></p>
-<p>where <span class="math inline">\(\sigma_0\)</span> is the same SVD noise floor used for ε-based rank selection, <span class="math inline">\(\sigma_k\)</span> is the singular value of component <span class="math inline">\(k\)</span>, and <span class="math inline">\(\alpha\)</span> is a single global multiplier. The threshold ensures every discarded coefficient contributes less than <span class="math inline">\(\alpha \cdot \sigma_0\)</span> — uniform across all components regardless of their amplitude.</p>
-<ul>
-<li>Dominant components (large <span class="math inline">\(\sigma_k\)</span>) receive a small threshold → many WP coefficients retained.</li>
-<li>Weak components (small <span class="math inline">\(\sigma_k\)</span>) receive a large threshold → only the coarsest WP structure kept.</li>
-</ul>
-<p><strong>Choosing the operating point.</strong> <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\varepsilon\)</span> are calibrated on the 11-PID benchmark (figure below): the recommended <span class="math inline">\(\varepsilon \approx 150\)</span>, <span class="math inline">\(\alpha \approx 28\)</span> sits where CR is maximised while RMSE stays below ~25 µV, and the tight spread of the α-sweep curves across insertions confirms the pair generalises without per-recording tuning.</p>
-<p><strong>Minimum retained coefficients (survival floor).</strong> Because each <span class="math inline">\(V_k\)</span> has unit norm, its WP coefficients have a fixed magnitude ceiling (<span class="math inline">\(\max_j|w_{kj}| \approx 0.2\text{–}0.4\)</span>). When even the <em>dominant</em> component is weak relative to the noise floor — <span class="math inline">\(s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140\)</span> — the threshold <span class="math inline">\(\tau_0\)</span> exceeds every coefficient and the entire snippet is zeroed, silently discarding real low-amplitude LFP. A <strong>survival floor</strong> removes this failure mode: the dominant component (<span class="math inline">\(k=0\)</span>) always keeps its <span class="math inline">\(n_\text{min}=64\)</span> largest-magnitude coefficients, so a retained chunk can never reconstruct to exact zero. Higher-SNR recordings are bit-for-bit unchanged (their dominant row already keeps far more than <span class="math inline">\(n_\text{min}\)</span>), and saturation-muted spans — which enter the codec as all-zero — still reconstruct to zero regardless of the floor.</p>
-<p><span class="math display">\[\text{CR}_\text{total} = \text{CR}_\text{SVD} \times \text{CR}_\text{WP}, \qquad \text{CR}_\text{WP} = \frac{r \cdot n_\text{WP\,slots}}{n_\text{kept}}\]</span></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings."><img src="figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png" class="img-fluid figure-img" alt="α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings."></a></p>
-<figcaption>α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings.</figcaption>
-</figure>
-</div>
-</section>
-<section id="parameter-sweep-gallery-svd-ε-wp-α" class="level3">
-<h3 class="anchored" data-anchor-id="parameter-sweep-gallery-svd-ε-wp-α">Parameter sweep gallery (SVD-ε × WP-α)</h3>
-<p>Each cell applies SVD-adapt at threshold ε (which selects rank <span class="math inline">\(r\)</span> from the snippet’s own SV spectrum), then adaptive WP at threshold α. Rows sweep ε ∈ {150, 300, 450, 750}; the resulting rank <span class="math inline">\(r\)</span> and CR_SVD are labelled per row and per cell. Columns sweep α ∈ {0, 12, 24, 32, 48, 64, 96}; α=0 is pure-SVD reference. Total CR cells show <strong>median (min–max)</strong> across the 11 benchmark insertions.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 18%">
-<col style="width: 7%">
-<col style="width: 9%">
-<col style="width: 9%">
-<col style="width: 9%">
-<col style="width: 9%">
-<col style="width: 9%">
-<col style="width: 9%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: right;">ε</th>
-<th style="text-align: right;">r med</th>
-<th style="text-align: right;">CR_SVD med</th>
-<th style="text-align: right;">α=0</th>
-<th style="text-align: right;">α=12</th>
-<th style="text-align: right;">α=24</th>
-<th style="text-align: right;">α=32</th>
-<th style="text-align: right;">α=48</th>
-<th style="text-align: right;">α=64</th>
-<th style="text-align: right;">α=96</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">150</td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">16 (14–23)</td>
-<td style="text-align: right;">50 (41–71)</td>
-<td style="text-align: right;">94 (76–135)</td>
-<td style="text-align: right;">125 (104–183)</td>
-<td style="text-align: right;">204 (175–313)</td>
-<td style="text-align: right;">299 (235–486)</td>
-<td style="text-align: right;">538 (361–956)</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">300</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">25 (21–42)</td>
-<td style="text-align: right;">53 (45–87)</td>
-<td style="text-align: right;">98 (77–144)</td>
-<td style="text-align: right;">127 (106–188)</td>
-<td style="text-align: right;">205 (176–315)</td>
-<td style="text-align: right;">301 (236–488)</td>
-<td style="text-align: right;">538 (361–956)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">450</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">32 (28–63)</td>
-<td style="text-align: right;">65 (53–107)</td>
-<td style="text-align: right;">105 (83–156)</td>
-<td style="text-align: right;">136 (110–197)</td>
-<td style="text-align: right;">212 (180–326)</td>
-<td style="text-align: right;">304 (239–495)</td>
-<td style="text-align: right;">538 (361–956)</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">750</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">51</td>
-<td style="text-align: right;">51 (42–126)</td>
-<td style="text-align: right;">88 (70–184)</td>
-<td style="text-align: right;">126 (97–233)</td>
-<td style="text-align: right;">156 (126–275)</td>
-<td style="text-align: right;">231 (195–393)</td>
-<td style="text-align: right;">322 (259–556)</td>
-<td style="text-align: right;">550 (369–1003)</td>
-</tr>
-</tbody>
-</table>
-<p><em>(Exact r, CR, RMSE and SNR for the gallery PID (dab512bd) are labelled in each cell.)</em></p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB)."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB)."></a></p>
-<figcaption>SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB).</figcaption>
+<p><a href="figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="α vs wavelet-stage compression ratio for each SVD-stage ratio (db4, level 5). Thin lines: PIDs; heavy line: median. The curves are tight across insertions, so one α generalises across recordings."><img src="figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png" class="img-fluid figure-img" alt="α vs wavelet-stage compression ratio for each SVD-stage ratio (db4, level 5). Thin lines: PIDs; heavy line: median. The curves are tight across insertions, so one α generalises across recordings."></a></p>
+<figcaption>α vs wavelet-stage compression ratio for each SVD-stage ratio (db4, level 5). Thin lines: PIDs; heavy line: median. The curves are tight across insertions, so one α generalises across recordings.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="img-fluid figure-img" alt="Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible."></a></p>
-<figcaption>Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible.</figcaption>
+<p><a href="figures/2026-06-12_adaptive_wp_aggregate.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Adaptive SVD+WP aggregate quality. Left: median RMSE (µV) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α labelled at each point."><img src="figures/2026-06-12_adaptive_wp_aggregate.png" class="img-fluid figure-img" alt="Adaptive SVD+WP aggregate quality. Left: median RMSE (µV) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α labelled at each point."></a></p>
+<figcaption>Adaptive SVD+WP aggregate quality. Left: median RMSE (µV) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α labelled at each point.</figcaption>
 </figure>
 </div>
-</section>
-<section id="csd-gallery-pid-dab512bd" class="level3">
-<h3 class="anchored" data-anchor-id="csd-gallery-pid-dab512bd">CSD gallery (PID dab512bd)</h3>
-<p>Same ε × α grid as above, but displaying the <strong>current source density</strong> (second spatial finite difference, scaled by tissue conductivity σ = 1/3 S m⁻¹) of the reconstructed LFP. CSD emphasises the laminar sink/source structure and is more sensitive to spatial smearing than the raw LFP.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD."><img src="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD."></a></p>
-<figcaption>CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost."><img src="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="img-fluid figure-img" alt="CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost."></a></p>
-<figcaption>CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost.</figcaption>
-</figure>
-</div>
-</section>
-</section>
-<section id="appendix-per-insertion-results" class="level2">
-<h2 class="anchored" data-anchor-id="appendix-per-insertion-results">Appendix: Per-insertion results</h2>
-<p>Cadzow denoising and SVD-ε × WP-α adaptive gallery for each of the 11 benchmark insertions.</p>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID 1a276285
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_1a276285-8b0e-4cc9-9f0a-a3a002978724.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Cadzow denoising — PID 1a276285."><img src="figures/2026-06-06_cadzow_1a276285-8b0e-4cc9-9f0a-a3a002978724.png" class="img-fluid figure-img" alt="Cadzow denoising — PID 1a276285."></a></p>
-<figcaption>Cadzow denoising — PID 1a276285.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Adaptive gallery (SVD-ε × WP-α) — PID 1a276285."><img src="figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID 1a276285."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID 1a276285.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Adaptive residual gallery — PID 1a276285."><img src="figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID 1a276285."></a></p>
-<figcaption>Adaptive residual gallery — PID 1a276285.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID 1e104bf4
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Cadzow denoising — PID 1e104bf4."><img src="figures/2026-06-06_cadzow_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png" class="img-fluid figure-img" alt="Cadzow denoising — PID 1e104bf4."></a></p>
-<figcaption>Cadzow denoising — PID 1e104bf4.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4."><img src="figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Adaptive residual gallery — PID 1e104bf4."><img src="figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID 1e104bf4."></a></p>
-<figcaption>Adaptive residual gallery — PID 1e104bf4.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID 6638cfb3
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_6638cfb3-3831-4fc2-9327-194b76cf22e1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="Cadzow denoising — PID 6638cfb3."><img src="figures/2026-06-06_cadzow_6638cfb3-3831-4fc2-9327-194b76cf22e1.png" class="img-fluid figure-img" alt="Cadzow denoising — PID 6638cfb3."></a></p>
-<figcaption>Cadzow denoising — PID 6638cfb3.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16" title="Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3."><img src="figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17" title="Adaptive residual gallery — PID 6638cfb3."><img src="figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID 6638cfb3."></a></p>
-<figcaption>Adaptive residual gallery — PID 6638cfb3.</figcaption>
-</figure>
-</div>
+<p>When α/ε exceeds the largest wavelet coefficient of a weak component, that component is zeroed entirely: the wavelet stage then overrides the SVD rank.</p>
 </div>
 </div>
 </div>
@@ -624,7 +657,7 @@ window.Quarto = {
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID 749cb2b7
+<span class="screen-reader-only">Note</span>ε × α reconstruction gallery (dab512bd)
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -632,20 +665,20 @@ window.Quarto = {
 <div class="callout-body-container callout-body">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_749cb2b7-e57e-4453-a794-f6230e4d0226.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18" title="Cadzow denoising — PID 749cb2b7."><img src="figures/2026-06-06_cadzow_749cb2b7-e57e-4453-a794-f6230e4d0226.png" class="img-fluid figure-img" alt="Cadzow denoising — PID 749cb2b7."></a></p>
-<figcaption>Cadzow denoising — PID 749cb2b7.</figcaption>
+<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="SVD-ε × WP-α reconstruction gallery for PID dab512bd. Rows: ε ∈ {150, 300, 450, 750}; columns: α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels rank, CR, RMSE and SNR."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="SVD-ε × WP-α reconstruction gallery for PID dab512bd. Rows: ε ∈ {150, 300, 450, 750}; columns: α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels rank, CR, RMSE and SNR."></a></p>
+<figcaption>SVD-ε × WP-α reconstruction gallery for PID dab512bd. Rows: ε ∈ {150, 300, 450, 750}; columns: α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels rank, CR, RMSE and SNR.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png" class="lightbox" data-gallery="quarto-lightbox-gallery-19" title="Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7."><img src="figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7.</figcaption>
+<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Residual gallery (original − reconstruction), same layout and colour scale. Residuals stay spatially incoherent up to ε = 750, α = 96."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="img-fluid figure-img" alt="Residual gallery (original − reconstruction), same layout and colour scale. Residuals stay spatially incoherent up to ε = 750, α = 96."></a></p>
+<figcaption>Residual gallery (original − reconstruction), same layout and colour scale. Residuals stay spatially incoherent up to ε = 750, α = 96.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-20" title="Adaptive residual gallery — PID 749cb2b7."><img src="figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID 749cb2b7."></a></p>
-<figcaption>Adaptive residual gallery — PID 749cb2b7.</figcaption>
+<p><a href="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Current source density of the same reconstructions (colour scale: 99th percentile of the original CSD). CSD is more sensitive to spatial smearing than the LFP."><img src="figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="Current source density of the same reconstructions (colour scale: 99th percentile of the original CSD). CSD is more sensitive to spatial smearing than the LFP."></a></p>
+<figcaption>Current source density of the same reconstructions (colour scale: 99th percentile of the original CSD). CSD is more sensitive to spatial smearing than the LFP.</figcaption>
 </figure>
 </div>
 </div>
@@ -657,374 +690,26 @@ window.Quarto = {
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID d7ec0892
+<span class="screen-reader-only">Note</span>Transform methods and gap-based rank (discarded)
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
+<p>SVD, wavelet packets, DCT, DCT-δ, STFT and SVD+WP were compared on the 11 probes; SVD and SVD+WP dominate at every CR.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-21" title="Cadzow denoising — PID d7ec0892."><img src="figures/2026-06-06_cadzow_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png" class="img-fluid figure-img" alt="Cadzow denoising — PID d7ec0892."></a></p>
-<figcaption>Cadzow denoising — PID d7ec0892.</figcaption>
+<p><a href="figures/2026-06-06_compression_aggregate.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Initial aggregate benchmark (11 PIDs) including all transform methods."><img src="figures/2026-06-06_compression_aggregate.png" class="img-fluid figure-img" alt="Initial aggregate benchmark (11 PIDs) including all transform methods."></a></p>
+<figcaption>Initial aggregate benchmark (11 PIDs) including all transform methods.</figcaption>
 </figure>
 </div>
+<p>A rank criterion on the largest singular-value ratio <span class="math inline">\(s_i / s_{i+1}\)</span> was discarded: after Cadzow the ratio at rank 1 is only 1.3–2.4, with no clean signal/noise gap, so it barely tracks compression.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-22" title="Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892."><img src="figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892.</figcaption>
+<p><a href="figures/2026-06-10_gap_vs_rank.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Gap ratio s_k / s_{k+1} at each rank for the 11 PIDs; reference lines at 2, 5, 10."><img src="figures/2026-06-10_gap_vs_rank.png" class="img-fluid figure-img" alt="Gap ratio s_k / s_{k+1} at each rank for the 11 PIDs; reference lines at 2, 5, 10."></a></p>
+<figcaption>Gap ratio <span class="math inline">\(s_k / s_{k+1}\)</span> at each rank for the 11 PIDs; reference lines at 2, 5, 10.</figcaption>
 </figure>
 </div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-23" title="Adaptive residual gallery — PID d7ec0892."><img src="figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID d7ec0892."></a></p>
-<figcaption>Adaptive residual gallery — PID d7ec0892.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID da8dfec1
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png" class="lightbox" data-gallery="quarto-lightbox-gallery-24" title="Cadzow denoising — PID da8dfec1."><img src="figures/2026-06-06_cadzow_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png" class="img-fluid figure-img" alt="Cadzow denoising — PID da8dfec1."></a></p>
-<figcaption>Cadzow denoising — PID da8dfec1.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png" class="lightbox" data-gallery="quarto-lightbox-gallery-25" title="Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1."><img src="figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-26" title="Adaptive residual gallery — PID da8dfec1."><img src="figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID da8dfec1."></a></p>
-<figcaption>Adaptive residual gallery — PID da8dfec1.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID dab512bd
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-27" title="Cadzow denoising — PID dab512bd."><img src="figures/2026-06-06_cadzow_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="Cadzow denoising — PID dab512bd."></a></p>
-<figcaption>Cadzow denoising — PID dab512bd.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-28" title="Adaptive gallery (SVD-ε × WP-α) — PID dab512bd."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID dab512bd."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID dab512bd.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-29" title="Adaptive residual gallery — PID dab512bd."><img src="figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID dab512bd."></a></p>
-<figcaption>Adaptive residual gallery — PID dab512bd.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID dc7e9403
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-8" class="callout-8-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_dc7e9403-19f7-409f-9240-05ee57cb7aea.png" class="lightbox" data-gallery="quarto-lightbox-gallery-30" title="Cadzow denoising — PID dc7e9403."><img src="figures/2026-06-06_cadzow_dc7e9403-19f7-409f-9240-05ee57cb7aea.png" class="img-fluid figure-img" alt="Cadzow denoising — PID dc7e9403."></a></p>
-<figcaption>Cadzow denoising — PID dc7e9403.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png" class="lightbox" data-gallery="quarto-lightbox-gallery-31" title="Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403."><img src="figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-32" title="Adaptive residual gallery — PID dc7e9403."><img src="figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID dc7e9403."></a></p>
-<figcaption>Adaptive residual gallery — PID dc7e9403.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID e8f9fba4
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-9" class="callout-9-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-33" title="Cadzow denoising — PID e8f9fba4."><img src="figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="img-fluid figure-img" alt="Cadzow denoising — PID e8f9fba4."></a></p>
-<figcaption>Cadzow denoising — PID e8f9fba4.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="lightbox" data-gallery="quarto-lightbox-gallery-34" title="Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4."><img src="figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-35" title="Adaptive residual gallery — PID e8f9fba4."><img src="figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID e8f9fba4."></a></p>
-<figcaption>Adaptive residual gallery — PID e8f9fba4.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID eebcaf65
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-10" class="callout-10-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_eebcaf65-7fa4-4118-869d-a084e84530e2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-36" title="Cadzow denoising — PID eebcaf65."><img src="figures/2026-06-06_cadzow_eebcaf65-7fa4-4118-869d-a084e84530e2.png" class="img-fluid figure-img" alt="Cadzow denoising — PID eebcaf65."></a></p>
-<figcaption>Cadzow denoising — PID eebcaf65.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-37" title="Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65."><img src="figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-38" title="Adaptive residual gallery — PID eebcaf65."><img src="figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID eebcaf65."></a></p>
-<figcaption>Adaptive residual gallery — PID eebcaf65.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>PID fe380793
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-11" class="callout-11-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_cadzow_fe380793-8035-414e-b000-09bfe5ece92a.png" class="lightbox" data-gallery="quarto-lightbox-gallery-39" title="Cadzow denoising — PID fe380793."><img src="figures/2026-06-06_cadzow_fe380793-8035-414e-b000-09bfe5ece92a.png" class="img-fluid figure-img" alt="Cadzow denoising — PID fe380793."></a></p>
-<figcaption>Cadzow denoising — PID fe380793.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png" class="lightbox" data-gallery="quarto-lightbox-gallery-40" title="Adaptive gallery (SVD-ε × WP-α) — PID fe380793."><img src="figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png" class="img-fluid figure-img" alt="Adaptive gallery (SVD-ε × WP-α) — PID fe380793."></a></p>
-<figcaption>Adaptive gallery (SVD-ε × WP-α) — PID fe380793.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-41" title="Adaptive residual gallery — PID fe380793."><img src="figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png" class="img-fluid figure-img" alt="Adaptive residual gallery — PID fe380793."></a></p>
-<figcaption>Adaptive residual gallery — PID fe380793.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>SVD-adapt-WP algorithm in detail
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-12" class="callout-12-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>The two-stage algorithm operates on a snippet matrix <span class="math inline">\(X \in \mathbb{R}^{n_c \times n_s}\)</span> (channels × samples):</p>
-<p><strong>Stage 1 — spatial compression (SVD)</strong></p>
-<p><span class="math display">\[X \approx \hat{X}_1 = U_r \, \text{diag}(s_r) \, V_r^\top\]</span></p>
-<p>where <span class="math inline">\(U_r \in \mathbb{R}^{n_c \times r}\)</span>, <span class="math inline">\(s_r \in \mathbb{R}^r\)</span>, <span class="math inline">\(V_r^\top \in \mathbb{R}^{r \times n_s}\)</span> are the top-<span class="math inline">\(r\)</span> singular triplets. The rank <span class="math inline">\(r\)</span> is chosen to achieve a target CR (e.g.&nbsp;CR=24 → <span class="math inline">\(r \approx 12\)</span>).</p>
-<p><strong>Stage 2 — temporal compression (wavelet packets)</strong></p>
-<p>Each of the <span class="math inline">\(r\)</span> rows of <span class="math inline">\(V_r^\top\)</span> is independently compressed using db4 wavelet packet decomposition (level 5). Only the top-<span class="math inline">\(f\)</span> fraction of coefficients by magnitude are retained, giving an overall:</p>
-<p><span class="math display">\[\text{CR}_{\text{total}} = \frac{n_c \, n_s}{r(n_c + n_s)} \cdot \frac{1}{f}\]</span></p>
-<p><strong>SVD-adapt (ε-sweep)</strong> selects rank automatically using:</p>
-<p><span class="math display">\[\sigma_0 = \text{median}(s_{\lfloor r/2 \rfloor + 1}, \ldots, s_r), \qquad r^* = \max\{k : s_k &gt; \varepsilon \cdot \sigma_0\}\]</span></p>
-<p>Here <span class="math inline">\(\sigma_0\)</span> is the noise-floor estimate (median of the lower half of the full singular value spectrum), and <span class="math inline">\(\varepsilon\)</span> is a dimensionless threshold — the minimum signal-to-noise-floor ratio <span class="math inline">\(s_k / \sigma_0\)</span> required to retain a component. Equivalently, <span class="math inline">\(\varepsilon(r) = s_r / \sigma_0\)</span> is the <span class="math inline">\(\varepsilon\)</span> that would select exactly rank <span class="math inline">\(r\)</span> (as shown in the calibration figure). Sweeping <span class="math inline">\(\varepsilon\)</span> from <span class="math inline">\(10^4\)</span> (keep only the dominant component) down to <span class="math inline">\(10^{-1}\)</span> (keep almost everything) traces out the full CR curve.</p>
-<p><strong>Reconstruction</strong> reverses the two stages: reconstruct each wavelet-compressed row, then reassemble <span class="math inline">\(\hat{X} = U_r \, \text{diag}(s_r) \, \hat{V}_r^\top\)</span>.</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>WP coefficient selection: per-coefficient error thresholding
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-13" class="callout-13-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p><strong>Setup.</strong> After SVD truncation at rank <span class="math inline">\(r\)</span>, each retained temporal component is a row <span class="math inline">\(V_k \in \mathbb{R}^{n_s}\)</span> of <span class="math inline">\(V_r^\top\)</span> with unit <span class="math inline">\(\ell_2\)</span>-norm (<span class="math inline">\(\|V_k\|_2 = 1\)</span>, since <span class="math inline">\(V\)</span> is orthonormal). The full reconstruction contribution of component <span class="math inline">\(k\)</span> to <span class="math inline">\(X\)</span> is <span class="math inline">\(s_k U_k V_k^\top\)</span>, whose Frobenius norm is <span class="math inline">\(s_k\)</span>.</p>
-<p><strong>Wavelet-packet decomposition.</strong> Each <span class="math inline">\(V_k\)</span> is decomposed into <span class="math inline">\(n_\text{WP}\)</span> coefficients <span class="math inline">\(\{w_{kj}\}\)</span> via a full db4 wavelet-packet tree at level 5 (for <span class="math inline">\(n_s = 750\)</span>, <span class="math inline">\(n_\text{WP} = 960\)</span>). Because the WP transform is orthogonal, <span class="math inline">\(\sum_j w_{kj}^2 = \|V_k\|_2^2 = 1\)</span>.</p>
-<p><strong>Per-component hard threshold.</strong> For each component <span class="math inline">\(k\)</span>, a threshold is set as</p>
-<p><span class="math display">\[\tau_k = \frac{\alpha \cdot \sigma_0}{s_k}\]</span></p>
-<p>and coefficient <span class="math inline">\(w_{kj}\)</span> is retained only if <span class="math inline">\(|w_{kj}| \geq \tau_k\)</span>; otherwise it is set to zero:</p>
-<p><span class="math display">\[\tilde{w}_{kj} = w_{kj} \cdot \mathbf{1}\!\left[|w_{kj}| \geq \tau_k\right]\]</span></p>
-<p><strong>Per-coefficient error guarantee.</strong> Zeroing <span class="math inline">\(w_{kj}\)</span> changes the reconstruction by <span class="math inline">\(s_k \, U_k \cdot \delta v_{kj}^\top\)</span>, where <span class="math inline">\(\delta v_{kj}\)</span> is the inverse-WP basis vector for coefficient <span class="math inline">\(j\)</span> with unit norm. The resulting Frobenius error contribution is</p>
-<p><span class="math display">\[s_k \cdot |w_{kj}| \;&lt;\; s_k \cdot \tau_k \;=\; \alpha \cdot \sigma_0\]</span></p>
-<p><em>Every discarded coefficient, in every component, contributes less than <span class="math inline">\(\alpha \cdot \sigma_0\)</span> to the reconstruction error</em> — uniformly across all ranks. This is the same absolute noise-floor reference <span class="math inline">\(\sigma_0\)</span> used by the SVD stage, so the two thresholds speak the same language.</p>
-<p><strong>Compression ratio.</strong> The WP stage CR is the ratio of total available coefficient slots to those retained:</p>
-<p><span class="math display">\[\text{CR}_\text{WP} = \frac{r \cdot n_\text{WP}}{\#\{(k,j) : s_k |w_{kj}| \geq \alpha\sigma_0\}}\]</span></p>
-<p><strong>Behaviour across the component spectrum.</strong></p>
-<p>For a component with singular value <span class="math inline">\(s_k = q \cdot \varepsilon \cdot \sigma_0\)</span> (where <span class="math inline">\(q \geq 1\)</span>, since only components above the SVD threshold are retained), the WP threshold becomes</p>
-<p><span class="math display">\[\tau_k = \frac{\alpha}{q \cdot \varepsilon}\]</span></p>
-<ul>
-<li><strong>Dominant components</strong> (<span class="math inline">\(q \gg 1\)</span>, <span class="math inline">\(s_k \gg \varepsilon\sigma_0\)</span>): <span class="math inline">\(\tau_k\)</span> is small, many WP coefficients survive — the component’s full temporal structure is preserved with only fine-scale details discarded.</li>
-<li><strong>Marginal components</strong> (<span class="math inline">\(q \approx 1\)</span>, <span class="math inline">\(s_k \approx \varepsilon\sigma_0\)</span>): <span class="math inline">\(\tau_k \approx \alpha/\varepsilon\)</span>. If <span class="math inline">\(\alpha/\varepsilon\)</span> exceeds the largest WP coefficient magnitude of <span class="math inline">\(V_k\)</span> (empirically 0.05–0.2 for LFP), the entire component is zeroed. This is consistent behaviour: the component was weakly significant spatially <em>and</em> has no concentrated temporal structure, so it genuinely carries little information.</li>
-</ul>
-<p>This component-level zeroing is not a design flaw — it is the natural outcome of applying a uniform per-coefficient error threshold to components with flat (noise-like) temporal spectra. In practice, at the recommended operating point (<span class="math inline">\(\varepsilon \approx 150\)</span>, <span class="math inline">\(\alpha \approx 28\)</span>, <span class="math inline">\(\alpha/\varepsilon \approx 0.19\)</span>), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.</p>
-<p><strong>Relationship to the SVD threshold.</strong> The two parameters are not independent: when <span class="math inline">\(\alpha/\varepsilon &gt; \max_j |w_{r,j}|\)</span> (the largest WP coefficient of the weakest retained component), WP overrides the SVD rank selection. The curves in the aggregate figure converge at high <span class="math inline">\(\alpha\)</span> because all <span class="math inline">\(\varepsilon\)</span> settings end up keeping the same dominant components once <span class="math inline">\(\alpha\)</span> is large enough to purge the weaker ones. The non-redundant operating region is <span class="math inline">\(\alpha/\varepsilon \lesssim 0.1\)</span>, where WP compresses temporal structure within every kept component without discarding any of them entirely.</p>
-<p><strong>Survival floor on the dominant component.</strong> Purging <em>weak</em> components (above) is benign. The pathological case is when the same mechanism zeroes the <em>dominant</em> component <span class="math inline">\(k=0\)</span>: this happens on low-SNR recordings where <span class="math inline">\(s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140\)</span>, at which point <span class="math inline">\(\tau_0\)</span> exceeds every coefficient of <span class="math inline">\(V_0\)</span>, <span class="math inline">\(\hat V_r^\top = 0\)</span>, and the chunk reconstructs to exact zero — destroying genuine low-amplitude LFP. To bound this, the dominant component always retains its <span class="math inline">\(n_\text{min}=64\)</span> largest-magnitude WP coefficients regardless of <span class="math inline">\(\tau_0\)</span>: <span class="math display">\[\#\{j : \tilde w_{0j} \neq 0\} \geq \min(n_\text{min},\, n_\text{WP}).\]</span> The floor is applied only to <span class="math inline">\(k=0\)</span>, so weaker components still vanish (preserving CR), and it is a no-op on healthy recordings, whose dominant row already keeps <span class="math inline">\(\gg n_\text{min}\)</span> coefficients — leaving their reconstruction bit-for-bit identical. A genuinely silent input (e.g.&nbsp;a saturation-muted span) has <span class="math inline">\(s_0 = 0\)</span> hence <span class="math inline">\(U_r\,\text{diag}(s_r) = 0\)</span>, so it still reconstructs to zero and the floor cannot fabricate signal.</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Cadzow denoising with adaptive rank and imputation
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-14" class="callout-14-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p><strong>F-X Cadzow: working frequency bin by frequency bin</strong> <em>(parameters used: nw=64, f_max=100 Hz, max rank r=5, gap_threshold=2.0, ppca_k=2.0)</em></p>
-<p>This is the <em>F-X</em> (frequency–space) variant of Cadzow denoising, borrowed from seismic processing. Rather than applying SVD to the full time × channel matrix, the algorithm works one frequency bin at a time:</p>
-<ol type="1">
-<li><strong>rfft</strong> the snippet → complex array <span class="math inline">\(W \in \mathbb{C}^{n_c \times n_f}\)</span>.</li>
-<li>For each frequency bin <span class="math inline">\(f \leq f_\text{max}\)</span>, extract the spatial vector <span class="math inline">\(w_f \in \mathbb{C}^{n_c}\)</span> (one complex amplitude per channel).</li>
-<li>Build a <strong>block-Toeplitz trajectory matrix</strong> <span class="math inline">\(T_f\)</span> from <span class="math inline">\(w_f\)</span>.</li>
-<li>Compute the rank-<span class="math inline">\(r\)</span> SVD of <span class="math inline">\(T_f\)</span>, zero the remaining singular values, and read off the denoised amplitudes.</li>
-<li><strong>irfft</strong> back to the time domain.</li>
-</ol>
-<p><strong>Outlier imputation (<code>ppca_k</code>)</strong>: after the first rank-<span class="math inline">\(r\)</span> projection, channels deviating by more than <span class="math inline">\(\text{median} + k \cdot \text{MAD}\)</span> are replaced by their model prediction; the SVD is repeated on the cleaned data.</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Prior context: transform methods
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-15" class="callout-15-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Before focusing on SVD variants, we benchmarked six approaches: SVD, Wavelet Packets (WP), DCT, DCT-δ, STFT, and SVD+WP. SVD consistently outperformed all transform-only methods at every compression ratio. The figure below shows the full comparison; the current analysis refines and extends only the SVD family.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_compression_aggregate.png" class="lightbox" data-gallery="quarto-lightbox-gallery-42" title="Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout."><img src="figures/2026-06-06_compression_aggregate.png" class="img-fluid figure-img" alt="Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout."></a></p>
-<figcaption>Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-43" title="Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30."><img src="figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png" class="img-fluid figure-img" alt="Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30."></a></p>
-<figcaption>Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30.</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="lightbox" data-gallery="quarto-lightbox-gallery-44" title="Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR."><img src="figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png" class="img-fluid figure-img" alt="Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR."></a></p>
-<figcaption>Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Prior-context: Gap-criterion rank selection (discarded)
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-16" class="callout-16-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>We investigated an alternative rank-selection criterion based on the largest relative drop in the singular value spectrum (the “gap”):</p>
-<p><span class="math display">\[r_\text{gap} = \underset{i}{\arg\max}\; \frac{s_i}{s_{i+1}} + 1\]</span></p>
-<p>We also swept a gap threshold <span class="math inline">\(g\)</span>, defining rank as the last position where <span class="math inline">\(s_k / s_{k+1} \geq g\)</span>.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/2026-06-10_gap_vs_rank.png" class="lightbox" data-gallery="quarto-lightbox-gallery-45" title="Gap ratio sv[k]/sv[k+1] at each rank boundary for each of the 11 PIDs. Reference lines at g=2, 5, 10."><img src="figures/2026-06-10_gap_vs_rank.png" class="img-fluid figure-img" alt="Gap ratio sv[k]/sv[k+1] at each rank boundary for each of the 11 PIDs. Reference lines at g=2, 5, 10."></a></p>
-<figcaption>Gap ratio sv[k]/sv[k+1] at each rank boundary for each of the 11 PIDs. Reference lines at g=2, 5, 10.</figcaption>
-</figure>
-</div>
-<p>The figure reveals why this criterion was discarded: after Cadzow denoising, the SV ratio at rank 1 is only <strong>1.3–2.4</strong> across all 11 PIDs — the dominant “gap” is barely larger than the secondary gaps. There is no clean separation between signal and noise in the SV ratio spectrum, so the gap threshold has very little sensitivity to the compression ratio. The ε-threshold (noise-floor-relative) criterion is far better calibrated for this data.</p>
 </div>
 </div>
 </div>
@@ -1487,374 +1172,196 @@ window.Quarto = {
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "LFP Compression Benchmark: SVD and Adaptive SVD+WP Methods"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Benchmarking SVD-based LFP compression methods on 11 Neuropixels insertions, evaluating RMSE and SNR across compression ratios up to 3000×."</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "LFP Compression: lfpack v04 Tiers"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "lfpack's SVD + wavelet-packet LFP codec on 11 Neuropixels insertions: format 2, a shared spatial basis that halves the file, and the three α tiers chosen for the v04 archive."</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-06-09"</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [electrophysiology, LFP, compression, Neuropixels]</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>The IBL holds **936 hours** of Brainwide Map (BWM) recordings and **1472 hours** from the Ephys Atlas.</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone.</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming.</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>The goal is to identify a lossy compression strategy that reduces this further.</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> "2026-09-27"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [electrophysiology, LFP, compression, Neuropixels]</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>lfpack decimates Neuropixels LFP to 250 Hz, denoises it with Cadzow, and compresses each 8 s chunk with an SVD</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>(spatial) followed by wavelet-packet thresholding of the temporal rows. Two lossless-to-negligible changes and one</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>decoding-driven choice set the next archive release, **v04** (v03 deprecated):</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>**Practical recommendation: SVD + WP (ε≈150, α≈28) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.**</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>**This would shrink the 936-hour BWM dataset to ~9.6 Gb.**</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Pre-processing pipeline</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**File format 2** (lossless): **−29 %** against format 1, same random-access latency.</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Shared spatial basis** per recording (m = 32, float16 coefficients): makes every tier **20–50 % smaller** at</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>   identical decoding.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**α, the temporal threshold, is the only parameter that moves behaviour decoding.** v04 ships three tiers at</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>   ε = 100: α = 14, 7 and 2.5.</span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>Raw LFP (NP1, 2500 Hz, <span class="in">`.cbin`</span>) was preprocessed before benchmarking:</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Bad-channel detection** — channels with anomalous variance flagged and excluded.</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Bandpass + CAR + decimation** — 2–250 Hz FIR bandpass, common-average referencing, ×10 FIR decimation → 250 Hz float32.</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Cadzow PPCA spatial denoising** — F-X Cadzow on 3 s snippets (nw=64, f_max=100 Hz, max rank r=5, adaptive rank via singular-value gap threshold=2.0, PPCA outlier k=2.0) to remove incoherent channel noise.</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>All methods were benchmarked on the Cadzow-denoised snippets so residuals reflect compression loss, not pre-existing noise.</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale).](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## Compression methods</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> v04 tier (ε = 100, m = 32) <span class="pp">|</span> 1/CR <span class="pp">|</span> size / mild <span class="pp">|</span> SNR (dB) <span class="pp">|</span> wheel R² below uncompressed (mean / median over probes) <span class="pp">|</span> Ephys Atlas (1099 PIDs) <span class="pp">|</span> BWM <span class="pp">|</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|---:|---:|---:|---:|</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α = 14 <span class="pp">|</span> 0.82 % <span class="pp">|</span> 0.51 <span class="pp">|</span> 14.4 <span class="pp">|</span> 0.0054 / 0.0039 <span class="pp">|</span> ~12 GB <span class="pp">|</span> ~8.5 GB <span class="pp">|</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α = 7 <span class="pp">|</span> 1.55 % <span class="pp">|</span> 0.97 <span class="pp">|</span> 18.5 <span class="pp">|</span> 0.0030 / 0.0016 <span class="pp">|</span> ~24 GB <span class="pp">|</span> ~16 GB <span class="pp">|</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α = 2.5 <span class="pp">|</span> 3.09 % <span class="pp">|</span> 1.94 <span class="pp">|</span> 23.4 <span class="pp">|</span> 0.0005 / 0.0003 <span class="pp">|</span> ~47 GB <span class="pp">|</span> ~32 GB <span class="pp">|</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> *v03 mild (format 1, per-chunk U, α = 14)* | *2.24 %* | *1.41* | *14.4* | *0.0053 / 0.0027* | *34.2 GB* | *23.3 GB* <span class="pp">|</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>Sizes: 1/CR = file / uncompressed float32 at 250 Hz, and file / mild tier (format 2, per-chunk U, ε = 100, α = 14),</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>both on summed file sizes over 11 benchmark probes. Archive sizes scale the real v03 mild files by 0.71 (format 2) and</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>by size / mild; the Ephys Atlas cohort includes BWM. Choice and feedback decoding stay within noise at every tier; the</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>effect of the tiers on region decoding is on the <span class="co">[</span><span class="ot">functional validation page</span><span class="co">](functional_validation.qmd)</span>.</span>
 <span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Method <span class="pp">|</span> Principle <span class="pp">|</span> CR formula <span class="pp">|</span> Parameters <span class="pp">|</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **SVD-adapt** <span class="pp">|</span> First-stage: truncated SVD with adaptive rank: retain components where $s_k &gt; \varepsilon \cdot \sigma_0$, with $\sigma_0 = \text{median}(\text{lower half of } s)$ as the noise-floor estimate. $\varepsilon$ is swept to cover the full CR range. <span class="pp">|</span> $n_c n_s / (r_\varepsilon(n_c+n_s))$ <span class="pp">|</span> ε ∈ logspace(10⁴, 10⁻¹, 30) <span class="pp">|</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **WP** <span class="pp">|</span> Second-stage: db4 wavelet-packet adaptive thresholding on the $r$ temporal rows of $V_r^\top$. Per-component threshold $\tau_k = \alpha \sigma_0 / \sigma_k$ ensures uniform error contribution across all ranks. <span class="pp">|</span> $\text{CR}_\text{SVD} \times \text{CR}_\text{WP}$ <span class="pp">|</span> ε (SVD stage), α (WP stage) <span class="pp">|</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## Metrics</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>$$\text{RMSE}(c) = \left\langle \sqrt{\left\langle (x - \hat{x})^2 \right\rangle_t} \right\rangle_{\text{snippets}} \quad <span class="co">[</span><span class="ot">\mu\text{V}</span><span class="co">]</span> \qquad \text{SNR}(c) = 20 \cdot \log_{10} \left( \frac{\text{RMS}(c)}{\text{RMSE}(c)} \right) \quad <span class="co">[</span><span class="ot">\text{dB}</span><span class="co">]</span>$$</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="al">![The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 probes, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding).](figures/2026-09-27_pareto_v04-tiers.png)</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="fu">## Codec in brief</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>Each 8 s chunk $X_j$ (384 channels × 2048 samples, plus 128 guard samples each side) is factorised as</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>$$X_j \approx U_r\,\mathrm{diag}(s_r)\,\hat V_r^\top, \qquad r = <span class="sc">\#\{</span>k : s_k &gt; \varepsilon\,\sigma_0<span class="sc">\}</span>, \qquad</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>\tau_k = \alpha\,\sigma_0 / s_k$$</span>
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>Aggregated as median over channels, then mean over 11 PIDs.</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### Aggregate benchmark (11 PIDs)</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>where $\sigma_0$ is the median of the lower half of the singular values, ε sets the rank (≈ 17 at ε = 100) and α the</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>hard threshold on the db4 level-5 wavelet-packet coefficients of each temporal row. Every discarded coefficient</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>therefore costs less than α σ₀ of reconstruction error, whatever its component. The dominant row always keeps its 64</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>largest coefficients, so a low-SNR chunk never reconstructs to zero. A walk-through of every array is in the</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>**lfpack Matrix Anatomy** page (<span class="ot">&lt;https://claude.ai/artifact/3KqmXv3z7tsrbWSrMXTsU1&gt;</span>).</span>
 <span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point.](figures/2026-06-12_adaptive_wp_aggregate.png)</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="fu">## File format 2</span></span>
 <span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>Each curve sweeps α from 0 (single stage SVD) through 64 (aggressive WP thresholding).</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>All curves eventually converge from CR≈100 (α≈24), meaning the wavepack is eventually catching up.</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="fu">### SVD spectrum and ε calibration</span></span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="al">![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$ — the signal-to-noise-floor ratio of the $r$-th singular value — vs rank (bottom axis, 1–96). This is the $\varepsilon$ that would select exactly rank $r$. Right: singular value $s_r$ (µV) vs rank, with the per-PID noise floor $\sigma_0$ shown as a dashed horizontal line. The secondary top axis shows the **compression ratio** at each rank.](figures/2026-06-10_epsilon_vs_rank.png)</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>Median ε values (and range across 11 PIDs) that select each evaluated rank:</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rank <span class="pp">|</span> ε median <span class="pp">|</span> ε range <span class="pp">|</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----:|--------:|:--------|</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1 <span class="pp">|</span> 4073 <span class="pp">|</span> 2772–4697 <span class="pp">|</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> 2252 <span class="pp">|</span> 1540–2898 <span class="pp">|</span></span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> 909 <span class="pp">|</span> 574–1240 <span class="pp">|</span></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 8 <span class="pp">|</span> 461 <span class="pp">|</span> 255–584 <span class="pp">|</span></span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 16 <span class="pp">|</span> 155 <span class="pp">|</span> 89–207 <span class="pp">|</span></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 32 <span class="pp">|</span> 47 <span class="pp">|</span> 22–73 <span class="pp">|</span></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 64 <span class="pp">|</span> 10 <span class="pp">|</span> 4–22 <span class="pp">|</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 96 <span class="pp">|</span> 4 <span class="pp">|</span> 1–10 <span class="pp">|</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>Format 2 (lfpack branch <span class="in">`feat/container-v2`</span>) stores all chunks of a scale in four flat datasets (<span class="in">`chunk_table`</span>,</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="in">`u_values`</span>, <span class="in">`vh_deltas`</span>, <span class="in">`vh_values`</span>) with offsets from the chunk table, so a random read still touches one or two</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>64 kB storage blocks. Indices are uint16 deltas, and the ~9 % of kept wavelet coefficients whose synthesis function is</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>zero over the written samples are dropped, which is exactly lossless. Old files stay readable; <span class="in">`lfpack.upgrade_h5`</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>converts them.</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>Per 8 s chunk, mild tier, 1a276285 (1.4 h, 607 chunks):</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Layout <span class="pp">|</span> HDF5 overhead <span class="pp">|</span> spatial U <span class="pp">|</span> temporal Vh <span class="pp">|</span> total <span class="pp">|</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|---:|---:|</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Format 1: one HDF5 group per chunk, int32 indices <span class="pp">|</span> 9.5 kB <span class="pp">|</span> 22.7 kB <span class="pp">|</span> 31.7 kB <span class="pp">|</span> 63.8 kB <span class="pp">|</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Format 2 <span class="pp">|</span> — <span class="pp">|</span> 21.6 kB <span class="pp">|</span> 25.1 kB <span class="pp">|</span> 46.7 kB <span class="pp">|</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Format 2 + shared basis m = 48 <span class="pp">|</span> — <span class="pp">|</span> 1.7 kB <span class="pp">|</span> 25.1 kB <span class="pp">|</span> 26.8 kB <span class="pp">|</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## Shared spatial basis</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>In format 2 the per-chunk U matrices are nearly half of the file, while the spatial subspace of a recording barely moves</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>(cos² 0.98 between neighbouring chunks, 0.95 at 40 min apart). The codec runs per chunk unchanged; only the spatial</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>factor is replaced:</span>
 <span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="fu">### Adaptive WP threshold calibration</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>$$C_j = B^\top U_j \;(m \times r,\ \text{float16, float32 per-column scale folded into } s), \qquad U_j \approx B\,C_j$$</span>
 <span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>After SVD truncation at rank $r$, each temporal component $V_k$ (a row of $V_r^\top$, unit-L2-norm) is wavelet-packet compressed with a per-component hard threshold:</span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>$$\tau_k = \frac{\alpha \cdot \sigma_0}{\sigma_k}$$</span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>where $\sigma_0$ is the same SVD noise floor used for ε-based rank selection, $\sigma_k$ is the singular value of component $k$, and $\alpha$ is a single global multiplier.</span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>The threshold ensures every discarded coefficient contributes less than $\alpha \cdot \sigma_0$ — uniform across all components regardless of their amplitude.</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Dominant components (large $\sigma_k$) receive a small threshold → many WP coefficients retained.</span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Weak components (small $\sigma_k$) receive a large threshold → only the coarsest WP structure kept.</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>**Choosing the operating point.** $\alpha$ and $\varepsilon$ are calibrated on the 11-PID benchmark (figure below): the recommended $\varepsilon \approx 150$, $\alpha \approx 28$ sits where CR is maximised while RMSE stays below ~25 µV, and the tight spread of the α-sweep curves across insertions confirms the pair generalises without per-recording tuning.</span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>**Minimum retained coefficients (survival floor).** Because each $V_k$ has unit norm, its WP coefficients have a fixed magnitude ceiling ($\max_j|w_{kj}| \approx 0.2\text{–}0.4$). When even the *dominant* component is weak relative to the noise floor — $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$ — the threshold $\tau_0$ exceeds every coefficient and the entire snippet is zeroed, silently discarding real low-amplitude LFP. A **survival floor** removes this failure mode: the dominant component ($k=0$) always keeps its $n_\text{min}=64$ largest-magnitude coefficients, so a retained chunk can never reconstruct to exact zero. Higher-SNR recordings are bit-for-bit unchanged (their dominant row already keeps far more than $n_\text{min}$), and saturation-muted spans — which enter the codec as all-zero — still reconstruct to zero regardless of the floor.</span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>$$\text{CR}_\text{total} = \text{CR}_\text{SVD} \times \text{CR}_\text{WP}, \qquad \text{CR}_\text{WP} = \frac{r \cdot n_\text{WP\,slots}}{n_\text{kept}}$$</span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="al">![α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings.](figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png)</span></span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="fu">### Parameter sweep gallery (SVD-ε × WP-α)</span></span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>Each cell applies SVD-adapt at threshold ε (which selects rank $r$ from the snippet's own SV spectrum), then adaptive WP at threshold α.</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>Rows sweep ε ∈ {150, 300, 450, 750}; the resulting rank $r$ and CR_SVD are labelled per row and per cell.</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>Columns sweep α ∈ {0, 12, 24, 32, 48, 64, 96}; α=0 is pure-SVD reference.</span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>Total CR cells show **median (min–max)** across the 11 benchmark insertions.</span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ε   <span class="pp">|</span> r med <span class="pp">|</span> CR_SVD med <span class="pp">|</span> α=0 <span class="pp">|</span> α=12 <span class="pp">|</span> α=24 <span class="pp">|</span> α=32 <span class="pp">|</span> α=48 <span class="pp">|</span> α=64 <span class="pp">|</span> α=96 <span class="pp">|</span></span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|----:|------:|-----------:|----:|-----:|-----:|-----:|-----:|-----:|-----:|</span></span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 150 <span class="pp">|</span> 16 <span class="pp">|</span> 16 <span class="pp">|</span> 16 (14–23) <span class="pp">|</span> 50 (41–71) <span class="pp">|</span> 94 (76–135) <span class="pp">|</span> 125 (104–183) <span class="pp">|</span> 204 (175–313) <span class="pp">|</span> 299 (235–486) <span class="pp">|</span> 538 (361–956) <span class="pp">|</span></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 300 <span class="pp">|</span> 10 <span class="pp">|</span> 25 <span class="pp">|</span> 25 (21–42) <span class="pp">|</span> 53 (45–87) <span class="pp">|</span> 98 (77–144) <span class="pp">|</span> 127 (106–188) <span class="pp">|</span> 205 (176–315) <span class="pp">|</span> 301 (236–488) <span class="pp">|</span> 538 (361–956) <span class="pp">|</span></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 450 <span class="pp">|</span>  8 <span class="pp">|</span> 32 <span class="pp">|</span> 32 (28–63) <span class="pp">|</span> 65 (53–107) <span class="pp">|</span> 105 (83–156) <span class="pp">|</span> 136 (110–197) <span class="pp">|</span> 212 (180–326) <span class="pp">|</span> 304 (239–495) <span class="pp">|</span> 538 (361–956) <span class="pp">|</span></span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 750 <span class="pp">|</span>  5 <span class="pp">|</span> 51 <span class="pp">|</span> 51 (42–126) <span class="pp">|</span> 88 (70–184) <span class="pp">|</span> 126 (97–233) <span class="pp">|</span> 156 (126–275) <span class="pp">|</span> 231 (195–393) <span class="pp">|</span> 322 (259–556) <span class="pp">|</span> 550 (369–1003) <span class="pp">|</span></span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>*(Exact r, CR, RMSE and SNR for the gallery PID (dab512bd) are labelled in each cell.)*</span>
-<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="al">![SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB).](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
-<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="al">![Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)</span></span>
-<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="fu">### CSD gallery (PID dab512bd)</span></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>$B$ (384 × m, float32, once per recording) holds the top-m eigenvectors of $\sum_j U_j s_j^2 U_j^\top / \lVert U_j s_j</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>\rVert^2$, with $U_j$ truncated at the chunk's rank so every chunk weighs the same. The temporal rows and thresholds do</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>not depend on $B$, so an encoder can write them as it goes and keep only $U_j s_j$ in memory (~26 kB per chunk) until</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>$B$ is computed at the end. Re-decomposing each chunk inside $B$ instead gives the same result (bytes 0.003 %, SNR</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>0.001 dB, wheel R² 0.0001).</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="fu">## Size vs decoding</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>**Protocol.** 11 benchmark probes, every point fully decoded with the functional-validation pipeline (wheel R², choice</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>and feedback balanced accuracy) on the in-memory reconstruction. α ∈ {2.5, 3.5, 5, 7, 10, 14}; m = 48 at</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>ε ∈ {50, 70, 100}; m ∈ {32, 24, 16} and int8 C (m = 48, 24) at ε = 100; per-chunk U at ε = 100. Code:</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="in">`shared_basis_sweep.py`</span>, <span class="in">`pareto_sweep.py`</span>, <span class="in">`plot_pareto.py`</span>; results <span class="in">`2026-09-26_pareto_*.csv`</span>.</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="al">![File size vs wheel-R² change against the mild tier (top) and SNR (bottom), mean ± s.e.m. over 11 probes (error bars on the per-chunk-U and m = 48, ε = 100 references only). Left: rank threshold ε at m = 48; right: basis size and C precision at ε = 100. Dotted: uncompressed; star: mild tier.](figures/2026-09-26_pareto_size-vs-decoding.png)</span></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ε = 100 <span class="pp">|</span> α <span class="pp">|</span> 1/CR <span class="pp">|</span> size / mild <span class="pp">|</span> SNR (dB) <span class="pp">|</span> worst-decile SNR <span class="pp">|</span> Δ wheel R² mean <span class="pp">|</span> median <span class="pp">|</span></span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|---:|---:|---:|---:|---:|</span></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> per-chunk U (mild) <span class="pp">|</span> 14 <span class="pp">|</span> 1.59 % <span class="pp">|</span> 1.00 <span class="pp">|</span> 14.4 <span class="pp">|</span> 13.3 <span class="pp">|</span> 0 <span class="pp">|</span> 0 <span class="pp">|</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> per-chunk U <span class="pp">|</span> 7 <span class="pp">|</span> 2.33 % <span class="pp">|</span> 1.46 <span class="pp">|</span> 18.5 <span class="pp">|</span> 17.3 <span class="pp">|</span> +0.0025 <span class="pp">|</span> +0.0015 <span class="pp">|</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> per-chunk U <span class="pp">|</span> 2.5 <span class="pp">|</span> 3.87 % <span class="pp">|</span> 2.43 <span class="pp">|</span> 23.5 <span class="pp">|</span> 22.2 <span class="pp">|</span> +0.0047 <span class="pp">|</span> +0.0031 <span class="pp">|</span></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 14 <span class="pp">|</span> 0.82 % <span class="pp">|</span> 0.51 <span class="pp">|</span> 14.4 <span class="pp">|</span> 13.3 <span class="pp">|</span> −0.0002 <span class="pp">|</span> −0.0001 <span class="pp">|</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 10 <span class="pp">|</span> 1.13 % <span class="pp">|</span> 0.71 <span class="pp">|</span> 16.4 <span class="pp">|</span> 15.2 <span class="pp">|</span> +0.0016 <span class="pp">|</span> +0.0007 <span class="pp">|</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 7 <span class="pp">|</span> 1.55 % <span class="pp">|</span> 0.97 <span class="pp">|</span> 18.5 <span class="pp">|</span> 17.3 <span class="pp">|</span> +0.0022 <span class="pp">|</span> +0.0017 <span class="pp">|</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 5 <span class="pp">|</span> 2.02 % <span class="pp">|</span> 1.27 <span class="pp">|</span> 20.4 <span class="pp">|</span> 19.2 <span class="pp">|</span> +0.0032 <span class="pp">|</span> +0.0017 <span class="pp">|</span></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 3.5 <span class="pp">|</span> 2.57 % <span class="pp">|</span> 1.61 <span class="pp">|</span> 22.2 <span class="pp">|</span> 20.9 <span class="pp">|</span> +0.0040 <span class="pp">|</span> +0.0026 <span class="pp">|</span></span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shared m = 32 <span class="pp">|</span> 2.5 <span class="pp">|</span> 3.09 % <span class="pp">|</span> 1.94 <span class="pp">|</span> 23.4 <span class="pp">|</span> 22.1 <span class="pp">|</span> +0.0048 <span class="pp">|</span> +0.0030 <span class="pp">|</span></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> uncompressed <span class="pp">|</span> — <span class="pp">|</span> 100 % <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> +0.0053 <span class="pp">|</span> +0.0027 <span class="pp">|</span></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Only α moves decoding.** At equal α the shared basis and per-chunk U decode identically (median paired difference</span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>  0.00001); the basis makes each α 20–50 % cheaper, more at high α.</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**More rank does not pay:** ε = 70 matches ε = 100 and ε = 50 is slightly worse per byte.</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**The spatial part is exhausted at m ≈ 24–32** (1–4 % of the file); m = 24–48 decode alike, m = 16 loses up to</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>  1.6 dB SNR.</span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**int8 C is a trap:** −1 to −5 % bytes and &lt; 0.12 dB SNR, but wheel R² drops on 83 % of probe-α pairs (up to</span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>  −0.011 on dab512bd). SNR is a poor proxy for decoding; keep C in float16.</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**The mean gap is carried by two probes** (e8f9fba4 +0.031, eebcaf65 +0.014 uncompressed vs mild). Per probe,</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  lowering α moves R² monotonically towards its own uncompressed value; the median probe reaches it at α ≈ 3.5.</span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**dab512bd is the exception:** worst at intermediate α (−0.013 at α = 5–7) and the probe most sensitive to any</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>  spatial approximation; unexplained.</span>
 <span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>Same ε × α grid as above, but displaying the **current source density** (second spatial finite difference, scaled by tissue conductivity σ = 1/3 S m⁻¹) of the reconstructed LFP.</span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>CSD emphasises the laminar sink/source structure and is more sensitive to spatial smearing than the raw LFP.</span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="al">![CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="al">![CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)</span></span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="fu">## Appendix: Per-insertion results</span></span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next steps</span></span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Port the shared basis (projection, m = 32, float16 C) into lfpack format 2 and write v04 with</span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>   <span class="in">`sdsc-slurms/2026-06-lfpack/compress.py`</span> (tiers α = 14 / 7 / 2.5, reusing the archived Cadzow checkpoints).</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>~~Region decoding on the v04 tiers~~ (done 2026-10-01, <span class="co">[</span><span class="ot">functional validation</span><span class="co">](functional_validation.qmd)</span>):</span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>   α = 14 matches v03 mild at 0.33× the size, and unlike behaviour decoding, region decoding still</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>   improves at lower α (CV accuracy 0.518 / 0.538 / 0.544 at α = 14 / 7 / 2.5). Remaining: look</span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>   into dab512bd.</span>
 <span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>Cadzow denoising and SVD-ε × WP-α adaptive gallery for each of the 11 benchmark insertions.</span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a><span class="fu">## Appendix</span></span>
 <span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID 1a276285</span></span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID 1a276285.](figures/2026-06-06_cadzow_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)</span></span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)</span></span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>Earlier work, kept for reference: a 250 Hz decimation + Cadzow denoising pipeline; a transform-method comparison</span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>where SVD dominated; an SVD-ε × WP-α calibration (which set the v03 default ε = 150, α = 28 and aggressive ε = 450,</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>α = 96 tiers); and a gap-based rank criterion that was discarded.</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="fu">## Pre-processing pipeline</span></span>
 <span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png)</span></span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID 1e104bf4</span></span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Bad-channel detection**: channels with anomalous variance flagged and excluded.</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Bandpass + CAR + decimation**: 2–250 Hz FIR bandpass, common-average reference, ×10 FIR decimation → 250 Hz float32.</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Cadzow F-X denoising**: per frequency bin ≤ 100 Hz, rank-r (≤ 5, adaptive by singular-value gap 2.0) SVD of the</span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>   block-Toeplitz trajectory matrix of the channel vector, with outlier channels (median + 2 MAD) imputed from the</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>   model and the SVD repeated; 3 s snippets, nw = 64.</span>
 <span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID 1e104bf4.](figures/2026-06-06_cadzow_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)</span></span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>All benchmarks run on the Cadzow-denoised signal, so residuals reflect compression loss only.</span>
 <span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)</span></span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png)</span></span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID 6638cfb3</span></span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID 6638cfb3.](figures/2026-06-06_cadzow_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)</span></span>
-<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)</span></span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png)</span></span>
-<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID 749cb2b7</span></span>
-<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID 749cb2b7.](figures/2026-06-06_cadzow_749cb2b7-e57e-4453-a794-f6230e4d0226.png)</span></span>
-<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png)</span></span>
-<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png)</span></span>
-<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale).](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)</span></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## Metrics</span></span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a>The Pareto and shared-basis sweeps pool signal and error energy over all written samples of a recording,</span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>SNR = 10·log₁₀ Σx² / Σe² (worst decile: 10th percentile of per-chunk SNR). The earlier SVD/WP benchmark used the</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>median over channels of $20\log_{10}(\mathrm{RMS}/\mathrm{RMSE})$ on snippets, then the mean over 11 PIDs.</span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a><span class="fu">## ε and α calibration</span></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a><span class="al">![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$, the ε that selects exactly rank r, vs rank. Right: singular values (µV) with the per-PID noise floor σ₀ (dashed). Top axis: SVD-stage compression ratio.](figures/2026-06-10_epsilon_vs_rank.png)</span></span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rank <span class="pp">|</span> ε median <span class="pp">|</span> ε range (11 PIDs) <span class="pp">|</span></span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----:|--------:|:--------|</span></span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> 909 <span class="pp">|</span> 574–1240 <span class="pp">|</span></span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 8 <span class="pp">|</span> 461 <span class="pp">|</span> 255–584 <span class="pp">|</span></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 16 <span class="pp">|</span> 155 <span class="pp">|</span> 89–207 <span class="pp">|</span></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 32 <span class="pp">|</span> 47 <span class="pp">|</span> 22–73 <span class="pp">|</span></span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a><span class="al">![α vs wavelet-stage compression ratio for each SVD-stage ratio (db4, level 5). Thin lines: PIDs; heavy line: median. The curves are tight across insertions, so one α generalises across recordings.](figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png)</span></span>
 <span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID d7ec0892</span></span>
-<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID d7ec0892.](figures/2026-06-06_cadzow_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)</span></span>
-<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)</span></span>
-<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png)</span></span>
-<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID da8dfec1</span></span>
+<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive SVD+WP aggregate quality. Left: median RMSE (µV) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α labelled at each point.](figures/2026-06-12_adaptive_wp_aggregate.png)</span></span>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a>When α/ε exceeds the largest wavelet coefficient of a weak component, that component is zeroed entirely: the</span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a>wavelet stage then overrides the SVD rank.</span>
+<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="fu">## ε × α reconstruction gallery (dab512bd)</span></span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a><span class="al">![SVD-ε × WP-α reconstruction gallery for PID dab512bd. Rows: ε ∈ {150, 300, 450, 750}; columns: α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels rank, CR, RMSE and SNR.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a><span class="al">![Residual gallery (original − reconstruction), same layout and colour scale. Residuals stay spatially incoherent up to ε = 750, α = 96.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)</span></span>
 <span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID da8dfec1.](figures/2026-06-06_cadzow_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)</span></span>
-<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)</span></span>
-<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png)</span></span>
-<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID dab512bd</span></span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a><span class="al">![Current source density of the same reconstructions (colour scale: 99th percentile of the original CSD). CSD is more sensitive to spatial smearing than the LFP.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a><span class="fu">## Transform methods and gap-based rank (discarded)</span></span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>SVD, wavelet packets, DCT, DCT-δ, STFT and SVD+WP were compared on the 11 probes; SVD and SVD+WP dominate at every CR.</span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a><span class="al">![Initial aggregate benchmark (11 PIDs) including all transform methods.](figures/2026-06-06_compression_aggregate.png)</span></span>
 <span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID dab512bd.](figures/2026-06-06_cadzow_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
-<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
-<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)</span></span>
-<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID dc7e9403</span></span>
-<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID dc7e9403.](figures/2026-06-06_cadzow_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)</span></span>
-<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)</span></span>
-<span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png)</span></span>
-<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID e8f9fba4</span></span>
-<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID e8f9fba4.](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)</span></span>
-<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)</span></span>
-<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png)</span></span>
-<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID eebcaf65</span></span>
-<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID eebcaf65.](figures/2026-06-06_cadzow_eebcaf65-7fa4-4118-869d-a084e84530e2.png)</span></span>
-<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png)</span></span>
-<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png)</span></span>
-<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a><span class="fu">## PID fe380793</span></span>
-<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a><span class="al">![Cadzow denoising — PID fe380793.](figures/2026-06-06_cadzow_fe380793-8035-414e-b000-09bfe5ece92a.png)</span></span>
-<span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive gallery (SVD-ε × WP-α) — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png)</span></span>
-<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a><span class="al">![Adaptive residual gallery — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png)</span></span>
-<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a><span class="fu">## SVD-adapt-WP algorithm in detail</span></span>
-<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a>The two-stage algorithm operates on a snippet matrix $X \in \mathbb{R}^{n_c \times n_s}$ (channels × samples):</span>
-<span id="cb1-238"><a href="#cb1-238" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-239"><a href="#cb1-239" aria-hidden="true" tabindex="-1"></a>**Stage 1 — spatial compression (SVD)**</span>
-<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a>$$X \approx \hat{X}_1 = U_r \, \text{diag}(s_r) \, V_r^\top$$</span>
-<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a>where $U_r \in \mathbb{R}^{n_c \times r}$, $s_r \in \mathbb{R}^r$, $V_r^\top \in \mathbb{R}^{r \times n_s}$ are the top-$r$ singular triplets.</span>
-<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a>The rank $r$ is chosen to achieve a target CR (e.g. CR=24 → $r \approx 12$).</span>
-<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a>**Stage 2 — temporal compression (wavelet packets)**</span>
-<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a>Each of the $r$ rows of $V_r^\top$ is independently compressed using db4 wavelet packet decomposition (level 5).</span>
-<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a>Only the top-$f$ fraction of coefficients by magnitude are retained, giving an overall:</span>
-<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a>$$\text{CR}_{\text{total}} = \frac{n_c \, n_s}{r(n_c + n_s)} \cdot \frac{1}{f}$$</span>
-<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-253"><a href="#cb1-253" aria-hidden="true" tabindex="-1"></a>**SVD-adapt (ε-sweep)** selects rank automatically using:</span>
-<span id="cb1-254"><a href="#cb1-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-255"><a href="#cb1-255" aria-hidden="true" tabindex="-1"></a>$$\sigma_0 = \text{median}(s_{\lfloor r/2 \rfloor + 1}, \ldots, s_r), \qquad r^* = \max<span class="sc">\{</span>k : s_k &gt; \varepsilon \cdot \sigma_0<span class="sc">\}</span>$$</span>
-<span id="cb1-256"><a href="#cb1-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-257"><a href="#cb1-257" aria-hidden="true" tabindex="-1"></a>Here $\sigma_0$ is the noise-floor estimate (median of the lower half of the full singular value spectrum), and $\varepsilon$ is a dimensionless threshold — the minimum signal-to-noise-floor ratio $s_k / \sigma_0$ required to retain a component. Equivalently, $\varepsilon(r) = s_r / \sigma_0$ is the $\varepsilon$ that would select exactly rank $r$ (as shown in the calibration figure). Sweeping $\varepsilon$ from $10^4$ (keep only the dominant component) down to $10^{-1}$ (keep almost everything) traces out the full CR curve.</span>
-<span id="cb1-258"><a href="#cb1-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-259"><a href="#cb1-259" aria-hidden="true" tabindex="-1"></a>**Reconstruction** reverses the two stages: reconstruct each wavelet-compressed row, then reassemble $\hat{X} = U_r \, \text{diag}(s_r) \, \hat{V}_r^\top$.</span>
-<span id="cb1-260"><a href="#cb1-260" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-261"><a href="#cb1-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-262"><a href="#cb1-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-263"><a href="#cb1-263" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-264"><a href="#cb1-264" aria-hidden="true" tabindex="-1"></a><span class="fu">## WP coefficient selection: per-coefficient error thresholding</span></span>
-<span id="cb1-265"><a href="#cb1-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-266"><a href="#cb1-266" aria-hidden="true" tabindex="-1"></a>**Setup.**</span>
-<span id="cb1-267"><a href="#cb1-267" aria-hidden="true" tabindex="-1"></a>After SVD truncation at rank $r$, each retained temporal component is a row $V_k \in \mathbb{R}^{n_s}$ of $V_r^\top$ with unit $\ell_2$-norm ($<span class="sc">\|</span>V_k<span class="sc">\|</span>_2 = 1$, since $V$ is orthonormal).</span>
-<span id="cb1-268"><a href="#cb1-268" aria-hidden="true" tabindex="-1"></a>The full reconstruction contribution of component $k$ to $X$ is $s_k U_k V_k^\top$, whose Frobenius norm is $s_k$.</span>
-<span id="cb1-269"><a href="#cb1-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-270"><a href="#cb1-270" aria-hidden="true" tabindex="-1"></a>**Wavelet-packet decomposition.**</span>
-<span id="cb1-271"><a href="#cb1-271" aria-hidden="true" tabindex="-1"></a>Each $V_k$ is decomposed into $n_\text{WP}$ coefficients $<span class="sc">\{</span>w_{kj}<span class="sc">\}</span>$ via a full db4 wavelet-packet tree at level 5</span>
-<span id="cb1-272"><a href="#cb1-272" aria-hidden="true" tabindex="-1"></a>(for $n_s = 750$, $n_\text{WP} = 960$).</span>
-<span id="cb1-273"><a href="#cb1-273" aria-hidden="true" tabindex="-1"></a>Because the WP transform is orthogonal, $\sum_j w_{kj}^2 = <span class="sc">\|</span>V_k<span class="sc">\|</span>_2^2 = 1$.</span>
-<span id="cb1-274"><a href="#cb1-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-275"><a href="#cb1-275" aria-hidden="true" tabindex="-1"></a>**Per-component hard threshold.**</span>
-<span id="cb1-276"><a href="#cb1-276" aria-hidden="true" tabindex="-1"></a>For each component $k$, a threshold is set as</span>
-<span id="cb1-277"><a href="#cb1-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-278"><a href="#cb1-278" aria-hidden="true" tabindex="-1"></a>$$\tau_k = \frac{\alpha \cdot \sigma_0}{s_k}$$</span>
-<span id="cb1-279"><a href="#cb1-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-280"><a href="#cb1-280" aria-hidden="true" tabindex="-1"></a>and coefficient $w_{kj}$ is retained only if $|w_{kj}| \geq \tau_k$; otherwise it is set to zero:</span>
-<span id="cb1-281"><a href="#cb1-281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-282"><a href="#cb1-282" aria-hidden="true" tabindex="-1"></a>$$\tilde{w}_{kj} = w_{kj} \cdot \mathbf{1}\!\left[|w_{kj}| \geq \tau_k\right]$$</span>
-<span id="cb1-283"><a href="#cb1-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-284"><a href="#cb1-284" aria-hidden="true" tabindex="-1"></a>**Per-coefficient error guarantee.**</span>
-<span id="cb1-285"><a href="#cb1-285" aria-hidden="true" tabindex="-1"></a>Zeroing $w_{kj}$ changes the reconstruction by $s_k \, U_k \cdot \delta v_{kj}^\top$, where $\delta v_{kj}$ is the inverse-WP basis vector for coefficient $j$ with unit norm.</span>
-<span id="cb1-286"><a href="#cb1-286" aria-hidden="true" tabindex="-1"></a>The resulting Frobenius error contribution is</span>
-<span id="cb1-287"><a href="#cb1-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-288"><a href="#cb1-288" aria-hidden="true" tabindex="-1"></a>$$s_k \cdot |w_{kj}| \;&lt;\; s_k \cdot \tau_k \;=\; \alpha \cdot \sigma_0$$</span>
-<span id="cb1-289"><a href="#cb1-289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-290"><a href="#cb1-290" aria-hidden="true" tabindex="-1"></a>*Every discarded coefficient, in every component, contributes less than $\alpha \cdot \sigma_0$ to the reconstruction error* — uniformly across all ranks.</span>
-<span id="cb1-291"><a href="#cb1-291" aria-hidden="true" tabindex="-1"></a>This is the same absolute noise-floor reference $\sigma_0$ used by the SVD stage, so the two thresholds speak the same language.</span>
-<span id="cb1-292"><a href="#cb1-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-293"><a href="#cb1-293" aria-hidden="true" tabindex="-1"></a>**Compression ratio.**</span>
-<span id="cb1-294"><a href="#cb1-294" aria-hidden="true" tabindex="-1"></a>The WP stage CR is the ratio of total available coefficient slots to those retained:</span>
-<span id="cb1-295"><a href="#cb1-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-296"><a href="#cb1-296" aria-hidden="true" tabindex="-1"></a>$$\text{CR}_\text{WP} = \frac{r \cdot n_\text{WP}}{\#\{(k,j) : s_k |w_{kj}| \geq \alpha\sigma_0<span class="sc">\}</span>}$$</span>
-<span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a>**Behaviour across the component spectrum.**</span>
-<span id="cb1-299"><a href="#cb1-299" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a>For a component with singular value $s_k = q \cdot \varepsilon \cdot \sigma_0$ (where $q \geq 1$, since only components above the SVD threshold are retained), the WP threshold becomes</span>
-<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a>$$\tau_k = \frac{\alpha}{q \cdot \varepsilon}$$</span>
-<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Dominant components** ($q \gg 1$, $s_k \gg \varepsilon\sigma_0$): $\tau_k$ is small, many WP coefficients survive — the component's full temporal structure is preserved with only fine-scale details discarded.</span>
-<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Marginal components** ($q \approx 1$, $s_k \approx \varepsilon\sigma_0$): $\tau_k \approx \alpha/\varepsilon$.  If $\alpha/\varepsilon$ exceeds the largest WP coefficient magnitude of $V_k$ (empirically 0.05–0.2 for LFP), the entire component is zeroed.  This is consistent behaviour: the component was weakly significant spatially *and* has no concentrated temporal structure, so it genuinely carries little information.</span>
-<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>This component-level zeroing is not a design flaw — it is the natural outcome of applying a uniform per-coefficient error threshold to components with flat (noise-like) temporal spectra.</span>
-<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>In practice, at the recommended operating point ($\varepsilon \approx 150$, $\alpha \approx 28$, $\alpha/\varepsilon \approx 0.19$), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.</span>
-<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>**Relationship to the SVD threshold.**</span>
-<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a>The two parameters are not independent: when $\alpha/\varepsilon &gt; \max_j |w_{r,j}|$ (the largest WP coefficient of the weakest retained component), WP overrides the SVD rank selection.</span>
-<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>The curves in the aggregate figure converge at high $\alpha$ because all $\varepsilon$ settings end up keeping the same dominant components once $\alpha$ is large enough to purge the weaker ones.</span>
-<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>The non-redundant operating region is $\alpha/\varepsilon \lesssim 0.1$, where WP compresses temporal structure within every kept component without discarding any of them entirely.</span>
-<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>**Survival floor on the dominant component.**</span>
-<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>Purging *weak* components (above) is benign. The pathological case is when the same mechanism zeroes the *dominant* component $k=0$: this happens on low-SNR recordings where $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$, at which point $\tau_0$ exceeds every coefficient of $V_0$, $\hat V_r^\top = 0$, and the chunk reconstructs to exact zero — destroying genuine low-amplitude LFP.</span>
-<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>To bound this, the dominant component always retains its $n_\text{min}=64$ largest-magnitude WP coefficients regardless of $\tau_0$:</span>
-<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a>$$<span class="sc">\#\{</span>j : \tilde w_{0j} \neq 0<span class="sc">\}</span> \geq \min(n_\text{min},\, n_\text{WP}).$$</span>
-<span id="cb1-319"><a href="#cb1-319" aria-hidden="true" tabindex="-1"></a>The floor is applied only to $k=0$, so weaker components still vanish (preserving CR), and it is a no-op on healthy recordings, whose dominant row already keeps $\gg n_\text{min}$ coefficients — leaving their reconstruction bit-for-bit identical. A genuinely silent input (e.g. a saturation-muted span) has $s_0 = 0$ hence $U_r\,\text{diag}(s_r) = 0$, so it still reconstructs to zero and the floor cannot fabricate signal.</span>
-<span id="cb1-320"><a href="#cb1-320" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-321"><a href="#cb1-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-322"><a href="#cb1-322" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-323"><a href="#cb1-323" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cadzow denoising with adaptive rank and imputation</span></span>
-<span id="cb1-324"><a href="#cb1-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-325"><a href="#cb1-325" aria-hidden="true" tabindex="-1"></a>**F-X Cadzow: working frequency bin by frequency bin** *(parameters used: nw=64, f_max=100 Hz, max rank r=5, gap_threshold=2.0, ppca_k=2.0)*</span>
-<span id="cb1-326"><a href="#cb1-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-327"><a href="#cb1-327" aria-hidden="true" tabindex="-1"></a>This is the *F-X* (frequency–space) variant of Cadzow denoising, borrowed from seismic processing.</span>
-<span id="cb1-328"><a href="#cb1-328" aria-hidden="true" tabindex="-1"></a>Rather than applying SVD to the full time × channel matrix, the algorithm works one frequency bin at a time:</span>
-<span id="cb1-329"><a href="#cb1-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-330"><a href="#cb1-330" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**rfft** the snippet → complex array $W \in \mathbb{C}^{n_c \times n_f}$.</span>
-<span id="cb1-331"><a href="#cb1-331" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>For each frequency bin $f \leq f_\text{max}$, extract the spatial vector $w_f \in \mathbb{C}^{n_c}$ (one complex amplitude per channel).</span>
-<span id="cb1-332"><a href="#cb1-332" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Build a **block-Toeplitz trajectory matrix** $T_f$ from $w_f$.</span>
-<span id="cb1-333"><a href="#cb1-333" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Compute the rank-$r$ SVD of $T_f$, zero the remaining singular values, and read off the denoised amplitudes.</span>
-<span id="cb1-334"><a href="#cb1-334" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**irfft** back to the time domain.</span>
-<span id="cb1-335"><a href="#cb1-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-336"><a href="#cb1-336" aria-hidden="true" tabindex="-1"></a>**Outlier imputation (`ppca_k`)**: after the first rank-$r$ projection, channels deviating by more than $\text{median} + k \cdot \text{MAD}$ are replaced by their model prediction; the SVD is repeated on the cleaned data.</span>
-<span id="cb1-337"><a href="#cb1-337" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-338"><a href="#cb1-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-339"><a href="#cb1-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-340"><a href="#cb1-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-341"><a href="#cb1-341" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-342"><a href="#cb1-342" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prior context: transform methods</span></span>
-<span id="cb1-343"><a href="#cb1-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-344"><a href="#cb1-344" aria-hidden="true" tabindex="-1"></a>Before focusing on SVD variants, we benchmarked six approaches: SVD, Wavelet Packets (WP), DCT, DCT-δ, STFT, and SVD+WP.</span>
-<span id="cb1-345"><a href="#cb1-345" aria-hidden="true" tabindex="-1"></a>SVD consistently outperformed all transform-only methods at every compression ratio.</span>
-<span id="cb1-346"><a href="#cb1-346" aria-hidden="true" tabindex="-1"></a>The figure below shows the full comparison; the current analysis refines and extends only the SVD family.</span>
-<span id="cb1-347"><a href="#cb1-347" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-348"><a href="#cb1-348" aria-hidden="true" tabindex="-1"></a><span class="al">![Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout.](figures/2026-06-06_compression_aggregate.png)</span></span>
-<span id="cb1-349"><a href="#cb1-349" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-350"><a href="#cb1-350" aria-hidden="true" tabindex="-1"></a><span class="al">![Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)</span></span>
-<span id="cb1-351"><a href="#cb1-351" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-352"><a href="#cb1-352" aria-hidden="true" tabindex="-1"></a><span class="al">![Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)</span></span>
-<span id="cb1-353"><a href="#cb1-353" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-354"><a href="#cb1-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-355"><a href="#cb1-355" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true" appearance="minimal"}</span>
-<span id="cb1-356"><a href="#cb1-356" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prior-context: Gap-criterion rank selection (discarded)</span></span>
-<span id="cb1-357"><a href="#cb1-357" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-358"><a href="#cb1-358" aria-hidden="true" tabindex="-1"></a>We investigated an alternative rank-selection criterion based on the largest relative drop in the singular value spectrum (the "gap"):</span>
-<span id="cb1-359"><a href="#cb1-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-360"><a href="#cb1-360" aria-hidden="true" tabindex="-1"></a>$$r_\text{gap} = \underset{i}{\arg\max}\; \frac{s_i}{s_{i+1}} + 1$$</span>
-<span id="cb1-361"><a href="#cb1-361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-362"><a href="#cb1-362" aria-hidden="true" tabindex="-1"></a>We also swept a gap threshold $g$, defining rank as the last position where $s_k / s_{k+1} \geq g$.</span>
-<span id="cb1-363"><a href="#cb1-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-364"><a href="#cb1-364" aria-hidden="true" tabindex="-1"></a>!<span class="co">[</span><span class="ot">Gap ratio sv[k]/sv[k+1] at each rank boundary for each of the 11 PIDs. Reference lines at g=2, 5, 10.</span><span class="co">](figures/2026-06-10_gap_vs_rank.png)</span></span>
-<span id="cb1-365"><a href="#cb1-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-366"><a href="#cb1-366" aria-hidden="true" tabindex="-1"></a>The figure reveals why this criterion was discarded: after Cadzow denoising, the SV ratio at rank 1 is only **1.3–2.4** across all 11 PIDs — the dominant "gap" is barely larger than the secondary gaps.</span>
-<span id="cb1-367"><a href="#cb1-367" aria-hidden="true" tabindex="-1"></a>There is no clean separation between signal and noise in the SV ratio spectrum, so the gap threshold has very little sensitivity to the compression ratio.</span>
-<span id="cb1-368"><a href="#cb1-368" aria-hidden="true" tabindex="-1"></a>The ε-threshold (noise-floor-relative) criterion is far better calibrated for this data.</span>
-<span id="cb1-369"><a href="#cb1-369" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>A rank criterion on the largest singular-value ratio $s_i / s_{i+1}$ was discarded: after Cadzow the ratio at rank 1</span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a>is only 1.3–2.4, with no clean signal/noise gap, so it barely tracks compression.</span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a><span class="al">![Gap ratio $s_k / s_{k+1}$ at each rank for the 11 PIDs; reference lines at 2, 5, 10.](figures/2026-06-10_gap_vs_rank.png)</span></span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

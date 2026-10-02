@@ -1,369 +1,191 @@
 ---
-title: "LFP Compression Benchmark: SVD and Adaptive SVD+WP Methods"
-description: "Benchmarking SVD-based LFP compression methods on 11 Neuropixels insertions, evaluating RMSE and SNR across compression ratios up to 3000×."
+title: "LFP Compression: lfpack v04 Tiers"
+description: "lfpack's SVD + wavelet-packet LFP codec on 11 Neuropixels insertions: format 2, a shared spatial basis that halves the file, and the three α tiers chosen for the v04 archive."
 date: "2026-06-09"
+date-modified: "2026-09-27"
 author: "Olivier Winter"
 categories: [electrophysiology, LFP, compression, Neuropixels]
 ---
 
-## Overview
+## Summary
 
-The IBL holds **936 hours** of Brainwide Map (BWM) recordings and **1472 hours** from the Ephys Atlas.
-Raw LFP at 2500 Hz, 384 channels, float32 amounts to ~12 TB for the BWM alone.
-After standard preprocessing (bad-channel rejection, 2–250 Hz bandpass, ×10 decimation to 250 Hz), the footprint shrinks to ~1.2 Tb — still too large for routine distribution or streaming.
-The goal is to identify a lossy compression strategy that reduces this further.
+lfpack decimates Neuropixels LFP to 250 Hz, denoises it with Cadzow, and compresses each 8 s chunk with an SVD
+(spatial) followed by wavelet-packet thresholding of the temporal rows. Two lossless-to-negligible changes and one
+decoding-driven choice set the next archive release, **v04** (v03 deprecated):
 
-**Practical recommendation: SVD + WP (ε≈150, α≈28) gives total CR≈125 (104-181) with RMSE≈15 µV and SNR≈10 dB.**
-**This would shrink the 936-hour BWM dataset to ~9.6 Gb.**
+1. **File format 2** (lossless): **−29 %** against format 1, same random-access latency.
+2. **Shared spatial basis** per recording (m = 32, float16 coefficients): makes every tier **20–50 % smaller** at
+   identical decoding.
+3. **α, the temporal threshold, is the only parameter that moves behaviour decoding.** v04 ships three tiers at
+   ε = 100: α = 14, 7 and 2.5.
 
+| v04 tier (ε = 100, m = 32) | 1/CR | size / mild | SNR (dB) | wheel R² below uncompressed (mean / median over probes) | Ephys Atlas (1099 PIDs) | BWM |
+|---|---:|---:|---:|---:|---:|---:|
+| α = 14 | 0.82 % | 0.51 | 14.4 | 0.0054 / 0.0039 | ~12 GB | ~8.5 GB |
+| α = 7 | 1.55 % | 0.97 | 18.5 | 0.0030 / 0.0016 | ~24 GB | ~16 GB |
+| α = 2.5 | 3.09 % | 1.94 | 23.4 | 0.0005 / 0.0003 | ~47 GB | ~32 GB |
+| *v03 mild (format 1, per-chunk U, α = 14)* | *2.24 %* | *1.41* | *14.4* | *0.0053 / 0.0027* | *34.2 GB* | *23.3 GB* |
 
+Sizes: 1/CR = file / uncompressed float32 at 250 Hz, and file / mild tier (format 2, per-chunk U, ε = 100, α = 14),
+both on summed file sizes over 11 benchmark probes. Archive sizes scale the real v03 mild files by 0.71 (format 2) and
+by size / mild; the Ephys Atlas cohort includes BWM. Choice and feedback decoding stay within noise at every tier; the
+effect of the tiers on region decoding is on the [functional validation page](functional_validation.qmd).
+
+![The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 probes, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding).](figures/2026-09-27_pareto_v04-tiers.png)
+
+## Codec in brief
+
+Each 8 s chunk $X_j$ (384 channels × 2048 samples, plus 128 guard samples each side) is factorised as
+
+$$X_j \approx U_r\,\mathrm{diag}(s_r)\,\hat V_r^\top, \qquad r = \#\{k : s_k > \varepsilon\,\sigma_0\}, \qquad
+\tau_k = \alpha\,\sigma_0 / s_k$$
+
+where $\sigma_0$ is the median of the lower half of the singular values, ε sets the rank (≈ 17 at ε = 100) and α the
+hard threshold on the db4 level-5 wavelet-packet coefficients of each temporal row. Every discarded coefficient
+therefore costs less than α σ₀ of reconstruction error, whatever its component. The dominant row always keeps its 64
+largest coefficients, so a low-SNR chunk never reconstructs to zero. A walk-through of every array is in the
+**lfpack Matrix Anatomy** page (<https://claude.ai/artifact/3KqmXv3z7tsrbWSrMXTsU1>).
+
+## File format 2
+
+Format 2 (lfpack branch `feat/container-v2`) stores all chunks of a scale in four flat datasets (`chunk_table`,
+`u_values`, `vh_deltas`, `vh_values`) with offsets from the chunk table, so a random read still touches one or two
+64 kB storage blocks. Indices are uint16 deltas, and the ~9 % of kept wavelet coefficients whose synthesis function is
+zero over the written samples are dropped, which is exactly lossless. Old files stay readable; `lfpack.upgrade_h5`
+converts them.
+
+Per 8 s chunk, mild tier, 1a276285 (1.4 h, 607 chunks):
+
+| Layout | HDF5 overhead | spatial U | temporal Vh | total |
+|---|---:|---:|---:|---:|
+| Format 1: one HDF5 group per chunk, int32 indices | 9.5 kB | 22.7 kB | 31.7 kB | 63.8 kB |
+| Format 2 | — | 21.6 kB | 25.1 kB | 46.7 kB |
+| Format 2 + shared basis m = 48 | — | 1.7 kB | 25.1 kB | 26.8 kB |
+
+## Shared spatial basis
+
+In format 2 the per-chunk U matrices are nearly half of the file, while the spatial subspace of a recording barely moves
+(cos² 0.98 between neighbouring chunks, 0.95 at 40 min apart). The codec runs per chunk unchanged; only the spatial
+factor is replaced:
+
+$$C_j = B^\top U_j \;(m \times r,\ \text{float16, float32 per-column scale folded into } s), \qquad U_j \approx B\,C_j$$
+
+$B$ (384 × m, float32, once per recording) holds the top-m eigenvectors of $\sum_j U_j s_j^2 U_j^\top / \lVert U_j s_j
+\rVert^2$, with $U_j$ truncated at the chunk's rank so every chunk weighs the same. The temporal rows and thresholds do
+not depend on $B$, so an encoder can write them as it goes and keep only $U_j s_j$ in memory (~26 kB per chunk) until
+$B$ is computed at the end. Re-decomposing each chunk inside $B$ instead gives the same result (bytes 0.003 %, SNR
+0.001 dB, wheel R² 0.0001).
+
+## Size vs decoding
+
+**Protocol.** 11 benchmark probes, every point fully decoded with the functional-validation pipeline (wheel R², choice
+and feedback balanced accuracy) on the in-memory reconstruction. α ∈ {2.5, 3.5, 5, 7, 10, 14}; m = 48 at
+ε ∈ {50, 70, 100}; m ∈ {32, 24, 16} and int8 C (m = 48, 24) at ε = 100; per-chunk U at ε = 100. Code:
+`shared_basis_sweep.py`, `pareto_sweep.py`, `plot_pareto.py`; results `2026-09-26_pareto_*.csv`.
+
+![File size vs wheel-R² change against the mild tier (top) and SNR (bottom), mean ± s.e.m. over 11 probes (error bars on the per-chunk-U and m = 48, ε = 100 references only). Left: rank threshold ε at m = 48; right: basis size and C precision at ε = 100. Dotted: uncompressed; star: mild tier.](figures/2026-09-26_pareto_size-vs-decoding.png)
+
+| ε = 100 | α | 1/CR | size / mild | SNR (dB) | worst-decile SNR | Δ wheel R² mean | median |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| per-chunk U (mild) | 14 | 1.59 % | 1.00 | 14.4 | 13.3 | 0 | 0 |
+| per-chunk U | 7 | 2.33 % | 1.46 | 18.5 | 17.3 | +0.0025 | +0.0015 |
+| per-chunk U | 2.5 | 3.87 % | 2.43 | 23.5 | 22.2 | +0.0047 | +0.0031 |
+| shared m = 32 | 14 | 0.82 % | 0.51 | 14.4 | 13.3 | −0.0002 | −0.0001 |
+| shared m = 32 | 10 | 1.13 % | 0.71 | 16.4 | 15.2 | +0.0016 | +0.0007 |
+| shared m = 32 | 7 | 1.55 % | 0.97 | 18.5 | 17.3 | +0.0022 | +0.0017 |
+| shared m = 32 | 5 | 2.02 % | 1.27 | 20.4 | 19.2 | +0.0032 | +0.0017 |
+| shared m = 32 | 3.5 | 2.57 % | 1.61 | 22.2 | 20.9 | +0.0040 | +0.0026 |
+| shared m = 32 | 2.5 | 3.09 % | 1.94 | 23.4 | 22.1 | +0.0048 | +0.0030 |
+| uncompressed | — | 100 % | — | — | — | +0.0053 | +0.0027 |
+
+- **Only α moves decoding.** At equal α the shared basis and per-chunk U decode identically (median paired difference
+  0.00001); the basis makes each α 20–50 % cheaper, more at high α.
+- **More rank does not pay:** ε = 70 matches ε = 100 and ε = 50 is slightly worse per byte.
+- **The spatial part is exhausted at m ≈ 24–32** (1–4 % of the file); m = 24–48 decode alike, m = 16 loses up to
+  1.6 dB SNR.
+- **int8 C is a trap:** −1 to −5 % bytes and < 0.12 dB SNR, but wheel R² drops on 83 % of probe-α pairs (up to
+  −0.011 on dab512bd). SNR is a poor proxy for decoding; keep C in float16.
+- **The mean gap is carried by two probes** (e8f9fba4 +0.031, eebcaf65 +0.014 uncompressed vs mild). Per probe,
+  lowering α moves R² monotonically towards its own uncompressed value; the median probe reaches it at α ≈ 3.5.
+- **dab512bd is the exception:** worst at intermediate α (−0.013 at α = 5–7) and the probe most sensitive to any
+  spatial approximation; unexplained.
+
+## Next steps
+
+1. Port the shared basis (projection, m = 32, float16 C) into lfpack format 2 and write v04 with
+   `sdsc-slurms/2026-06-lfpack/compress.py` (tiers α = 14 / 7 / 2.5, reusing the archived Cadzow checkpoints).
+2. ~~Region decoding on the v04 tiers~~ (done 2026-10-01, [functional validation](functional_validation.qmd)):
+   α = 14 matches v03 mild at 0.33× the size, and unlike behaviour decoding, region decoding still
+   improves at lower α (CV accuracy 0.518 / 0.538 / 0.544 at α = 14 / 7 / 2.5). Remaining: look
+   into dab512bd.
+
+## Appendix
+
+Earlier work, kept for reference: a 250 Hz decimation + Cadzow denoising pipeline; a transform-method comparison
+where SVD dominated; an SVD-ε × WP-α calibration (which set the v03 default ε = 150, α = 28 and aggressive ε = 450,
+α = 96 tiers); and a gap-based rank criterion that was discarded.
+
+::: {.callout-note collapse="true" appearance="minimal"}
 ## Pre-processing pipeline
 
-Raw LFP (NP1, 2500 Hz, `.cbin`) was preprocessed before benchmarking:
+1. **Bad-channel detection**: channels with anomalous variance flagged and excluded.
+2. **Bandpass + CAR + decimation**: 2–250 Hz FIR bandpass, common-average reference, ×10 FIR decimation → 250 Hz float32.
+3. **Cadzow F-X denoising**: per frequency bin ≤ 100 Hz, rank-r (≤ 5, adaptive by singular-value gap 2.0) SVD of the
+   block-Toeplitz trajectory matrix of the channel vector, with outlier channels (median + 2 MAD) imputed from the
+   model and the SVD repeated; 3 s snippets, nw = 64.
 
-1. **Bad-channel detection** — channels with anomalous variance flagged and excluded.
-2. **Bandpass + CAR + decimation** — 2–250 Hz FIR bandpass, common-average referencing, ×10 FIR decimation → 250 Hz float32.
-3. **Cadzow PPCA spatial denoising** — F-X Cadzow on 3 s snippets (nw=64, f_max=100 Hz, max rank r=5, adaptive rank via singular-value gap threshold=2.0, PPCA outlier k=2.0) to remove incoherent channel noise.
-
-All methods were benchmarked on the Cadzow-denoised snippets so residuals reflect compression loss, not pre-existing noise.
+All benchmarks run on the Cadzow-denoised signal, so residuals reflect compression loss only.
 
 ![Cadzow denoising for PID e8f9fba4. Three 3 s snippets (rows): original / denoised (adaptive rank) / difference (same colour scale).](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
+:::
 
-## Compression methods
-
-| Method | Principle | CR formula | Parameters |
-|---|---|---|---|
-| **SVD-adapt** | First-stage: truncated SVD with adaptive rank: retain components where $s_k > \varepsilon \cdot \sigma_0$, with $\sigma_0 = \text{median}(\text{lower half of } s)$ as the noise-floor estimate. $\varepsilon$ is swept to cover the full CR range. | $n_c n_s / (r_\varepsilon(n_c+n_s))$ | ε ∈ logspace(10⁴, 10⁻¹, 30) |
-| **WP** | Second-stage: db4 wavelet-packet adaptive thresholding on the $r$ temporal rows of $V_r^\top$. Per-component threshold $\tau_k = \alpha \sigma_0 / \sigma_k$ ensures uniform error contribution across all ranks. | $\text{CR}_\text{SVD} \times \text{CR}_\text{WP}$ | ε (SVD stage), α (WP stage) |
-
+::: {.callout-note collapse="true" appearance="minimal"}
 ## Metrics
 
-$$\text{RMSE}(c) = \left\langle \sqrt{\left\langle (x - \hat{x})^2 \right\rangle_t} \right\rangle_{\text{snippets}} \quad [\mu\text{V}] \qquad \text{SNR}(c) = 20 \cdot \log_{10} \left( \frac{\text{RMS}(c)}{\text{RMSE}(c)} \right) \quad [\text{dB}]$$
+The Pareto and shared-basis sweeps pool signal and error energy over all written samples of a recording,
+SNR = 10·log₁₀ Σx² / Σe² (worst decile: 10th percentile of per-chunk SNR). The earlier SVD/WP benchmark used the
+median over channels of $20\log_{10}(\mathrm{RMS}/\mathrm{RMSE})$ on snippets, then the mean over 11 PIDs.
+:::
 
-Aggregated as median over channels, then mean over 11 PIDs.
+::: {.callout-note collapse="true" appearance="minimal"}
+## ε and α calibration
 
-## Results
+![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$, the ε that selects exactly rank r, vs rank. Right: singular values (µV) with the per-PID noise floor σ₀ (dashed). Top axis: SVD-stage compression ratio.](figures/2026-06-10_epsilon_vs_rank.png)
 
-### Aggregate benchmark (11 PIDs)
-
-![Adaptive SVD+WP aggregate quality. Left: median RMSE (µV, log–log) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α values labelled at each operating point.](figures/2026-06-12_adaptive_wp_aggregate.png)
-
-Each curve sweeps α from 0 (single stage SVD) through 64 (aggressive WP thresholding).
-All curves eventually converge from CR≈100 (α≈24), meaning the wavepack is eventually catching up.
-
-### SVD spectrum and ε calibration
-
-![Left: for each PID, $\varepsilon(r) = s_r / \sigma_0$ — the signal-to-noise-floor ratio of the $r$-th singular value — vs rank (bottom axis, 1–96). This is the $\varepsilon$ that would select exactly rank $r$. Right: singular value $s_r$ (µV) vs rank, with the per-PID noise floor $\sigma_0$ shown as a dashed horizontal line. The secondary top axis shows the **compression ratio** at each rank.](figures/2026-06-10_epsilon_vs_rank.png)
-
-Median ε values (and range across 11 PIDs) that select each evaluated rank:
-
-| Rank | ε median | ε range |
+| Rank | ε median | ε range (11 PIDs) |
 |-----:|--------:|:--------|
-| 1 | 4073 | 2772–4697 |
-| 2 | 2252 | 1540–2898 |
 | 4 | 909 | 574–1240 |
 | 8 | 461 | 255–584 |
 | 16 | 155 | 89–207 |
 | 32 | 47 | 22–73 |
-| 64 | 10 | 4–22 |
-| 96 | 4 | 1–10 |
 
-### Adaptive WP threshold calibration
+![α vs wavelet-stage compression ratio for each SVD-stage ratio (db4, level 5). Thin lines: PIDs; heavy line: median. The curves are tight across insertions, so one α generalises across recordings.](figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png)
 
-After SVD truncation at rank $r$, each temporal component $V_k$ (a row of $V_r^\top$, unit-L2-norm) is wavelet-packet compressed with a per-component hard threshold:
+![Adaptive SVD+WP aggregate quality. Left: median RMSE (µV) vs total CR; right: median SNR (dB) vs total CR. One curve per SVD-stage CR; α labelled at each point.](figures/2026-06-12_adaptive_wp_aggregate.png)
 
-$$\tau_k = \frac{\alpha \cdot \sigma_0}{\sigma_k}$$
-
-where $\sigma_0$ is the same SVD noise floor used for ε-based rank selection, $\sigma_k$ is the singular value of component $k$, and $\alpha$ is a single global multiplier.
-The threshold ensures every discarded coefficient contributes less than $\alpha \cdot \sigma_0$ — uniform across all components regardless of their amplitude.
-
-- Dominant components (large $\sigma_k$) receive a small threshold → many WP coefficients retained.
-- Weak components (small $\sigma_k$) receive a large threshold → only the coarsest WP structure kept.
-
-**Choosing the operating point.** $\alpha$ and $\varepsilon$ are calibrated on the 11-PID benchmark (figure below): the recommended $\varepsilon \approx 150$, $\alpha \approx 28$ sits where CR is maximised while RMSE stays below ~25 µV, and the tight spread of the α-sweep curves across insertions confirms the pair generalises without per-recording tuning.
-
-**Minimum retained coefficients (survival floor).** Because each $V_k$ has unit norm, its WP coefficients have a fixed magnitude ceiling ($\max_j|w_{kj}| \approx 0.2\text{–}0.4$). When even the *dominant* component is weak relative to the noise floor — $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$ — the threshold $\tau_0$ exceeds every coefficient and the entire snippet is zeroed, silently discarding real low-amplitude LFP. A **survival floor** removes this failure mode: the dominant component ($k=0$) always keeps its $n_\text{min}=64$ largest-magnitude coefficients, so a retained chunk can never reconstruct to exact zero. Higher-SNR recordings are bit-for-bit unchanged (their dominant row already keeps far more than $n_\text{min}$), and saturation-muted spans — which enter the codec as all-zero — still reconstruct to zero regardless of the floor.
-
-$$\text{CR}_\text{total} = \text{CR}_\text{SVD} \times \text{CR}_\text{WP}, \qquad \text{CR}_\text{WP} = \frac{r \cdot n_\text{WP\,slots}}{n_\text{kept}}$$
-
-![α vs CR_WP for each SVD-stage CR (db4, level 5). Individual PIDs as thin lines; median as heavy line. Curves are tight across insertions, confirming α generalises across recordings.](figures/2026-06-12_svd_adaptive_wp_alpha_sweep.png)
-
-### Parameter sweep gallery (SVD-ε × WP-α)
-
-Each cell applies SVD-adapt at threshold ε (which selects rank $r$ from the snippet's own SV spectrum), then adaptive WP at threshold α.
-Rows sweep ε ∈ {150, 300, 450, 750}; the resulting rank $r$ and CR_SVD are labelled per row and per cell.
-Columns sweep α ∈ {0, 12, 24, 32, 48, 64, 96}; α=0 is pure-SVD reference.
-Total CR cells show **median (min–max)** across the 11 benchmark insertions.
-
-| ε   | r med | CR_SVD med | α=0 | α=12 | α=24 | α=32 | α=48 | α=64 | α=96 |
-|----:|------:|-----------:|----:|-----:|-----:|-----:|-----:|-----:|-----:|
-| 150 | 16 | 16 | 16 (14–23) | 50 (41–71) | 94 (76–135) | 125 (104–183) | 204 (175–313) | 299 (235–486) | 538 (361–956) |
-| 300 | 10 | 25 | 25 (21–42) | 53 (45–87) | 98 (77–144) | 127 (106–188) | 205 (176–315) | 301 (236–488) | 538 (361–956) |
-| 450 |  8 | 32 | 32 (28–63) | 65 (53–107) | 105 (83–156) | 136 (110–197) | 212 (180–326) | 304 (239–495) | 538 (361–956) |
-| 750 |  5 | 51 | 51 (42–126) | 88 (70–184) | 126 (97–233) | 156 (126–275) | 231 (195–393) | 322 (259–556) | 550 (369–1003) |
-
-*(Exact r, CR, RMSE and SNR for the gallery PID (dab512bd) are labelled in each cell.)*
-
-![SVD-ε × WP-α reconstruction gallery for PID dab512bd (notable CSD). Rows: SVD-adapt ε ∈ {150, 300, 450, 750}; columns: WP α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels the selected rank r, achieved CRs, RMSE (µV), and SNR (dB).](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-![Residual gallery (original − reconstruction). Same layout and colour scale. Residuals remain spatially incoherent up to the aggressive bottom-right corner (ε=750, α=96), where WP artefacts become visible.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
-
-### CSD gallery (PID dab512bd)
-
-Same ε × α grid as above, but displaying the **current source density** (second spatial finite difference, scaled by tissue conductivity σ = 1/3 S m⁻¹) of the reconstructed LFP.
-CSD emphasises the laminar sink/source structure and is more sensitive to spatial smearing than the raw LFP.
-
-![CSD reconstruction gallery for PID dab512bd. Colour scale shared across all cells, set to the 99th percentile of the original CSD.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-![CSD residual gallery — CSD(original) − CSD(reconstruction). Structured CSD residuals emerge at high ε and α, revealing where the spatial gradients are lost.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
-
-## Appendix: Per-insertion results
-
-Cadzow denoising and SVD-ε × WP-α adaptive gallery for each of the 11 benchmark insertions.
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID 1a276285
-
-![Cadzow denoising — PID 1a276285.](figures/2026-06-06_cadzow_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724.png)
-
-![Adaptive residual gallery — PID 1a276285.](figures/2026-06-12_adaptive_wp_gallery_1a276285-8b0e-4cc9-9f0a-a3a002978724_residual.png)
+When α/ε exceeds the largest wavelet coefficient of a weak component, that component is zeroed entirely: the
+wavelet stage then overrides the SVD rank.
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
-## PID 1e104bf4
+## ε × α reconstruction gallery (dab512bd)
 
-![Cadzow denoising — PID 1e104bf4.](figures/2026-06-06_cadzow_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)
+![SVD-ε × WP-α reconstruction gallery for PID dab512bd. Rows: ε ∈ {150, 300, 450, 750}; columns: α ∈ {0, 12, 24, 32, 48, 64, 96}. Each cell labels rank, CR, RMSE and SNR.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
 
-![Adaptive gallery (SVD-ε × WP-α) — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7.png)
+![Residual gallery (original − reconstruction), same layout and colour scale. Residuals stay spatially incoherent up to ε = 750, α = 96.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
 
-![Adaptive residual gallery — PID 1e104bf4.](figures/2026-06-12_adaptive_wp_gallery_1e104bf4-7a24-4624-a5b2-c2c8289c0de7_residual.png)
+![Current source density of the same reconstructions (colour scale: 99th percentile of the original CSD). CSD is more sensitive to spatial smearing than the LFP.](figures/2026-06-12_adaptive_wp_gallery_csd_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
 :::
 
 ::: {.callout-note collapse="true" appearance="minimal"}
-## PID 6638cfb3
+## Transform methods and gap-based rank (discarded)
 
-![Cadzow denoising — PID 6638cfb3.](figures/2026-06-06_cadzow_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)
+SVD, wavelet packets, DCT, DCT-δ, STFT and SVD+WP were compared on the 11 probes; SVD and SVD+WP dominate at every CR.
 
-![Adaptive gallery (SVD-ε × WP-α) — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1.png)
+![Initial aggregate benchmark (11 PIDs) including all transform methods.](figures/2026-06-06_compression_aggregate.png)
 
-![Adaptive residual gallery — PID 6638cfb3.](figures/2026-06-12_adaptive_wp_gallery_6638cfb3-3831-4fc2-9327-194b76cf22e1_residual.png)
-:::
+A rank criterion on the largest singular-value ratio $s_i / s_{i+1}$ was discarded: after Cadzow the ratio at rank 1
+is only 1.3–2.4, with no clean signal/noise gap, so it barely tracks compression.
 
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID 749cb2b7
-
-![Cadzow denoising — PID 749cb2b7.](figures/2026-06-06_cadzow_749cb2b7-e57e-4453-a794-f6230e4d0226.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226.png)
-
-![Adaptive residual gallery — PID 749cb2b7.](figures/2026-06-12_adaptive_wp_gallery_749cb2b7-e57e-4453-a794-f6230e4d0226_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID d7ec0892
-
-![Cadzow denoising — PID d7ec0892.](figures/2026-06-06_cadzow_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c.png)
-
-![Adaptive residual gallery — PID d7ec0892.](figures/2026-06-12_adaptive_wp_gallery_d7ec0892-0a6c-4f4f-9d8f-72083692af5c_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID da8dfec1
-
-![Cadzow denoising — PID da8dfec1.](figures/2026-06-06_cadzow_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd.png)
-
-![Adaptive residual gallery — PID da8dfec1.](figures/2026-06-12_adaptive_wp_gallery_da8dfec1-d265-44e8-84ce-6ae9c109b8bd_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID dab512bd
-
-![Cadzow denoising — PID dab512bd.](figures/2026-06-06_cadzow_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-![Adaptive residual gallery — PID dab512bd.](figures/2026-06-12_adaptive_wp_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID dc7e9403
-
-![Cadzow denoising — PID dc7e9403.](figures/2026-06-06_cadzow_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea.png)
-
-![Adaptive residual gallery — PID dc7e9403.](figures/2026-06-12_adaptive_wp_gallery_dc7e9403-19f7-409f-9240-05ee57cb7aea_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID e8f9fba4
-
-![Cadzow denoising — PID e8f9fba4.](figures/2026-06-06_cadzow_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c.png)
-
-![Adaptive residual gallery — PID e8f9fba4.](figures/2026-06-12_adaptive_wp_gallery_e8f9fba4-d151-4b00-bee7-447f0f3e752c_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID eebcaf65
-
-![Cadzow denoising — PID eebcaf65.](figures/2026-06-06_cadzow_eebcaf65-7fa4-4118-869d-a084e84530e2.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2.png)
-
-![Adaptive residual gallery — PID eebcaf65.](figures/2026-06-12_adaptive_wp_gallery_eebcaf65-7fa4-4118-869d-a084e84530e2_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## PID fe380793
-
-![Cadzow denoising — PID fe380793.](figures/2026-06-06_cadzow_fe380793-8035-414e-b000-09bfe5ece92a.png)
-
-![Adaptive gallery (SVD-ε × WP-α) — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a.png)
-
-![Adaptive residual gallery — PID fe380793.](figures/2026-06-12_adaptive_wp_gallery_fe380793-8035-414e-b000-09bfe5ece92a_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## SVD-adapt-WP algorithm in detail
-
-The two-stage algorithm operates on a snippet matrix $X \in \mathbb{R}^{n_c \times n_s}$ (channels × samples):
-
-**Stage 1 — spatial compression (SVD)**
-
-$$X \approx \hat{X}_1 = U_r \, \text{diag}(s_r) \, V_r^\top$$
-
-where $U_r \in \mathbb{R}^{n_c \times r}$, $s_r \in \mathbb{R}^r$, $V_r^\top \in \mathbb{R}^{r \times n_s}$ are the top-$r$ singular triplets.
-The rank $r$ is chosen to achieve a target CR (e.g. CR=24 → $r \approx 12$).
-
-**Stage 2 — temporal compression (wavelet packets)**
-
-Each of the $r$ rows of $V_r^\top$ is independently compressed using db4 wavelet packet decomposition (level 5).
-Only the top-$f$ fraction of coefficients by magnitude are retained, giving an overall:
-
-$$\text{CR}_{\text{total}} = \frac{n_c \, n_s}{r(n_c + n_s)} \cdot \frac{1}{f}$$
-
-**SVD-adapt (ε-sweep)** selects rank automatically using:
-
-$$\sigma_0 = \text{median}(s_{\lfloor r/2 \rfloor + 1}, \ldots, s_r), \qquad r^* = \max\{k : s_k > \varepsilon \cdot \sigma_0\}$$
-
-Here $\sigma_0$ is the noise-floor estimate (median of the lower half of the full singular value spectrum), and $\varepsilon$ is a dimensionless threshold — the minimum signal-to-noise-floor ratio $s_k / \sigma_0$ required to retain a component. Equivalently, $\varepsilon(r) = s_r / \sigma_0$ is the $\varepsilon$ that would select exactly rank $r$ (as shown in the calibration figure). Sweeping $\varepsilon$ from $10^4$ (keep only the dominant component) down to $10^{-1}$ (keep almost everything) traces out the full CR curve.
-
-**Reconstruction** reverses the two stages: reconstruct each wavelet-compressed row, then reassemble $\hat{X} = U_r \, \text{diag}(s_r) \, \hat{V}_r^\top$.
-:::
-
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## WP coefficient selection: per-coefficient error thresholding
-
-**Setup.**
-After SVD truncation at rank $r$, each retained temporal component is a row $V_k \in \mathbb{R}^{n_s}$ of $V_r^\top$ with unit $\ell_2$-norm ($\|V_k\|_2 = 1$, since $V$ is orthonormal).
-The full reconstruction contribution of component $k$ to $X$ is $s_k U_k V_k^\top$, whose Frobenius norm is $s_k$.
-
-**Wavelet-packet decomposition.**
-Each $V_k$ is decomposed into $n_\text{WP}$ coefficients $\{w_{kj}\}$ via a full db4 wavelet-packet tree at level 5
-(for $n_s = 750$, $n_\text{WP} = 960$).
-Because the WP transform is orthogonal, $\sum_j w_{kj}^2 = \|V_k\|_2^2 = 1$.
-
-**Per-component hard threshold.**
-For each component $k$, a threshold is set as
-
-$$\tau_k = \frac{\alpha \cdot \sigma_0}{s_k}$$
-
-and coefficient $w_{kj}$ is retained only if $|w_{kj}| \geq \tau_k$; otherwise it is set to zero:
-
-$$\tilde{w}_{kj} = w_{kj} \cdot \mathbf{1}\!\left[|w_{kj}| \geq \tau_k\right]$$
-
-**Per-coefficient error guarantee.**
-Zeroing $w_{kj}$ changes the reconstruction by $s_k \, U_k \cdot \delta v_{kj}^\top$, where $\delta v_{kj}$ is the inverse-WP basis vector for coefficient $j$ with unit norm.
-The resulting Frobenius error contribution is
-
-$$s_k \cdot |w_{kj}| \;<\; s_k \cdot \tau_k \;=\; \alpha \cdot \sigma_0$$
-
-*Every discarded coefficient, in every component, contributes less than $\alpha \cdot \sigma_0$ to the reconstruction error* — uniformly across all ranks.
-This is the same absolute noise-floor reference $\sigma_0$ used by the SVD stage, so the two thresholds speak the same language.
-
-**Compression ratio.**
-The WP stage CR is the ratio of total available coefficient slots to those retained:
-
-$$\text{CR}_\text{WP} = \frac{r \cdot n_\text{WP}}{\#\{(k,j) : s_k |w_{kj}| \geq \alpha\sigma_0\}}$$
-
-**Behaviour across the component spectrum.**
-
-For a component with singular value $s_k = q \cdot \varepsilon \cdot \sigma_0$ (where $q \geq 1$, since only components above the SVD threshold are retained), the WP threshold becomes
-
-$$\tau_k = \frac{\alpha}{q \cdot \varepsilon}$$
-
-- **Dominant components** ($q \gg 1$, $s_k \gg \varepsilon\sigma_0$): $\tau_k$ is small, many WP coefficients survive — the component's full temporal structure is preserved with only fine-scale details discarded.
-- **Marginal components** ($q \approx 1$, $s_k \approx \varepsilon\sigma_0$): $\tau_k \approx \alpha/\varepsilon$.  If $\alpha/\varepsilon$ exceeds the largest WP coefficient magnitude of $V_k$ (empirically 0.05–0.2 for LFP), the entire component is zeroed.  This is consistent behaviour: the component was weakly significant spatially *and* has no concentrated temporal structure, so it genuinely carries little information.
-
-This component-level zeroing is not a design flaw — it is the natural outcome of applying a uniform per-coefficient error threshold to components with flat (noise-like) temporal spectra.
-In practice, at the recommended operating point ($\varepsilon \approx 150$, $\alpha \approx 28$, $\alpha/\varepsilon \approx 0.19$), components at ranks 7–13 are fully eliminated by WP, while the first 5–6 components retain 5–70% of their WP coefficients for genuine temporal compression.
-
-**Relationship to the SVD threshold.**
-The two parameters are not independent: when $\alpha/\varepsilon > \max_j |w_{r,j}|$ (the largest WP coefficient of the weakest retained component), WP overrides the SVD rank selection.
-The curves in the aggregate figure converge at high $\alpha$ because all $\varepsilon$ settings end up keeping the same dominant components once $\alpha$ is large enough to purge the weaker ones.
-The non-redundant operating region is $\alpha/\varepsilon \lesssim 0.1$, where WP compresses temporal structure within every kept component without discarding any of them entirely.
-
-**Survival floor on the dominant component.**
-Purging *weak* components (above) is benign. The pathological case is when the same mechanism zeroes the *dominant* component $k=0$: this happens on low-SNR recordings where $s_0/\sigma_0 \lesssim \alpha/\max_j|w_{0j}| \approx 140$, at which point $\tau_0$ exceeds every coefficient of $V_0$, $\hat V_r^\top = 0$, and the chunk reconstructs to exact zero — destroying genuine low-amplitude LFP.
-To bound this, the dominant component always retains its $n_\text{min}=64$ largest-magnitude WP coefficients regardless of $\tau_0$:
-$$\#\{j : \tilde w_{0j} \neq 0\} \geq \min(n_\text{min},\, n_\text{WP}).$$
-The floor is applied only to $k=0$, so weaker components still vanish (preserving CR), and it is a no-op on healthy recordings, whose dominant row already keeps $\gg n_\text{min}$ coefficients — leaving their reconstruction bit-for-bit identical. A genuinely silent input (e.g. a saturation-muted span) has $s_0 = 0$ hence $U_r\,\text{diag}(s_r) = 0$, so it still reconstructs to zero and the floor cannot fabricate signal.
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## Cadzow denoising with adaptive rank and imputation
-
-**F-X Cadzow: working frequency bin by frequency bin** *(parameters used: nw=64, f_max=100 Hz, max rank r=5, gap_threshold=2.0, ppca_k=2.0)*
-
-This is the *F-X* (frequency–space) variant of Cadzow denoising, borrowed from seismic processing.
-Rather than applying SVD to the full time × channel matrix, the algorithm works one frequency bin at a time:
-
-1. **rfft** the snippet → complex array $W \in \mathbb{C}^{n_c \times n_f}$.
-2. For each frequency bin $f \leq f_\text{max}$, extract the spatial vector $w_f \in \mathbb{C}^{n_c}$ (one complex amplitude per channel).
-3. Build a **block-Toeplitz trajectory matrix** $T_f$ from $w_f$.
-4. Compute the rank-$r$ SVD of $T_f$, zero the remaining singular values, and read off the denoised amplitudes.
-5. **irfft** back to the time domain.
-
-**Outlier imputation (`ppca_k`)**: after the first rank-$r$ projection, channels deviating by more than $\text{median} + k \cdot \text{MAD}$ are replaced by their model prediction; the SVD is repeated on the cleaned data.
-:::
-
-
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## Prior context: transform methods
-
-Before focusing on SVD variants, we benchmarked six approaches: SVD, Wavelet Packets (WP), DCT, DCT-δ, STFT, and SVD+WP.
-SVD consistently outperformed all transform-only methods at every compression ratio.
-The figure below shows the full comparison; the current analysis refines and extends only the SVD family.
-
-![Initial aggregate benchmark (11 PIDs) including all transform methods. SVD and SVD+WP dominate at every CR. DCT-δ is worst throughout.](figures/2026-06-06_compression_aggregate.png)
-
-![Reconstruction gallery from initial benchmark — PID dab512bd. SVD retains spatial structure to CR=100; transform methods show block/stripe artefacts from CR=30.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0.png)
-
-![Residual gallery from initial benchmark. SVD/SVD+WP residuals are spatially incoherent; DCT and STFT residuals carry structured spectral artefacts at high CR.](figures/2026-06-06_compression_gallery_dab512bd-a02d-4c1f-8dbc-9155a163efc0_residual.png)
-:::
-
-::: {.callout-note collapse="true" appearance="minimal"}
-## Prior-context: Gap-criterion rank selection (discarded)
-
-We investigated an alternative rank-selection criterion based on the largest relative drop in the singular value spectrum (the "gap"):
-
-$$r_\text{gap} = \underset{i}{\arg\max}\; \frac{s_i}{s_{i+1}} + 1$$
-
-We also swept a gap threshold $g$, defining rank as the last position where $s_k / s_{k+1} \geq g$.
-
-![Gap ratio sv[k]/sv[k+1] at each rank boundary for each of the 11 PIDs. Reference lines at g=2, 5, 10.](figures/2026-06-10_gap_vs_rank.png)
-
-The figure reveals why this criterion was discarded: after Cadzow denoising, the SV ratio at rank 1 is only **1.3–2.4** across all 11 PIDs — the dominant "gap" is barely larger than the secondary gaps.
-There is no clean separation between signal and noise in the SV ratio spectrum, so the gap threshold has very little sensitivity to the compression ratio.
-The ε-threshold (noise-floor-relative) criterion is far better calibrated for this data.
+![Gap ratio $s_k / s_{k+1}$ at each rank for the 11 PIDs; reference lines at 2, 5, 10.](figures/2026-06-10_gap_vs_rank.png)
 :::

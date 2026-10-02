@@ -193,6 +193,72 @@ more heterogeneous scale (1099 PIDs, not 11) and on a completely different task 
 the tier ranking found above is a real property of the codec or an artefact of the
 wheel/choice/feedback validation's specific method.
 
+### Update 2026-10-01: lfpack v04 tiers (TS3 Cosmos benchmark)
+
+**The v04 `small` tier (α = 14) decodes regions as well as v03 mild at 0.33× its size, and
+lowering α keeps improving region decoding.** At equal α, the format-2 + shared-basis codec is
+neutral, so region decoding, like behaviour decoding, depends only on α. Unlike behaviour
+decoding, which is within noise at every v04 tier, region decoding still gains from α = 14 to
+2.5: +2.5 pp 5-fold CV accuracy and +1.7 pp TS3 eval accuracy.
+
+```{python}
+#| echo: false
+#| label: tbl-ts3-v04
+#| tbl-cap: "TS3 Cosmos region classification per lfpack tier: mean ± s.e.m. over 3 model seeds (43/44/45), 3222 eval units. CV: 5-fold PID-grouped held-out accuracy on the 1054 training PIDs. 1/CR: file / uncompressed float32 at 250 Hz (1955.7 GB over 1099 PIDs)."
+ts3 = pd.read_csv("2026-09-30_ts3_v04_region_decoding.csv")
+UNCOMPRESSED_GB = 1955.7
+alpha = {"v03-mild": "14", "v04-small": "14", "v04-default": "7", "v04-fine": "2.5"}
+g = ts3.groupby("tier", sort=False)
+
+
+def pm(col):
+    return g[col].mean().map("{:.3f}".format) + " ± " + g[col].sem().map("{:.3f}".format)
+
+
+file_gb = g["file_gb"].first()
+pd.DataFrame({
+    "α": pd.Series(alpha),
+    "file (GB)": file_gb.round(1),
+    "1/CR": (file_gb / UNCOMPRESSED_GB).map("{:.2%}".format),
+    "file / v03 mild": (file_gb / file_gb["v03-mild"]).round(2),
+    "accuracy": pm("accuracy"),
+    "macro F1": pm("macro_f1"),
+    "CV accuracy": pm("cv_accuracy"),
+}).rename_axis("tier")
+```
+
+```{python}
+#| echo: false
+#| label: tbl-ts3-v04-classes
+#| tbl-cap: "Per-class F1 (mean over 3 seeds) for the classes whose F1 moves by more than 0.05 across tiers (MB, 0.69–0.71, is left out). n: eval units per class."
+n_units = {"CB": 162, "CNU": 187, "CTXsp": 48, "HB": 218, "HPF": 323, "HY": 54,
+           "Isocortex": 578, "MB": 697, "OLF": 265, "TH": 690}
+f1 = g[[f"{c}_f1" for c in n_units]].mean().T
+f1.index = [c.removesuffix("_f1") for c in f1.index]
+f1 = f1[(f1.max(axis=1) - f1.min(axis=1)) > 0.05].round(3)
+f1.insert(0, "n", pd.Series(n_units))
+f1
+```
+
+- **Equal α, smaller file: no loss.** v04 `small` against v03 mild (both α = 14; format 2 and a
+  shared spatial basis instead of format 1 and per-chunk U): accuracy 0.576 vs 0.572, macro F1
+  0.444 vs 0.438, CV accuracy 0.518 vs 0.513. Every per-class F1 agrees within noise.
+- **Lower α helps region decoding.** CV accuracy rises monotonically, 0.518 → 0.538 → 0.544
+  (α = 14 → 7 → 2.5), and so does eval accuracy, 0.576 → 0.580 → 0.593. Isocortex, CB, OLF and
+  HB gain the most; TH and HPF lose 0.1 F1, so lower α also shifts which regions get predicted.
+- **Eval macro F1 peaks at `default`** (0.513 vs `fine`'s 0.489). That comes almost entirely
+  from HY (0.57 vs 0.16, 54 units) and CTXsp (48 units). Classes that small, from 29 sessions,
+  make macro F1 noisy, so CV accuracy (330k channels) is the more reliable ranking.
+- **Paired design.** Same 1099 PIDs, same saturation-avoided snippet start times (saturation
+  comes from the raw ADC signal and the Cadzow checkpoints are shared), same 5-fold split, same
+  ground truth. Only the archive changes.
+- The v03 mild baseline was rescored from its existing channel predictions on the current eval
+  build. That build has 3222 units, up from 3209, so the 2026-09-04 single-run score (0.584 /
+  0.416) is not directly comparable.
+
+Code: `~/Documents/ibldevtools/olivier/2026-09-04_ts3-lfp-baseline/` (`LFPACK_TIER` env var in
+`paths.py`; `score_tiers.py` writes `2026-09-30_ts3_v04_region_decoding.csv`).
+
 ### Method
 
 Per-recording LF-band-power and CSD features (raw_lf + raw_lf_csd feature families, 33 columns,

@@ -176,6 +176,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#region-decoding-brain-region-classification" id="toc-region-decoding-brain-region-classification" class="nav-link" data-scroll-target="#region-decoding-brain-region-classification">Region decoding (brain-region classification)</a>
   <ul class="collapse">
+  <li><a href="#update-2026-10-01-lfpack-v04-tiers-ts3-cosmos-benchmark" id="toc-update-2026-10-01-lfpack-v04-tiers-ts3-cosmos-benchmark" class="nav-link" data-scroll-target="#update-2026-10-01-lfpack-v04-tiers-ts3-cosmos-benchmark">Update 2026-10-01: lfpack v04 tiers (TS3 Cosmos benchmark)</a></li>
   <li><a href="#method-1" id="toc-method-1" class="nav-link" data-scroll-target="#method-1">Method</a></li>
   <li><a href="#does-compression-hurt-region-decoding" id="toc-does-compression-hurt-region-decoding" class="nav-link" data-scroll-target="#does-compression-hurt-region-decoding">Does compression hurt region decoding?</a></li>
   <li><a href="#does-avoiding-saturated-snippets-help" id="toc-does-avoiding-saturated-snippets-help" class="nav-link" data-scroll-target="#does-avoiding-saturated-snippets-help">Does avoiding saturated snippets help?</a></li>
@@ -293,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="does-compression-hurt-decoding" class="level3">
 <h3 class="anchored" data-anchor-id="does-compression-hurt-decoding">Does compression hurt decoding?</h3>
-<div id="a45e7a21" class="cell" data-execution_count="1">
+<div id="fa05b3fc" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
@@ -393,7 +394,7 @@ Figure&nbsp;2: Choice / feedback balanced accuracy per recording, one box per ti
 <section id="searching-for-an-intermediate-tier" class="level3">
 <h3 class="anchored" data-anchor-id="searching-for-an-intermediate-tier">Searching for an intermediate tier</h3>
 <p>Sweeping <strong>ε alone</strong> (α=28 fixed, ε ∈ 150–450) or <strong>α alone</strong> (ε=150 fixed, α ∈ 28–96) both left total file size across the 11 recordings essentially flat (0.242 GB → ~0.21 GB either way, an ~13% reduction). But their effect on decoding fidelity is <em>not</em> symmetric, and the raw per- recording numbers are easy to misread here: feedback balanced accuracy varies enormously between recordings (SD ≈0.11 at a single grid cell — some recordings decode feedback near chance, others above 0.8), which swamps both parameters’ effects unless it’s controlled for. A paired per-recording test (same 11 recordings, before vs.&nbsp;after moving one parameter) shows they’re not equivalent: moving <strong>α</strong> from 28→96 (ε=150 fixed) drops feedback balanced accuracy in <strong>10/11 recordings</strong> (Wilcoxon p=0.005) — a real, consistent effect. Moving <strong>ε</strong> from 150→450 (α=28 fixed) only drops it in 6/11 (p=0.17) — <strong>not distinguishable from between-recording noise</strong>, and driven almost entirely by two strong-feedback-decoding recordings rather than a general effect. So: α alone reliably costs decoding fidelity without buying compression; ε alone buys no compression either, but its apparent decoding cost mostly isn’t real. Yet at ε=450, moving α from 28→96 — the shipped aggressive tier vs.&nbsp;the same ε at default’s α — <em>nearly halves</em> the file size (0.211 GB → 0.098 GB): the ε/α interaction described above, in action. Real compression only appears when both are pushed together.</p>
-<div id="254c48e5" class="cell" data-execution_count="2">
+<div id="477e85cc" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
@@ -489,7 +490,7 @@ Figure&nbsp;4: Median channel-averaged PSD, diagonal sweep — cleanly ordered b
 <section id="full-2d-grid" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="full-2d-grid">Full 2D grid</h3>
 <p>ε ∈ {50, 100, 150, 250, 300, 350, 450} × α ∈ {14, 28, 40, 55, 75, 96} — 42 cells (milder than default through the shipped aggressive point), all three decode targets, across the same 11 benchmark recordings used throughout this section — 14.8 h of LFP in total.</p>
-<div id="9c91bd4f" class="cell" data-execution_count="3">
+<div id="d30f7651" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
@@ -881,6 +882,206 @@ Figure&nbsp;9: Pareto: realized CR vs.&nbsp;retained decode fraction, one panel 
 <section id="region-decoding-brain-region-classification" class="level2">
 <h2 class="anchored" data-anchor-id="region-decoding-brain-region-classification">Region decoding (brain-region classification)</h2>
 <p>A second, independent functional check, run <em>after</em> the tier search above, at a much larger and more heterogeneous scale (1099 PIDs, not 11) and on a completely different task — to see whether the tier ranking found above is a real property of the codec or an artefact of the wheel/choice/feedback validation’s specific method.</p>
+<section id="update-2026-10-01-lfpack-v04-tiers-ts3-cosmos-benchmark" class="level3">
+<h3 class="anchored" data-anchor-id="update-2026-10-01-lfpack-v04-tiers-ts3-cosmos-benchmark">Update 2026-10-01: lfpack v04 tiers (TS3 Cosmos benchmark)</h3>
+<p><strong>The v04 <code>small</code> tier (α = 14) decodes regions as well as v03 mild at 0.33× its size, and lowering α keeps improving region decoding.</strong> At equal α, the format-2 + shared-basis codec is neutral, so region decoding, like behaviour decoding, depends only on α. Unlike behaviour decoding, which is within noise at every v04 tier, region decoding still gains from α = 14 to 2.5: +2.5 pp 5-fold CV accuracy and +1.7 pp TS3 eval accuracy.</p>
+<div class="cell" data-execution_count="4">
+<div id="tbl-ts3-v04" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ts3-v04-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: TS3 Cosmos region classification per lfpack tier: mean ± s.e.m. over 3 model seeds (43/44/45), 3222 eval units. CV: 5-fold PID-grouped held-out accuracy on the 1054 training PIDs. 1/CR: file / uncompressed float32 at 250 Hz (1955.7 GB over 1099 PIDs).
+</figcaption>
+<div aria-describedby="tbl-ts3-v04-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe cell caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">α</th>
+<th data-quarto-table-cell-role="th">file (GB)</th>
+<th data-quarto-table-cell-role="th">1/CR</th>
+<th data-quarto-table-cell-role="th">file / v03 mild</th>
+<th data-quarto-table-cell-role="th">accuracy</th>
+<th data-quarto-table-cell-role="th">macro F1</th>
+<th data-quarto-table-cell-role="th">CV accuracy</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">tier</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">v03-mild</th>
+<td>14</td>
+<td>34.2</td>
+<td>1.75%</td>
+<td>1.00</td>
+<td>0.572 ± 0.004</td>
+<td>0.438 ± 0.008</td>
+<td>0.513 ± 0.000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">v04-small</th>
+<td>14</td>
+<td>11.2</td>
+<td>0.57%</td>
+<td>0.33</td>
+<td>0.576 ± 0.003</td>
+<td>0.444 ± 0.003</td>
+<td>0.518 ± 0.000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">v04-default</th>
+<td>7</td>
+<td>21.5</td>
+<td>1.10%</td>
+<td>0.63</td>
+<td>0.580 ± 0.001</td>
+<td>0.513 ± 0.005</td>
+<td>0.538 ± 0.001</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">v04-fine</th>
+<td>2.5</td>
+<td>46.1</td>
+<td>2.36%</td>
+<td>1.35</td>
+<td>0.593 ± 0.006</td>
+<td>0.489 ± 0.006</td>
+<td>0.544 ± 0.001</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell" data-execution_count="5">
+<div id="tbl-ts3-v04-classes" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="5">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ts3-v04-classes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Per-class F1 (mean over 3 seeds) for the classes whose F1 moves by more than 0.05 across tiers (MB, 0.69–0.71, is left out). n: eval units per class.
+</figcaption>
+<div aria-describedby="tbl-ts3-v04-classes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe cell caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">tier</th>
+<th data-quarto-table-cell-role="th">n</th>
+<th data-quarto-table-cell-role="th">v03-mild</th>
+<th data-quarto-table-cell-role="th">v04-small</th>
+<th data-quarto-table-cell-role="th">v04-default</th>
+<th data-quarto-table-cell-role="th">v04-fine</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">CB</th>
+<td>162</td>
+<td>0.303</td>
+<td>0.331</td>
+<td>0.570</td>
+<td>0.660</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">CNU</th>
+<td>187</td>
+<td>0.415</td>
+<td>0.411</td>
+<td>0.465</td>
+<td>0.501</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">CTXsp</th>
+<td>48</td>
+<td>0.071</td>
+<td>0.037</td>
+<td>0.202</td>
+<td>0.108</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">HB</th>
+<td>218</td>
+<td>0.503</td>
+<td>0.496</td>
+<td>0.519</td>
+<td>0.578</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HPF</th>
+<td>323</td>
+<td>0.591</td>
+<td>0.592</td>
+<td>0.533</td>
+<td>0.510</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">HY</th>
+<td>54</td>
+<td>0.271</td>
+<td>0.315</td>
+<td>0.568</td>
+<td>0.159</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Isocortex</th>
+<td>578</td>
+<td>0.594</td>
+<td>0.592</td>
+<td>0.613</td>
+<td>0.688</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">OLF</th>
+<td>265</td>
+<td>0.247</td>
+<td>0.276</td>
+<td>0.340</td>
+<td>0.404</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">TH</th>
+<td>690</td>
+<td>0.691</td>
+<td>0.695</td>
+<td>0.623</td>
+<td>0.577</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>Equal α, smaller file: no loss.</strong> v04 <code>small</code> against v03 mild (both α = 14; format 2 and a shared spatial basis instead of format 1 and per-chunk U): accuracy 0.576 vs 0.572, macro F1 0.444 vs 0.438, CV accuracy 0.518 vs 0.513. Every per-class F1 agrees within noise.</li>
+<li><strong>Lower α helps region decoding.</strong> CV accuracy rises monotonically, 0.518 → 0.538 → 0.544 (α = 14 → 7 → 2.5), and so does eval accuracy, 0.576 → 0.580 → 0.593. Isocortex, CB, OLF and HB gain the most; TH and HPF lose 0.1 F1, so lower α also shifts which regions get predicted.</li>
+<li><strong>Eval macro F1 peaks at <code>default</code></strong> (0.513 vs <code>fine</code>’s 0.489). That comes almost entirely from HY (0.57 vs 0.16, 54 units) and CTXsp (48 units). Classes that small, from 29 sessions, make macro F1 noisy, so CV accuracy (330k channels) is the more reliable ranking.</li>
+<li><strong>Paired design.</strong> Same 1099 PIDs, same saturation-avoided snippet start times (saturation comes from the raw ADC signal and the Cadzow checkpoints are shared), same 5-fold split, same ground truth. Only the archive changes.</li>
+<li>The v03 mild baseline was rescored from its existing channel predictions on the current eval build. That build has 3222 units, up from 3209, so the 2026-09-04 single-run score (0.584 / 0.416) is not directly comparable.</li>
+</ul>
+<p>Code: <code>~/Documents/ibldevtools/olivier/2026-09-04_ts3-lfp-baseline/</code> (<code>LFPACK_TIER</code> env var in <code>paths.py</code>; <code>score_tiers.py</code> writes <code>2026-09-30_ts3_v04_region_decoding.csv</code>).</p>
+</section>
 <section id="method-1" class="level3">
 <h3 class="anchored" data-anchor-id="method-1">Method</h3>
 <p>Per-recording LF-band-power and CSD features (raw_lf + raw_lf_csd feature families, 33 columns, <code>ephysatlas.features.voltage_features_set</code>) are computed identically for every LFP source from ~8 snippets/PID (8.79 s windows, 600 s spacing, matching the canonical ephys-atlas snippet grid), aggregated into one channel-level table, then classified with the canonical ephys-atlas XGBoost pipeline (5-fold <strong>PID-grouped</strong> CV, Cosmos-level labels, <code>VINTAGE = "2026-08_lfp-decoders"</code>).</p>
@@ -925,8 +1126,8 @@ Figure&nbsp;9: Pareto: realized CR vs.&nbsp;retained decode fraction, one panel 
 </section>
 <section id="does-compression-hurt-region-decoding" class="level3">
 <h3 class="anchored" data-anchor-id="does-compression-hurt-region-decoding">Does compression hurt region decoding?</h3>
-<div id="f8fb1b21" class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div id="479064bd" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
 
@@ -1712,118 +1913,184 @@ Figure&nbsp;12: Full numeric recap: accuracy mean/SD/min/max across folds, sampl
 <span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a>the tier ranking found above is a real property of the codec or an artefact of the</span>
 <span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a>wheel/choice/feedback validation's specific method.</span>
 <span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a><span class="fu">### Method</span></span>
+<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a><span class="fu">### Update 2026-10-01: lfpack v04 tiers (TS3 Cosmos benchmark)</span></span>
 <span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>Per-recording LF-band-power and CSD features (raw_lf + raw_lf_csd feature families, 33 columns,</span>
-<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.features.voltage_features_set`</span>) are computed identically for every LFP source from</span>
-<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>~8 snippets/PID (8.79 s windows, 600 s spacing, matching the canonical ephys-atlas snippet</span>
-<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a>grid), aggregated into one channel-level table, then classified with the canonical ephys-atlas</span>
-<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>XGBoost pipeline (5-fold **PID-grouped** CV, Cosmos-level labels, `VINTAGE =</span>
-<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a>"2026-08_lfp-decoders"`).</span>
-<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> LFP source <span class="pp">|</span> Read from <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`uncompressed`</span> <span class="pp">|</span> <span class="in">`lf_resampled_car_cadzow.npy`</span> (Cadzow checkpoint, pre-SVD/WP) <span class="pp">|</span> reference — already on the compute cluster <span class="pp">|</span></span>
-<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`mild`</span> <span class="pp">|</span> <span class="in">`lf_compressed_mild_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=100, α=14 <span class="pp">|</span></span>
-<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`default`</span> <span class="pp">|</span> <span class="in">`lf_compressed_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=150, α=28 <span class="pp">|</span></span>
-<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`aggressive`</span> <span class="pp">|</span> <span class="in">`lf_compressed_aggressive_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=450, α=96 <span class="pp">|</span></span>
-<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>Two snippet-selection modes are compared per source (except <span class="in">`mild`</span>, run only at full-cohort</span>
-<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a>scale for <span class="in">`all`</span> — see <span class="co">[</span><span class="ot">Recap</span><span class="co">](#recap)</span>): naive (<span class="in">`all`</span>) vs. **saturation-avoided**, which drops</span>
-<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a>snippets overlapping an ADC-saturated interval. This isolates the saturation question from the</span>
-<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a>compression question directly, on the same cohort.</span>
-<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a>Cohort: every histology-resolved insertion in <span class="in">`ibl_neuropixel_brainwide_01`</span> (the ephys-atlas</span>
-<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a>cohort — a strict superset of the curated ~700-PID BWM behavioural cohort), **1099 PIDs, 407616</span>
-<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a>channels** per source/mode combination.</span>
-<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does compression hurt region decoding?</span></span>
-<span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> pd.read_csv(<span class="st">"2026-09-05_region_decoding_metrics.csv"</span>)</span>
-<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a>order <span class="op">=</span> [<span class="st">"uncompressed"</span>, <span class="st">"mild"</span>, <span class="st">"default"</span>, <span class="st">"aggressive"</span>]</span>
-<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a>r[<span class="st">"lfp_source"</span>] <span class="op">=</span> pd.Categorical(r[<span class="st">"lfp_source"</span>], categories<span class="op">=</span>order, ordered<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a>r.sort_values([<span class="st">"lfp_source"</span>, <span class="st">"snippet_mode"</span>])[</span>
-<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"lfp_source"</span>, <span class="st">"snippet_mode"</span>, <span class="st">"accuracy"</span>, <span class="st">"n_pids"</span>, <span class="st">"n_channels"</span>]</span>
-<span id="cb1-238"><a href="#cb1-238" aria-hidden="true" tabindex="-1"></a>].reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-239"><a href="#cb1-239" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a><span class="al">![Impact of LFP compression tier on region decoding — mean accuracy (Cosmos, held-out) across 1099 PIDs, snippet_mode="all". Same ranking as the wheel/choice/feedback validation.](figures/2026-09-05_lfp-decoders_compression-impact.png)</span>{#fig-region-compression-impact .lightbox}</span>
-<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a>Compression clearly costs region-decoding accuracy, and the cost is monotonic with compression</span>
-<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a>aggressiveness (@fig-region-compression-impact): uncompressed (0.468) &gt; mild (0.435, −3.3pp) &gt;</span>
-<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a>default (0.420, −4.8pp) &gt; aggressive (0.389, −7.9pp vs. uncompressed). This mirrors the</span>
-<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a>wheel/choice/feedback validation's ranking exactly, on a completely different task, decoder, and</span>
-<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a>cohort scale — strong evidence that the compression-tier ordering is a real property of the</span>
-<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a>codec, not an artefact of one validation's specific method.</span>
-<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does avoiding saturated snippets help?</span></span>
-<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a>!<span class="co">[</span><span class="ot">Impact of ADC saturation avoidance on region decoding — bars: mean ± SD across 5 folds; dots: individual folds. Restricted to the three sources with both snippet modes (`mild` is `all`-only, see [Recap](#recap)).</span><span class="co">](figures/2026-09-05_lfp-decoders_saturation-impact.png)</span>{#fig-region-saturation-impact .lightbox}</span>
-<span id="cb1-253"><a href="#cb1-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-254"><a href="#cb1-254" aria-hidden="true" tabindex="-1"></a>Small and inconsistent in direction (@fig-region-saturation-impact): default drops slightly</span>
-<span id="cb1-255"><a href="#cb1-255" aria-hidden="true" tabindex="-1"></a>avoiding saturation (−0.3pp), aggressive and uncompressed both gain slightly (+0.3pp, +0.2pp) —</span>
-<span id="cb1-256"><a href="#cb1-256" aria-hidden="true" tabindex="-1"></a>all differences are within the fold-to-fold spread seen within a single combo's own 5 folds.</span>
-<span id="cb1-257"><a href="#cb1-257" aria-hidden="true" tabindex="-1"></a>Avoiding ADC-saturated snippets does not meaningfully change region-decoding accuracy at this</span>
-<span id="cb1-258"><a href="#cb1-258" aria-hidden="true" tabindex="-1"></a>snippet-selection scale — a separate axis from the compression-tier effect above, and not</span>
-<span id="cb1-259"><a href="#cb1-259" aria-hidden="true" tabindex="-1"></a>something saturation handling needs to trade off against.</span>
-<span id="cb1-260"><a href="#cb1-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-261"><a href="#cb1-261" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recap {#recap}</span></span>
-<span id="cb1-262"><a href="#cb1-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-263"><a href="#cb1-263" aria-hidden="true" tabindex="-1"></a><span class="al">![Full numeric recap: accuracy mean/SD/min/max across folds, sample sizes, per source × snippet mode.](figures/2026-09-05_lfp-decoders_recap-table.png)</span>{#fig-region-recap-table .lightbox}</span>
-<span id="cb1-264"><a href="#cb1-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-265"><a href="#cb1-265" aria-hidden="true" tabindex="-1"></a><span class="in">`mild`</span> was added to this validation after the wheel/choice/feedback grid had already identified</span>
-<span id="cb1-266"><a href="#cb1-266" aria-hidden="true" tabindex="-1"></a>ε=100/α=14 as the best-fidelity operating point worth naming and shipping (see</span>
-<span id="cb1-267"><a href="#cb1-267" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Full 2D grid</span><span class="co">](#full-2d-grid)</span> above) — run only at <span class="in">`snippet_mode="all"`</span> full-cohort scale, not</span>
-<span id="cb1-268"><a href="#cb1-268" aria-hidden="true" tabindex="-1"></a><span class="in">`saturation-avoided`</span>, since the saturation question was already answered by the other three</span>
-<span id="cb1-269"><a href="#cb1-269" aria-hidden="true" tabindex="-1"></a>sources and doesn't need re-litigating per tier (@fig-region-recap-table).</span>
-<span id="cb1-270"><a href="#cb1-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-271"><a href="#cb1-271" aria-hidden="true" tabindex="-1"></a><span class="fu">## Recommendation</span></span>
-<span id="cb1-272"><a href="#cb1-272" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-273"><a href="#cb1-273" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Keep default (ε=150, α=28)** as the standard cohort-wide tier — it's Pareto-efficient on the</span>
-<span id="cb1-274"><a href="#cb1-274" aria-hidden="true" tabindex="-1"></a>  behavioural grid, and every tested alternative in that direction trades away real feedback</span>
-<span id="cb1-275"><a href="#cb1-275" aria-hidden="true" tabindex="-1"></a>  fidelity.</span>
-<span id="cb1-276"><a href="#cb1-276" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Use mild (ε=100, α=14) for the highest fidelity.** Named and shipped as a third production</span>
-<span id="cb1-277"><a href="#cb1-277" aria-hidden="true" tabindex="-1"></a>  tier: realized CR 48× (vs. default's 87×, uncompressed's 1×), feedback balanced accuracy 0.626</span>
-<span id="cb1-278"><a href="#cb1-278" aria-hidden="true" tabindex="-1"></a>  vs. default's 0.597 and uncompressed's 0.642 — a chance-corrected retained-feedback-fraction of</span>
-<span id="cb1-279"><a href="#cb1-279" aria-hidden="true" tabindex="-1"></a>  **0.89** vs. default's 0.68. Confirmed independently at full ephys-atlas cohort scale (1099</span>
-<span id="cb1-280"><a href="#cb1-280" aria-hidden="true" tabindex="-1"></a>  PIDs) by the region-decoding validation above (0.435 vs. default's 0.420, uncompressed's</span>
-<span id="cb1-281"><a href="#cb1-281" aria-hidden="true" tabindex="-1"></a>  0.468).</span>
-<span id="cb1-282"><a href="#cb1-282" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**If more compression is required, use ε=450, α=28** — 100× realized CR (0.211 GB vs.</span>
-<span id="cb1-283"><a href="#cb1-283" aria-hidden="true" tabindex="-1"></a>  default's 0.242 GB across the 11 recordings, both tiny next to uncompressed's 20.4 GB), R²</span>
-<span id="cb1-284"><a href="#cb1-284" aria-hidden="true" tabindex="-1"></a>  0.122 vs. default's 0.127, feedback balanced accuracy 0.585 vs. default's 0.597. That</span>
-<span id="cb1-285"><a href="#cb1-285" aria-hidden="true" tabindex="-1"></a>  feedback gap is not statistically distinguishable from between-recording noise (paired</span>
-<span id="cb1-286"><a href="#cb1-286" aria-hidden="true" tabindex="-1"></a>  Wilcoxon p=0.17) — the best-value, lowest-risk upgrade found on the whole grid.</span>
-<span id="cb1-287"><a href="#cb1-287" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Retire the aggressive tier (ε=450, α=96).** Nothing between ε=450/α=28 and aggressive is</span>
-<span id="cb1-288"><a href="#cb1-288" aria-hidden="true" tabindex="-1"></a>  worth shipping — the frontier only gets there by also raising α, which is where the real,</span>
-<span id="cb1-289"><a href="#cb1-289" aria-hidden="true" tabindex="-1"></a>  significant decoding cost (p=0.005) lives, and the largest region-decoding cost measured</span>
-<span id="cb1-290"><a href="#cb1-290" aria-hidden="true" tabindex="-1"></a>  (−7.9pp vs. uncompressed).</span>
-<span id="cb1-291"><a href="#cb1-291" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Build command** (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no</span>
-<span id="cb1-292"><a href="#cb1-292" aria-hidden="true" tabindex="-1"></a>  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0,</span>
-<span id="cb1-293"><a href="#cb1-293" aria-hidden="true" tabindex="-1"></a>  alpha=28.0, fs=250.0, ...)`.</span>
-<span id="cb1-294"><a href="#cb1-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-295"><a href="#cb1-295" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
+<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>**The v04 <span class="in">`small`</span> tier (α = 14) decodes regions as well as v03 mild at 0.33× its size, and</span>
+<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a>lowering α keeps improving region decoding.** At equal α, the format-2 + shared-basis codec is</span>
+<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>neutral, so region decoding, like behaviour decoding, depends only on α. Unlike behaviour</span>
+<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a>decoding, which is within noise at every v04 tier, region decoding still gains from α = 14 to</span>
+<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>2.5: +2.5 pp 5-fold CV accuracy and +1.7 pp TS3 eval accuracy.</span>
+<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-ts3-v04</span></span>
+<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "TS3 Cosmos region classification per lfpack tier: mean ± s.e.m. over 3 model seeds (43/44/45), 3222 eval units. CV: 5-fold PID-grouped held-out accuracy on the 1054 training PIDs. 1/CR: file / uncompressed float32 at 250 Hz (1955.7 GB over 1099 PIDs)."</span></span>
+<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a>ts3 <span class="op">=</span> pd.read_csv(<span class="st">"2026-09-30_ts3_v04_region_decoding.csv"</span>)</span>
+<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a>UNCOMPRESSED_GB <span class="op">=</span> <span class="fl">1955.7</span></span>
+<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>alpha <span class="op">=</span> {<span class="st">"v03-mild"</span>: <span class="st">"14"</span>, <span class="st">"v04-small"</span>: <span class="st">"14"</span>, <span class="st">"v04-default"</span>: <span class="st">"7"</span>, <span class="st">"v04-fine"</span>: <span class="st">"2.5"</span>}</span>
+<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> ts3.groupby(<span class="st">"tier"</span>, sort<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pm(col):</span>
+<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> g[col].mean().<span class="bu">map</span>(<span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>.<span class="bu">format</span>) <span class="op">+</span> <span class="st">" ± "</span> <span class="op">+</span> g[col].sem().<span class="bu">map</span>(<span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>.<span class="bu">format</span>)</span>
+<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a>file_gb <span class="op">=</span> g[<span class="st">"file_gb"</span>].first()</span>
+<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a>pd.DataFrame({</span>
+<span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a>    <span class="st">"α"</span>: pd.Series(alpha),</span>
+<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a>    <span class="st">"file (GB)"</span>: file_gb.<span class="bu">round</span>(<span class="dv">1</span>),</span>
+<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a>    <span class="st">"1/CR"</span>: (file_gb <span class="op">/</span> UNCOMPRESSED_GB).<span class="bu">map</span>(<span class="st">"</span><span class="sc">{:.2%}</span><span class="st">"</span>.<span class="bu">format</span>),</span>
+<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a>    <span class="st">"file / v03 mild"</span>: (file_gb <span class="op">/</span> file_gb[<span class="st">"v03-mild"</span>]).<span class="bu">round</span>(<span class="dv">2</span>),</span>
+<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a>    <span class="st">"accuracy"</span>: pm(<span class="st">"accuracy"</span>),</span>
+<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a>    <span class="st">"macro F1"</span>: pm(<span class="st">"macro_f1"</span>),</span>
+<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CV accuracy"</span>: pm(<span class="st">"cv_accuracy"</span>),</span>
+<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a>}).rename_axis(<span class="st">"tier"</span>)</span>
+<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-ts3-v04-classes</span></span>
+<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Per-class F1 (mean over 3 seeds) for the classes whose F1 moves by more than 0.05 across tiers (MB, 0.69–0.71, is left out). n: eval units per class."</span></span>
+<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a>n_units <span class="op">=</span> {<span class="st">"CB"</span>: <span class="dv">162</span>, <span class="st">"CNU"</span>: <span class="dv">187</span>, <span class="st">"CTXsp"</span>: <span class="dv">48</span>, <span class="st">"HB"</span>: <span class="dv">218</span>, <span class="st">"HPF"</span>: <span class="dv">323</span>, <span class="st">"HY"</span>: <span class="dv">54</span>,</span>
+<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a>           <span class="st">"Isocortex"</span>: <span class="dv">578</span>, <span class="st">"MB"</span>: <span class="dv">697</span>, <span class="st">"OLF"</span>: <span class="dv">265</span>, <span class="st">"TH"</span>: <span class="dv">690</span>}</span>
+<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a>f1 <span class="op">=</span> g[[<span class="ss">f"</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">_f1"</span> <span class="cf">for</span> c <span class="kw">in</span> n_units]].mean().T</span>
+<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a>f1.index <span class="op">=</span> [c.removesuffix(<span class="st">"_f1"</span>) <span class="cf">for</span> c <span class="kw">in</span> f1.index]</span>
+<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a>f1 <span class="op">=</span> f1[(f1.<span class="bu">max</span>(axis<span class="op">=</span><span class="dv">1</span>) <span class="op">-</span> f1.<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">1</span>)) <span class="op">&gt;</span> <span class="fl">0.05</span>].<span class="bu">round</span>(<span class="dv">3</span>)</span>
+<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a>f1.insert(<span class="dv">0</span>, <span class="st">"n"</span>, pd.Series(n_units))</span>
+<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a>f1</span>
+<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-253"><a href="#cb1-253" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Equal α, smaller file: no loss.** v04 <span class="in">`small`</span> against v03 mild (both α = 14; format 2 and a</span>
+<span id="cb1-254"><a href="#cb1-254" aria-hidden="true" tabindex="-1"></a>  shared spatial basis instead of format 1 and per-chunk U): accuracy 0.576 vs 0.572, macro F1</span>
+<span id="cb1-255"><a href="#cb1-255" aria-hidden="true" tabindex="-1"></a>  0.444 vs 0.438, CV accuracy 0.518 vs 0.513. Every per-class F1 agrees within noise.</span>
+<span id="cb1-256"><a href="#cb1-256" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Lower α helps region decoding.** CV accuracy rises monotonically, 0.518 → 0.538 → 0.544</span>
+<span id="cb1-257"><a href="#cb1-257" aria-hidden="true" tabindex="-1"></a>  (α = 14 → 7 → 2.5), and so does eval accuracy, 0.576 → 0.580 → 0.593. Isocortex, CB, OLF and</span>
+<span id="cb1-258"><a href="#cb1-258" aria-hidden="true" tabindex="-1"></a>  HB gain the most; TH and HPF lose 0.1 F1, so lower α also shifts which regions get predicted.</span>
+<span id="cb1-259"><a href="#cb1-259" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Eval macro F1 peaks at `default`** (0.513 vs <span class="in">`fine`</span>'s 0.489). That comes almost entirely</span>
+<span id="cb1-260"><a href="#cb1-260" aria-hidden="true" tabindex="-1"></a>  from HY (0.57 vs 0.16, 54 units) and CTXsp (48 units). Classes that small, from 29 sessions,</span>
+<span id="cb1-261"><a href="#cb1-261" aria-hidden="true" tabindex="-1"></a>  make macro F1 noisy, so CV accuracy (330k channels) is the more reliable ranking.</span>
+<span id="cb1-262"><a href="#cb1-262" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Paired design.** Same 1099 PIDs, same saturation-avoided snippet start times (saturation</span>
+<span id="cb1-263"><a href="#cb1-263" aria-hidden="true" tabindex="-1"></a>  comes from the raw ADC signal and the Cadzow checkpoints are shared), same 5-fold split, same</span>
+<span id="cb1-264"><a href="#cb1-264" aria-hidden="true" tabindex="-1"></a>  ground truth. Only the archive changes.</span>
+<span id="cb1-265"><a href="#cb1-265" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The v03 mild baseline was rescored from its existing channel predictions on the current eval</span>
+<span id="cb1-266"><a href="#cb1-266" aria-hidden="true" tabindex="-1"></a>  build. That build has 3222 units, up from 3209, so the 2026-09-04 single-run score (0.584 /</span>
+<span id="cb1-267"><a href="#cb1-267" aria-hidden="true" tabindex="-1"></a>  0.416) is not directly comparable.</span>
+<span id="cb1-268"><a href="#cb1-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-269"><a href="#cb1-269" aria-hidden="true" tabindex="-1"></a>Code: <span class="in">`~/Documents/ibldevtools/olivier/2026-09-04_ts3-lfp-baseline/`</span> (<span class="in">`LFPACK_TIER`</span> env var in</span>
+<span id="cb1-270"><a href="#cb1-270" aria-hidden="true" tabindex="-1"></a><span class="in">`paths.py`</span>; <span class="in">`score_tiers.py`</span> writes <span class="in">`2026-09-30_ts3_v04_region_decoding.csv`</span>).</span>
+<span id="cb1-271"><a href="#cb1-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-272"><a href="#cb1-272" aria-hidden="true" tabindex="-1"></a><span class="fu">### Method</span></span>
+<span id="cb1-273"><a href="#cb1-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-274"><a href="#cb1-274" aria-hidden="true" tabindex="-1"></a>Per-recording LF-band-power and CSD features (raw_lf + raw_lf_csd feature families, 33 columns,</span>
+<span id="cb1-275"><a href="#cb1-275" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.features.voltage_features_set`</span>) are computed identically for every LFP source from</span>
+<span id="cb1-276"><a href="#cb1-276" aria-hidden="true" tabindex="-1"></a>~8 snippets/PID (8.79 s windows, 600 s spacing, matching the canonical ephys-atlas snippet</span>
+<span id="cb1-277"><a href="#cb1-277" aria-hidden="true" tabindex="-1"></a>grid), aggregated into one channel-level table, then classified with the canonical ephys-atlas</span>
+<span id="cb1-278"><a href="#cb1-278" aria-hidden="true" tabindex="-1"></a>XGBoost pipeline (5-fold **PID-grouped** CV, Cosmos-level labels, `VINTAGE =</span>
+<span id="cb1-279"><a href="#cb1-279" aria-hidden="true" tabindex="-1"></a>"2026-08_lfp-decoders"`).</span>
+<span id="cb1-280"><a href="#cb1-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-281"><a href="#cb1-281" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> LFP source <span class="pp">|</span> Read from <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-282"><a href="#cb1-282" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb1-283"><a href="#cb1-283" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`uncompressed`</span> <span class="pp">|</span> <span class="in">`lf_resampled_car_cadzow.npy`</span> (Cadzow checkpoint, pre-SVD/WP) <span class="pp">|</span> reference — already on the compute cluster <span class="pp">|</span></span>
+<span id="cb1-284"><a href="#cb1-284" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`mild`</span> <span class="pp">|</span> <span class="in">`lf_compressed_mild_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=100, α=14 <span class="pp">|</span></span>
+<span id="cb1-285"><a href="#cb1-285" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`default`</span> <span class="pp">|</span> <span class="in">`lf_compressed_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=150, α=28 <span class="pp">|</span></span>
+<span id="cb1-286"><a href="#cb1-286" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`aggressive`</span> <span class="pp">|</span> <span class="in">`lf_compressed_aggressive_all.h5`</span> <span class="pp">|</span> lfpack SVD+WP ε=450, α=96 <span class="pp">|</span></span>
+<span id="cb1-287"><a href="#cb1-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-288"><a href="#cb1-288" aria-hidden="true" tabindex="-1"></a>Two snippet-selection modes are compared per source (except <span class="in">`mild`</span>, run only at full-cohort</span>
+<span id="cb1-289"><a href="#cb1-289" aria-hidden="true" tabindex="-1"></a>scale for <span class="in">`all`</span> — see <span class="co">[</span><span class="ot">Recap</span><span class="co">](#recap)</span>): naive (<span class="in">`all`</span>) vs. **saturation-avoided**, which drops</span>
+<span id="cb1-290"><a href="#cb1-290" aria-hidden="true" tabindex="-1"></a>snippets overlapping an ADC-saturated interval. This isolates the saturation question from the</span>
+<span id="cb1-291"><a href="#cb1-291" aria-hidden="true" tabindex="-1"></a>compression question directly, on the same cohort.</span>
+<span id="cb1-292"><a href="#cb1-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-293"><a href="#cb1-293" aria-hidden="true" tabindex="-1"></a>Cohort: every histology-resolved insertion in <span class="in">`ibl_neuropixel_brainwide_01`</span> (the ephys-atlas</span>
+<span id="cb1-294"><a href="#cb1-294" aria-hidden="true" tabindex="-1"></a>cohort — a strict superset of the curated ~700-PID BWM behavioural cohort), **1099 PIDs, 407616</span>
+<span id="cb1-295"><a href="#cb1-295" aria-hidden="true" tabindex="-1"></a>channels** per source/mode combination.</span>
 <span id="cb1-296"><a href="#cb1-296" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a>**Behavioural decoding**: <span class="in">`oliche-quarto/analyses/2026-06-lfp-compression-svd/`</span> —</span>
-<span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a><span class="in">`compression_benchmark.py`</span>, <span class="in">`svd_adaptive_wp.py`</span> and the dated</span>
-<span id="cb1-299"><a href="#cb1-299" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_*.py`</span> / <span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> scripts</span>
-<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a>under <span class="in">`~/Documents/ibldevtools/olivier/`</span> (sweep computation + this page's figures). The <span class="in">`mild`</span></span>
-<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a>tier was added after the fact by <span class="in">`2026-09-05_LFP_compression_decoding_add_mild.py`</span> /</span>
-<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-09-05_LFP_compression_decoding_categorical_add_mild.py`</span> (reuse the already-computed</span>
-<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>uncompressed/default/aggressive rows, decode only the new variant, regenerate @fig-r2-by-pid /</span>
-<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a>@fig-categorical-boxplot) and directly in</span>
-<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> (@fig-grid-heatmaps / @fig-grid-pareto</span>
-<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a>already covered the ε=100/α=14 cell — only the mild/default/aggressive highlight markers were</span>
-<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>added), same directory.</span>
-<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a>**Region decoding**: <span class="in">`sdsc-slurms/2026-08_lfp-decoders/`</span> — <span class="in">`extract.py`</span> (per-PID/per-snippet</span>
-<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>LF+CSD feature extraction, joblib-parallel), <span class="in">`aggregate.py`</span> (thin wrapper around</span>
-<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.aggregation.produce_output_dataframes`</span>), <span class="in">`train_classifier.py`</span> (5-fold PID-grouped</span>
-<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>XGBoost), <span class="in">`report.py`</span> (this section's table + figures, run locally after rsyncing</span>
-<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a><span class="in">`accuracy.json`</span> back from the cluster). Region annotations (<span class="in">`atlas_id`</span>/<span class="in">`acronym`</span>/<span class="in">`x`</span>/<span class="in">`y`</span>/<span class="in">`z`</span>)</span>
-<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>come embedded in each lfpack archive via <span class="in">`attach_ibl_metadata.py`</span></span>
-<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>(<span class="in">`sdsc-slurms/2026-06-lfpack/`</span>).</span>
+<span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does compression hurt region decoding?</span></span>
+<span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> pd.read_csv(<span class="st">"2026-09-05_region_decoding_metrics.csv"</span>)</span>
+<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a>order <span class="op">=</span> [<span class="st">"uncompressed"</span>, <span class="st">"mild"</span>, <span class="st">"default"</span>, <span class="st">"aggressive"</span>]</span>
+<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a>r[<span class="st">"lfp_source"</span>] <span class="op">=</span> pd.Categorical(r[<span class="st">"lfp_source"</span>], categories<span class="op">=</span>order, ordered<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a>r.sort_values([<span class="st">"lfp_source"</span>, <span class="st">"snippet_mode"</span>])[</span>
+<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"lfp_source"</span>, <span class="st">"snippet_mode"</span>, <span class="st">"accuracy"</span>, <span class="st">"n_pids"</span>, <span class="st">"n_channels"</span>]</span>
+<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>].reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a><span class="al">![Impact of LFP compression tier on region decoding — mean accuracy (Cosmos, held-out) across 1099 PIDs, snippet_mode="all". Same ranking as the wheel/choice/feedback validation.](figures/2026-09-05_lfp-decoders_compression-impact.png)</span>{#fig-region-compression-impact .lightbox}</span>
+<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>Compression clearly costs region-decoding accuracy, and the cost is monotonic with compression</span>
+<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>aggressiveness (@fig-region-compression-impact): uncompressed (0.468) &gt; mild (0.435, −3.3pp) &gt;</span>
+<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>default (0.420, −4.8pp) &gt; aggressive (0.389, −7.9pp vs. uncompressed). This mirrors the</span>
+<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>wheel/choice/feedback validation's ranking exactly, on a completely different task, decoder, and</span>
+<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>cohort scale — strong evidence that the compression-tier ordering is a real property of the</span>
+<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a>codec, not an artefact of one validation's specific method.</span>
+<span id="cb1-319"><a href="#cb1-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-320"><a href="#cb1-320" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does avoiding saturated snippets help?</span></span>
+<span id="cb1-321"><a href="#cb1-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-322"><a href="#cb1-322" aria-hidden="true" tabindex="-1"></a>!<span class="co">[</span><span class="ot">Impact of ADC saturation avoidance on region decoding — bars: mean ± SD across 5 folds; dots: individual folds. Restricted to the three sources with both snippet modes (`mild` is `all`-only, see [Recap](#recap)).</span><span class="co">](figures/2026-09-05_lfp-decoders_saturation-impact.png)</span>{#fig-region-saturation-impact .lightbox}</span>
+<span id="cb1-323"><a href="#cb1-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-324"><a href="#cb1-324" aria-hidden="true" tabindex="-1"></a>Small and inconsistent in direction (@fig-region-saturation-impact): default drops slightly</span>
+<span id="cb1-325"><a href="#cb1-325" aria-hidden="true" tabindex="-1"></a>avoiding saturation (−0.3pp), aggressive and uncompressed both gain slightly (+0.3pp, +0.2pp) —</span>
+<span id="cb1-326"><a href="#cb1-326" aria-hidden="true" tabindex="-1"></a>all differences are within the fold-to-fold spread seen within a single combo's own 5 folds.</span>
+<span id="cb1-327"><a href="#cb1-327" aria-hidden="true" tabindex="-1"></a>Avoiding ADC-saturated snippets does not meaningfully change region-decoding accuracy at this</span>
+<span id="cb1-328"><a href="#cb1-328" aria-hidden="true" tabindex="-1"></a>snippet-selection scale — a separate axis from the compression-tier effect above, and not</span>
+<span id="cb1-329"><a href="#cb1-329" aria-hidden="true" tabindex="-1"></a>something saturation handling needs to trade off against.</span>
+<span id="cb1-330"><a href="#cb1-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-331"><a href="#cb1-331" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recap {#recap}</span></span>
+<span id="cb1-332"><a href="#cb1-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-333"><a href="#cb1-333" aria-hidden="true" tabindex="-1"></a><span class="al">![Full numeric recap: accuracy mean/SD/min/max across folds, sample sizes, per source × snippet mode.](figures/2026-09-05_lfp-decoders_recap-table.png)</span>{#fig-region-recap-table .lightbox}</span>
+<span id="cb1-334"><a href="#cb1-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-335"><a href="#cb1-335" aria-hidden="true" tabindex="-1"></a><span class="in">`mild`</span> was added to this validation after the wheel/choice/feedback grid had already identified</span>
+<span id="cb1-336"><a href="#cb1-336" aria-hidden="true" tabindex="-1"></a>ε=100/α=14 as the best-fidelity operating point worth naming and shipping (see</span>
+<span id="cb1-337"><a href="#cb1-337" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Full 2D grid</span><span class="co">](#full-2d-grid)</span> above) — run only at <span class="in">`snippet_mode="all"`</span> full-cohort scale, not</span>
+<span id="cb1-338"><a href="#cb1-338" aria-hidden="true" tabindex="-1"></a><span class="in">`saturation-avoided`</span>, since the saturation question was already answered by the other three</span>
+<span id="cb1-339"><a href="#cb1-339" aria-hidden="true" tabindex="-1"></a>sources and doesn't need re-litigating per tier (@fig-region-recap-table).</span>
+<span id="cb1-340"><a href="#cb1-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-341"><a href="#cb1-341" aria-hidden="true" tabindex="-1"></a><span class="fu">## Recommendation</span></span>
+<span id="cb1-342"><a href="#cb1-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-343"><a href="#cb1-343" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Keep default (ε=150, α=28)** as the standard cohort-wide tier — it's Pareto-efficient on the</span>
+<span id="cb1-344"><a href="#cb1-344" aria-hidden="true" tabindex="-1"></a>  behavioural grid, and every tested alternative in that direction trades away real feedback</span>
+<span id="cb1-345"><a href="#cb1-345" aria-hidden="true" tabindex="-1"></a>  fidelity.</span>
+<span id="cb1-346"><a href="#cb1-346" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Use mild (ε=100, α=14) for the highest fidelity.** Named and shipped as a third production</span>
+<span id="cb1-347"><a href="#cb1-347" aria-hidden="true" tabindex="-1"></a>  tier: realized CR 48× (vs. default's 87×, uncompressed's 1×), feedback balanced accuracy 0.626</span>
+<span id="cb1-348"><a href="#cb1-348" aria-hidden="true" tabindex="-1"></a>  vs. default's 0.597 and uncompressed's 0.642 — a chance-corrected retained-feedback-fraction of</span>
+<span id="cb1-349"><a href="#cb1-349" aria-hidden="true" tabindex="-1"></a>  **0.89** vs. default's 0.68. Confirmed independently at full ephys-atlas cohort scale (1099</span>
+<span id="cb1-350"><a href="#cb1-350" aria-hidden="true" tabindex="-1"></a>  PIDs) by the region-decoding validation above (0.435 vs. default's 0.420, uncompressed's</span>
+<span id="cb1-351"><a href="#cb1-351" aria-hidden="true" tabindex="-1"></a>  0.468).</span>
+<span id="cb1-352"><a href="#cb1-352" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**If more compression is required, use ε=450, α=28** — 100× realized CR (0.211 GB vs.</span>
+<span id="cb1-353"><a href="#cb1-353" aria-hidden="true" tabindex="-1"></a>  default's 0.242 GB across the 11 recordings, both tiny next to uncompressed's 20.4 GB), R²</span>
+<span id="cb1-354"><a href="#cb1-354" aria-hidden="true" tabindex="-1"></a>  0.122 vs. default's 0.127, feedback balanced accuracy 0.585 vs. default's 0.597. That</span>
+<span id="cb1-355"><a href="#cb1-355" aria-hidden="true" tabindex="-1"></a>  feedback gap is not statistically distinguishable from between-recording noise (paired</span>
+<span id="cb1-356"><a href="#cb1-356" aria-hidden="true" tabindex="-1"></a>  Wilcoxon p=0.17) — the best-value, lowest-risk upgrade found on the whole grid.</span>
+<span id="cb1-357"><a href="#cb1-357" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Retire the aggressive tier (ε=450, α=96).** Nothing between ε=450/α=28 and aggressive is</span>
+<span id="cb1-358"><a href="#cb1-358" aria-hidden="true" tabindex="-1"></a>  worth shipping — the frontier only gets there by also raising α, which is where the real,</span>
+<span id="cb1-359"><a href="#cb1-359" aria-hidden="true" tabindex="-1"></a>  significant decoding cost (p=0.005) lives, and the largest region-decoding cost measured</span>
+<span id="cb1-360"><a href="#cb1-360" aria-hidden="true" tabindex="-1"></a>  (−7.9pp vs. uncompressed).</span>
+<span id="cb1-361"><a href="#cb1-361" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Build command** (per-recording, ≈10–60 s from the existing Cadzow checkpoint, no</span>
+<span id="cb1-362"><a href="#cb1-362" aria-hidden="true" tabindex="-1"></a>  re-download needed): `lfpack.compress_to_h5(cadzow_npy, out_h5, recording=pid, epsilon=450.0,</span>
+<span id="cb1-363"><a href="#cb1-363" aria-hidden="true" tabindex="-1"></a>  alpha=28.0, fs=250.0, ...)`.</span>
+<span id="cb1-364"><a href="#cb1-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-365"><a href="#cb1-365" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
+<span id="cb1-366"><a href="#cb1-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-367"><a href="#cb1-367" aria-hidden="true" tabindex="-1"></a>**Behavioural decoding**: <span class="in">`oliche-quarto/analyses/2026-06-lfp-compression-svd/`</span> —</span>
+<span id="cb1-368"><a href="#cb1-368" aria-hidden="true" tabindex="-1"></a><span class="in">`compression_benchmark.py`</span>, <span class="in">`svd_adaptive_wp.py`</span> and the dated</span>
+<span id="cb1-369"><a href="#cb1-369" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_*.py`</span> / <span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> scripts</span>
+<span id="cb1-370"><a href="#cb1-370" aria-hidden="true" tabindex="-1"></a>under <span class="in">`~/Documents/ibldevtools/olivier/`</span> (sweep computation + this page's figures). The <span class="in">`mild`</span></span>
+<span id="cb1-371"><a href="#cb1-371" aria-hidden="true" tabindex="-1"></a>tier was added after the fact by <span class="in">`2026-09-05_LFP_compression_decoding_add_mild.py`</span> /</span>
+<span id="cb1-372"><a href="#cb1-372" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-09-05_LFP_compression_decoding_categorical_add_mild.py`</span> (reuse the already-computed</span>
+<span id="cb1-373"><a href="#cb1-373" aria-hidden="true" tabindex="-1"></a>uncompressed/default/aggressive rows, decode only the new variant, regenerate @fig-r2-by-pid /</span>
+<span id="cb1-374"><a href="#cb1-374" aria-hidden="true" tabindex="-1"></a>@fig-categorical-boxplot) and directly in</span>
+<span id="cb1-375"><a href="#cb1-375" aria-hidden="true" tabindex="-1"></a><span class="in">`2026-08-31_LFP_compression_full_grid_displays.py`</span> (@fig-grid-heatmaps / @fig-grid-pareto</span>
+<span id="cb1-376"><a href="#cb1-376" aria-hidden="true" tabindex="-1"></a>already covered the ε=100/α=14 cell — only the mild/default/aggressive highlight markers were</span>
+<span id="cb1-377"><a href="#cb1-377" aria-hidden="true" tabindex="-1"></a>added), same directory.</span>
+<span id="cb1-378"><a href="#cb1-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-379"><a href="#cb1-379" aria-hidden="true" tabindex="-1"></a>**Region decoding**: <span class="in">`sdsc-slurms/2026-08_lfp-decoders/`</span> — <span class="in">`extract.py`</span> (per-PID/per-snippet</span>
+<span id="cb1-380"><a href="#cb1-380" aria-hidden="true" tabindex="-1"></a>LF+CSD feature extraction, joblib-parallel), <span class="in">`aggregate.py`</span> (thin wrapper around</span>
+<span id="cb1-381"><a href="#cb1-381" aria-hidden="true" tabindex="-1"></a><span class="in">`ephysatlas.aggregation.produce_output_dataframes`</span>), <span class="in">`train_classifier.py`</span> (5-fold PID-grouped</span>
+<span id="cb1-382"><a href="#cb1-382" aria-hidden="true" tabindex="-1"></a>XGBoost), <span class="in">`report.py`</span> (this section's table + figures, run locally after rsyncing</span>
+<span id="cb1-383"><a href="#cb1-383" aria-hidden="true" tabindex="-1"></a><span class="in">`accuracy.json`</span> back from the cluster). Region annotations (<span class="in">`atlas_id`</span>/<span class="in">`acronym`</span>/<span class="in">`x`</span>/<span class="in">`y`</span>/<span class="in">`z`</span>)</span>
+<span id="cb1-384"><a href="#cb1-384" aria-hidden="true" tabindex="-1"></a>come embedded in each lfpack archive via <span class="in">`attach_ibl_metadata.py`</span></span>
+<span id="cb1-385"><a href="#cb1-385" aria-hidden="true" tabindex="-1"></a>(<span class="in">`sdsc-slurms/2026-06-lfpack/`</span>).</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
