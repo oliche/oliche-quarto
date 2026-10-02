@@ -79,3 +79,7 @@ The grid display shows 12 evenly-spaced slices spanning the full brain, with the
 | `view_volumes_by_age.py` | Z-score, subtract baseline, display grid |
 | `gene_ages_cache.parquet` | Cached gene → phylostratum assignments |
 | `summed_volumes_by_phylostratum.npy` | Summed expression per PS |
+
+## References
+[https://www.biorxiv.org/content/10.1101/2025.10.01.679862v2.full](A conserved logic for the development of cortical layering in tetrapods)
+[https://med.stanford.edu/news/all-news/2026/09/two-separate-brains.html](Separate Brains)
