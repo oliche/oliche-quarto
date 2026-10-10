@@ -1,0 +1,105 @@
+---
+title: "Cadzow denoising through LFP, bipolar and CSD"
+description: "The 11 lfpack benchmark insertions through the lfpack v05 production pipeline, before and after Cadzow, as LFP, bipolar re-referencing and current source density."
+date: "2026-10-09"
+date-modified: "2026-10-10"
+author: "Olivier Winter"
+categories: [electrophysiology, LFP, CSD, Neuropixels]
+---
+
+**LFP** (local field potential) is the low-frequency extracellular voltage recorded at each site, here after
+common-average referencing and decimation to 250 Hz. It mixes activity generated near the probe with fields
+volume-conducted from distant sources, so it is smooth across depth.
+
+**Bipolar** re-referencing (BPR) is the difference between neighbouring sites of the same probe column, 20 µm apart: a
+first spatial derivative. It cancels what the two sites share, such as distant fields and the common reference, and
+keeps locally generated activity.
+
+**CSD** (current source density) is the second spatial derivative along the column, scaled by the tissue
+conductivity. It estimates where current enters and leaves the tissue, which places sinks and sources at the depth
+where they are generated. ibldsp computes +σ ∂²V/∂z², the opposite of the usual −σ ∂²V/∂z², so positive (red)
+values are current sinks.
+
+Both derivatives amplify what differs from site to site, which is mostly noise in the raw signal; Cadzow removes it.
+
+## Processing pipeline
+
+- **Data:** the 11 lfpack benchmark insertions, all NP1 (3A / 3B2), LF band at 2500 Hz, streamed with ONE.
+- **Chunk:** the production chunk of `resample_denoise_lfp_cbin` that contains the middle of the recording. It is
+  8192 output samples (32.8 s at 250 Hz), with 1664-sample warm-up pads on each side for the 0.5 Hz corner, run
+  through the production chunk worker `ibldsp.voltage._resample_lfp_chunk`.
+- **ADC sample shift:** NP1 per-channel sub-sample shift from the SpikeGLX meta (`ibldsp.fourier.fshift`).
+- **High-pass:** 3rd-order Butterworth, 0.5 Hz, zero-phase (`sosfiltfilt`).
+- **Bad channels:** labels from the v04 archive (`detect_bad_channels_cbin`). Dead (1) and noisy (2) channels are
+  interpolated from their neighbours (kriging, p = 1.3, 20 µm). Channels outside the brain (3) are kept.
+- **CAR:** median over the good channels (label 0), subtracted.
+- **Decimation:** ×10 to 250 Hz, FIR with 256 taps (`scipy.signal.decimate`).
+- **Cadzow, lfpack v05** (`ibldsp.cadzow.LFP_KWARGS_NP1`, ibl-neuropixel 1.14.0):
+  - rank ≤ 5, 1 iteration, all frequencies (`fmax=None`);
+  - 64-channel windows every 32 (`nswx=64`, `ovx=32`) on the full lateral × depth grid (`fill_grid=True`);
+  - Gavish–Donoho singular-value shrinkage, noise scale 2.25;
+  - PPCA outlier replacement at k = 2;
+  - dead and noisy channels as missing (`bad_channels_as_missing=True`): estimated by Cadzow, not re-interpolated.
+- **Saturation mute:** the saturated intervals of the v04 archive (amplitude-only `saturation_cbin`, proportion
+  0.2), zeroed on the output with a 7-sample cosine taper, after Cadzow.
+- **Original:** the same pipeline without Cadzow. Difference = original − denoised.
+- **Display:**
+  - three 3 s snippets per insertion, at 4, 15 and 26 s into the chunk;
+  - LFP in µV;
+  - bipolar: difference between consecutive sites of the same column (20 µm);
+  - CSD: `ibldsp.voltage.current_source_density`, the second difference along each column over (20 µm)², times
+    σ = 1/3 S m⁻¹;
+  - one colour scale per row, ±99th percentile of the denoised column (`RdBu_r`);
+  - brain regions from the histology alignment, with dead (black) and noisy (red) channels marked.
+- **Code:** `plot_cadzow_csd.py`. It runs the chunk worker of the call below on one chunk per insertion, with the
+  bad-channel labels and saturated intervals of the v04 archive.
+
+The whole pipeline is the default entry point of `ibldsp.voltage` (ibl-neuropixel 1.14.0), called the same way by
+`lfpack.compress_bin_to_h5`:
+
+```python
+from pathlib import Path
+
+import numpy as np
+import spikeglx
+from ibldsp import cadzow, voltage
+
+sr = spikeglx.Reader(Path("_spikeglx_ephysData_g0_t0.imec0.lf.cbin"))
+# channel labels: 0 good, 1 dead, 2 noisy, 3 outside the brain
+channel_labels = voltage.detect_bad_channels_cbin(sr)
+# ADC saturation, amplitude only (the slope criterion is tuned for the AP band): boolean mask at 2500 Hz
+file_saturation = Path("saturation.npy")
+voltage.saturation_cbin(sr, file_saturation=file_saturation, max_voltage=sr.range_volts[: sr.nc - sr.nsync],
+                        v_per_sec=None, proportion=0.2, mute_window_samples=7)
+# sample shift, 0.5 Hz high-pass, bad-channel interpolation, CAR, decimation to 250 Hz, Cadzow, saturation mute
+voltage.resample_denoise_lfp_cbin(
+    sr,
+    q=10,
+    output=Path("lf_250hz.npy"),  # (n_samples, n_channels) float32
+    dtype=np.float32,
+    channel_labels=channel_labels,
+    highpass_cutoff=0.5,
+    car=True,
+    cadzow_kwargs={**cadzow.LFP_KWARGS_NP1, "bad_channels_as_missing": True},
+    saturation_file=file_saturation,
+    mute_window_samples=7,
+    n_jobs=4,
+)
+```
+
+## Benchmark insertions
+
+```{python}
+#| output: asis
+#| echo: false
+import pandas as pd
+
+t = pd.read_csv("2026-10-10_snippets.csv")
+for pid, d in t.groupby("pid"):
+    print(f"### {pid[:8]}\n\n::: {{.panel-tabset}}\n")
+    for _, r in d.iterrows():
+        print(f"#### t = {r.t:.0f} s\n\n![Insertion {pid[:8]}, t = {r.t:.0f} s: LFP, bipolar and CSD, original, "
+              f"Cadzow-denoised and difference.](figures/2026-10-10_csd_{pid[:8]}_{r.snippet}.webp)"
+              f"{{#fig-{pid[:8]}-{r.snippet} .lightbox group=\"{pid[:8]}\"}}\n")
+    print(":::\n")
+```

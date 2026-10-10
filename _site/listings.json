@@ -2,6 +2,9 @@
   {
     "listing": "/index.html",
     "items": [
+      "/analyses/2026-10-lfpack-v05/index.html",
+      "/analyses/2026-10-csd/index.html",
+      "/analyses/2026-10-cadzow-seams/index.html",
       "/analyses/2026-09-multichannel-waveform-features/index.html",
       "/analyses/2026-09-tv-denoise-fac-bracket/index.html",
       "/analyses/2026-09-region-distinctiveness/index.html",

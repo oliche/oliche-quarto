@@ -1,0 +1,205 @@
+---
+title: "Cadzow window seams in the CSD"
+description: "The lfpack Cadzow denoiser left horizontal seams in the CSD at its spatial window boundaries. Two causes, the NP1 checkerboard and the hard adaptive rank, fixed by a full-grid trajectory and Gavish-Donoho shrinkage; bad channels are now estimated by Cadzow. Released in ibl-neuropixel 1.14.0, routed in lfpack."
+date: "2026-10-09"
+date-modified: "2026-10-10"
+author: "Olivier Winter"
+categories: [electrophysiology, LFP, CSD, Neuropixels, denoising]
+---
+
+## Summary
+
+**Status: fixed.** The CSD of Cadzow-denoised LFP showed horizontal blocks bounded by the boundaries of Cadzow's
+spatial windows (every 32 channels). A synthetic field with a known CSD found two causes:
+
+1. **NP1 checkerboard.** Each 20 µm row holds 2 of the 4 lateral positions, so the block-Hankel trajectory of a window
+   is half zeros, which the SVD treats as data.
+2. **Hard adaptive rank** (`gap_threshold`). Neighbouring windows keep different numbers of components, so their fits
+   disagree where they are blended.
+
+The window gains sum to 1, and the PPCA outlier replacement is not involved.
+
+The fix runs Cadzow on the full lateral × depth grid, with the empty positions filled from their neighbours, and
+replaces the hard rank cut by Gavish–Donoho singular-value shrinkage. On the synthetic field at 3 % noise, the CSD error
+drops from 0.83 to 0.31 and the seams go away. On the 11 benchmark insertions the window blocks are gone, at the same
+cost.
+
+Bad channels can now be estimated by Cadzow itself, instead of being interpolated before and after it. Near bad
+channels this brings the CSD error from 0.58 to 0.30, the same as with no bad channels.
+
+| PR | Content | Status |
+|---|---|---|
+| [ibl-neuropixel#96](https://github.com/int-brain-lab/ibl-neuropixel/pull/96) | `fill_grid`, `shrinkage`; entry points `cadzow_denoiser_np1` / `cadzow_denoiser_np2` with the LFP defaults | merged, released in 1.14.0 |
+| [ibl-neuropixel#97](https://github.com/int-brain-lab/ibl-neuropixel/pull/97) | `bad_channels`; `cadzow_kwargs["bad_channels_as_missing"]` in the LFP chunk worker | merged, released in 1.14.0 |
+| [lfpack#22](https://github.com/int-brain-lab/lfpack/pull/22) | Cadzow settings routed by probe geometry (`cadzow_lfp_kwargs`): NP1 → `LFP_KWARGS_NP1`, NP2 → `LFP_KWARGS_NP2` | open, needs the 1.14.0 pin |
+
+All the new options are opt-in. With the defaults, `cadzow_denoiser` gives bit-identical output to 1.13.0, and lfpack
+1.0.0 passes its tests against 1.14.0. With the new Cadzow, lfpack file sizes are stable per tier, but fidelity to the
+denoised input drops by about 2 dB; see [lfpack v05](../2026-10-lfpack-v05/index.qmd).
+
+## The problem
+
+Cadzow (`ibldsp.cadzow.cadzow_denoiser`, as called by lfpack v04 with
+`rank=5, fmax=None, nswx=64, ovx=32, gap_threshold=2, ppca_k=2`) fits a rank ≤ 5 model per frequency bin in spatial
+windows of 64 channels (640 µm), blended every 32 channels. The CSD, a second spatial derivative, shows the
+disagreement between neighbouring window fits A and B through the w″·(A − B) and 2w′·(A′ − B′) terms of the blend.
+The blending weights only shape the seams; the disagreement between the fits sets their size. Seams were most visible
+where Cadzow keeps little CSD power, e.g. in 749cb2b7.
+
+## Diagnosis on a synthetic field
+
+The synthetic field has 40 laminar disc sources (R = 500 µm, σ = 1/3 S/m) with log-uniform widths of 50–300 µm and
+1/f^1.4 time courses, forward-modelled onto NP1, plus white noise. At 3 % noise, Cadzow keeps the same CSD fraction as
+on the real chunks. Metrics:
+
+- **CSD error:** median per-channel RMS error of the CSD against the true CSD, relative to the true CSD RMS.
+- **Seam ratio:** error within ±2 channels of the window boundaries over the error elsewhere; 1 means no seams.
+
+Without noise, production Cadzow already has a CSD error of 0.54 with seams (ratio 1.89), so the seams are not a noise
+problem (`cadzow_synthetic_remedies.py`):
+
+- **Checkerboard.** On the channel trajectory, a fixed rank 5 still leaves seams (1.90), as it splits component pairs.
+  On the full grid it is near exact (CSD error 0.02, seams 1.16).
+- **Hard adaptive rank.** On the full grid with the production adaptive rank, the seams are back (2.10).
+- **No fixed rank works with noise.** At 3 % noise, a fixed rank has no seams but does not denoise (CSD error 1.4 to
+  2.9). The adaptive rank denoises but makes seams. Shrinkage does both (@tbl-synthetic).
+
+```{python}
+#| label: tbl-synthetic
+#| tbl-cap: "Synthetic field: CSD error and seam ratio of production Cadzow and of full grid + Gavish-Donoho shrinkage, by white-noise level (fraction of the signal RMS)."
+#| echo: false
+import pandas as pd
+
+s = pd.read_csv("2026-10-09_cadzow_synthetic_shrink.csv")
+s = s[s.method.isin(["production", "shrink, noise per window"])].replace(
+    {"production": "lfpack v04", "shrink, noise per window": "full grid + shrinkage"})
+t = s.pivot(index="method", columns="noise", values=["csd_err_median", "seam_ratio"])
+t.columns = [f"{'CSD error' if a == 'csd_err_median' else 'seams'}, {b:.1%} noise" for a, b in t.columns]
+t.round(2)
+```
+
+![Synthetic field, CSD (3 s): true CSD, lfpack v04 settings and full grid + shrinkage, without noise (top) and at 3 % white noise (bottom). Figure of ibl-neuropixel#96.](figures/2026-10-10_cadzow_pr96_fill_grid_shrinkage.webp){#fig-pr96 .lightbox}
+
+The shrinkage noise scale is calibrated on white noise, so that the largest noise singular value lands on the
+Marchenko–Pastur bulk edge. It is 2.25 for NP1 with the full grid and 1.22 for NP2, whose grid is already full. The NP1
+value applied to NP2 brings the seams back (@tbl-np2), hence the two entry points.
+
+```{python}
+#| label: tbl-np2
+#| tbl-cap: "NP2 (single shank) synthetic field: CSD error and seam ratio with the v04 settings and with shrinkage at the NP2 and NP1 noise scales."
+#| echo: false
+n = pd.read_csv("2026-10-10_cadzow_synthetic_np2.csv")
+t = n.pivot(index="method", columns="noise", values=["csd_err", "seam_ratio"])
+t.columns = [f"{'CSD error' if a == 'csd_err' else 'seams'}, {b:.1%} noise" for a, b in t.columns]
+t.round(2)
+```
+
+## Real data
+
+The inputs are the no-Cadzow outputs of the production chunk worker for the 11 benchmark insertions (32.8 s
+mid-recording chunks). Each was then denoised, and bad channels were re-interpolated as in production. The full-grid
+shrinkage keeps a little more CSD power (median 0.19 against 0.17 of the no-Cadzow CSD RMS). It runs in 27.0 s against
+25.6 s per chunk, single-threaded. Windows stay independent, so the parallel structure is unchanged.
+
+```{python}
+#| label: tbl-real
+#| tbl-cap: "Benchmark insertions: per-channel CSD RMS relative to the no-Cadzow signal (median over channels)."
+#| echo: false
+r = pd.read_csv("2026-10-09_cadzow_shrink_real.csv")
+r["pid"] = r["pid"].str[:8]
+r = r.set_index("pid")[["csd_kept_production", "csd_kept_ovx48", "csd_kept_shrink_window"]]
+r.columns = ["lfpack v04", "v04, ovx = 48", "full grid + shrinkage"]
+r.loc["median"] = r.median()
+r.round(3)
+```
+
+Rows: CSD, bipolar and voltage. Columns: no Cadzow, lfpack v04, `ovx = 48`, full grid + shrinkage, and the two
+per-chunk variants. Click a figure to browse all 11 insertions.
+
+```{python}
+#| output: asis
+#| echo: false
+for pid in r.index.drop("median"):
+    print(f"![Insertion {pid}: Cadzow variants in CSD, bipolar and voltage.](figures/2026-10-09_cadzow_shrink_{pid}.webp)"
+          f"{{#fig-shrink-{pid} .lightbox group=\"shrink\"}}\n")
+```
+
+## Bad channels
+
+Bad channels are interpolated before Cadzow and again after it. An interpolated channel is a weighted mean of its
+neighbours. It does not follow the per-column curvature that the CSD measures, so each bad channel leaves a line in
+the CSD. With `bad_channels`, Cadzow discards their data, fills them like the empty grid positions, and outputs its own
+estimate. On the synthetic field with the bad-channel layout of e8f9fba4, this matches the error of the field without
+bad channels (@tbl-bad).
+
+```{python}
+#| label: tbl-bad
+#| tbl-cap: "Synthetic field at 3 % noise with the e8f9fba4 bad channels (11 dead, 7 noisy): CSD error on the channels whose CSD involves a bad channel, and elsewhere."
+#| echo: false
+b = pd.read_csv("2026-10-10_cadzow_synthetic_bad.csv").set_index("method")
+b.index = ["lfpack v04, interpolated", "full grid + shrinkage, interpolated", "full grid + shrinkage, bad_channels",
+           "full grid + shrinkage, no bad channels"]
+b.columns = ["CSD error near bad", "CSD error elsewhere", "seams"]
+b.round(2)
+```
+
+![Synthetic field with the e8f9fba4 bad channels (triangles: dead in black, noisy in red). Figure of ibl-neuropixel#97.](figures/2026-10-10_cadzow_pr97_bad_channels.webp){#fig-pr97 .lightbox}
+
+On real data this removes the dead-channel lines. It does not remove the band at channels 170–195 of e8f9fba4, where
+the unlabelled neighbours of the noisy channels are noisy too (2–3.6× the noise level). That is a labelling or
+heteroscedastic-noise issue, left for later.
+
+```{python}
+#| output: asis
+#| echo: false
+for pid in r.index.drop("median"):
+    print(f"![Insertion {pid}: v04, shrinkage with interpolation, shrinkage with bad_channels.](figures/2026-10-10_cadzow_bad_{pid}.webp)"
+          f"{{#fig-bad-{pid} .lightbox group=\"bad\"}}\n")
+```
+
+## Compatibility
+
+- `cadzow_denoiser` defaults are unchanged. Its output is bit-identical to 1.13.0 on 4 configurations: the defaults,
+  the v04 settings, `ovx = 48`, and a small window with padding.
+- The LFP chunk worker re-interpolates bad channels after Cadzow as before, unless `bad_channels_as_missing` is set.
+- lfpack 1.0.0 passes its 92 tests against 1.14.0. With lfpack#22, `cadzow_kwargs={}` gives the geometry defaults;
+  explicit keys override them.
+- Multi-shank probes are refused by the routing: their per-shank coordinates repeat across shanks, so `fill_grid` is
+  undefined. The plain path already mixed the shanks on 1.13.0.
+
+## Compression {#compression}
+
+The effect on lfpack is in [lfpack v05](../2026-10-lfpack-v05/index.qmd):
+
+- **File size:** stable per tier.
+- **Fidelity:** about 2 dB lower against the denoised input.
+- **Seams:** the window-dependence check on the real chunks shows no window seams with v05.
+- **Bad-channel lines:** they halve with the bad channels left to Cadzow.
+- **CSD:** the codec, not Cadzow, now limits the CSD of the archives.
+
+## Earlier attempts
+
+Before the synthetic field, three remedies were tried on the real chunks. They treated the blending, not the fits.
+
+- **Two runs staggered by 1/4 and 3/4 of the window step**, blended with complementary raised-cosine weights. This was
+  worse: depth-varying weights add w″ and w′ terms everywhere (`cadzow_stagger.py`).
+- **Cycle spinning** over 4 grid offsets, averaged with equal weights (`cadzow_cycle_spin.py`).
+- **More overlap**, `ovx = 48`.
+
+Cycle spinning and `ovx = 48` weakened the seams, but kept less CSD power (0.14 against 0.17) and left discontinuities
+at the same depths in all methods. MSSA (column-stacked Hankel, `cadzow_mssa_real.py`) has no zeros in its trajectory
+but denoises too little (CSD kept 0.67).
+
+## Code and data
+
+| File | Content |
+|---|---|
+| `cadzow_window_gain.py` | Window gains sum to 1; trajectory occupancy |
+| `cadzow_synthetic.py`, `cadzow_synthetic_calibration.py` | Synthetic field, calibration against the real CSD kept |
+| `cadzow_synthetic_remedies.py`, `cadzow_fill.py` | Fixed ranks, full-grid fill |
+| `cadzow_shrink.py`, `cadzow_synthetic_shrink.py`, `cadzow_shrink_real.py` | Gavish-Donoho shrinkage prototype, synthetic and real |
+| `cadzow_synthetic_bad.py`, `cadzow_bad_real.py` | Bad channels as missing grid positions |
+| `cadzow_synthetic_np2.py` | NP2 geometry |
+| `cadzow_pr_figures.py` | PR figures, with the ibldsp API |
+
+Inputs are the production chunks cached in `~/scratch/lfp/csd_lfpack_v04/` by `../2026-10-csd/plot_cadzow_csd.py`.
