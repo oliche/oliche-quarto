@@ -191,7 +191,16 @@ Code: `shared_basis_sweep.py`, `pareto_sweep.py`, `plot_pareto.py`; results `202
 
 The three tiers sit on this curve at α = 14, 7 and 2.5 (@fig-pareto, @fig-tiers):
 
-![The three v04 tiers (shared basis m = 32, ε = 100) against the mild baseline (format 2, per-chunk U, α = 14). Left: wheel-R² change against the mild tier; right: reconstruction SNR; mean ± s.e.m. over 11 insertions, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding).](figures/2026-09-27_pareto_v04-tiers.png){#fig-tiers}
+![The three lfpack tiers, v04 (shared basis m = 32, ε = 100, blue) and [v05](../2026-10-lfpack-v05/index.qmd) (same codec, new Cadzow, green), with the mild baseline (format 2, per-chunk U, α = 14). Each point is the paired change against its own uncompressed signal: the June Cadzow output for v04 and mild, the v05 Cadzow output for v05. Left: wheel R²; right: feedback balanced accuracy; mean ± s.e.m. over 11 insertions, dotted: uncompressed. Open star: v03 mild as shipped, in format 1 (size estimated as format 2 / 0.71, same decoding).](figures/2026-10-11_pareto_v04-v05-tiers.png){#fig-tiers}
+
+The v05 tiers cost the same decoding as the v04 tiers relative to their uncompressed signal (@fig-tiers): wheel R²
+−0.007 / −0.003 / −0.000 at α = 14 / 7 / 2.5, against −0.005 / −0.003 / −0.001 for v04, all within one s.e.m. File
+sizes are 7 % smaller (small) to 4 % larger (fine). In absolute terms, v05 decodes better: its uncompressed signal
+reaches a wheel R² of 0.163 against 0.139 for the June signal, higher in 10 of the 11 insertions. Against the shipped
+v04 archives, which share the production preprocessing of v05 (0.5 Hz high-pass, saturation muting), v05 gains
++0.012 / +0.015 / +0.015 wheel R² per tier (better in 8 / 10 / 10 insertions, @fig-decoding) for files 3 / 7 / 11 %
+larger. So about a third of the gain over the June signal comes from the preprocessing and two thirds from the v05
+Cadzow.
 
 ### Reconstruction of each insertion
 
@@ -229,14 +238,19 @@ for pid in PIDS:
 
 Wheel speed, choice and feedback were decoded on the 11 insertions for the uncompressed signal, the three v03 tiers
 (the 42-cell grid of the appendix: `aggressive` ε = 450 / α = 96, `default` ε = 150 / α = 28, `mild` ε = 100 / α = 14,
-format 1) and the three v04 tiers (@fig-decoding).
+format 1), the three v04 tiers, and the [v05](../2026-10-lfpack-v05/index.qmd) tiers (@fig-decoding). The v04 tiers
+of the sweep re-encode the June Cadzow output (2 Hz high-pass). v05 runs the production pipeline from the raw LF band
+(`decode_v05.py`: `lfpack.compress_bin_to_h5`, 0.5 Hz high-pass, saturation muting, bad-channel labels of the v04
+archive), so the shipped v04 archives are decoded too as its like-for-like reference.
 
 ```{python}
 #| echo: false
 #| label: tbl-decoding-tiers
-#| tbl-cap: "Behaviour decoding on 11 insertions, mean ± s.e.m. 1/CR: summed file size / uncompressed float32 at 250 Hz; file / v03 mild: summed file sizes. Chance is 0.5 for choice and feedback."
-dec = pd.read_csv("2026-10-02_decoding_tiers.csv")
-order = ["uncompressed", "v03 aggressive", "v03 default", "v03 mild", "v04 small", "v04 default", "v04 fine"]
+#| tbl-cap: "Behaviour decoding on 11 insertions, mean ± s.e.m. 1/CR: summed file size / uncompressed float32 at 250 Hz; file / v03 mild: summed file sizes (archive and v05: HDF5 storage of the recording). Chance is 0.5 for choice and feedback."
+dec = pd.read_csv("2026-10-11_decoding_tiers_v05.csv")
+order = ["uncompressed", "v03 aggressive", "v03 default", "v03 mild", "v04 small", "v04 default", "v04 fine",
+         "v04 small (archive)", "v04 default (archive)", "v04 fine (archive)",
+         "v05 uncompressed", "v05 small", "v05 default", "v05 fine"]
 size = dec.groupby("tier")["bytes"].sum().loc[order]
 pm = lambda c: (dec.groupby("tier")[c].mean().map("{:.3f}".format) + " ± "  # noqa: E731
                 + dec.groupby("tier")[c].sem().map("{:.3f}".format)).loc[order]
@@ -249,13 +263,16 @@ pd.DataFrame({
 }).rename_axis("tier")
 ```
 
-![Behaviour decoding per tier. Grey: the 11 insertions; heavy markers: mean ± s.e.m. (blue: uncompressed and v03 tiers, orange: v04 tiers). Dotted: chance.](figures/2026-10-02_decoding_tiers.png){#fig-decoding .lightbox}
+![Behaviour decoding per tier. Grey: the 11 insertions; heavy markers: mean ± s.e.m. (blue: uncompressed and v03 tiers, orange: v04 tiers, open: v04 archives as shipped, green: v05). Vertical lines separate the June signal, the v04 archives and v05. Dotted: chance.](figures/2026-10-11_decoding_tiers_v05.png){#fig-decoding .lightbox}
 
 - **v04 `small` matches v03 mild at 0.38× its size on these insertions (0.33× on the full archive)**: wheel R² 0.1336 vs 0.1337, feedback 0.627 vs 0.626.
 - **Lowering α recovers the uncompressed score**, feedback first: 0.627 → 0.625 → 0.641 (α = 14 → 7 → 2.5) against
   0.642 uncompressed. Wheel R² goes 0.1336 → 0.1360 → 0.1385 against 0.1390. Choice is flat within noise at every tier.
 - **The v03 tiers rank as before:** `aggressive` loses the most (feedback 0.557, wheel R² 0.104), because feedback is
   decoded from a brief post-event window, exactly the fast phasic structure the wavelet threshold removes first.
+- **v05 decodes wheel speed better than v04 at every tier:** 0.155 / 0.160 / 0.162 against 0.143 / 0.145 / 0.147 for
+  the v04 archives (small / default / fine). Its own compression cost is the same as v04 (@fig-tiers). Choice and
+  feedback are flat within noise (feedback +0.005 / −0.002 / +0.008).
 - Per-insertion feedback accuracy varies widely (SD ≈ 0.11 between insertions), which swamps the tier effect in raw
   values; the lines in the figure are paired within insertion.
 
@@ -417,7 +434,8 @@ only 1.3–2.4, with no clean signal / noise gap, so it barely tracks compressio
 
 - Codec and sweeps: `shared_basis_sweep.py`, `pareto_sweep.py`, `plot_pareto.py`, `compression_benchmark.py`,
   `svd_adaptive_wp.py` in `oliche-quarto/analyses/2026-06-lfp-compression-svd/`; this page's new figures:
-  `plot_v04_insertions.py`, `plot_decoding_tiers.py`.
+  `plot_v04_insertions.py`, `plot_decoding_tiers.py`; v05: `decode_v05.py`, `plot_tiers_v05.py`,
+  `plot_decoding_tiers_v05.py`.
 - v03 behaviour decoding: dated `2026-08-31_LFP_compression_*.py` / `2026-09-05_LFP_compression_*add_mild.py` under
   `~/Documents/ibldevtools/olivier/`.
 - Region decoding on the atlas: `sdsc-slurms/2026-08_lfp-decoders/` (`extract.py`, `aggregate.py`,
