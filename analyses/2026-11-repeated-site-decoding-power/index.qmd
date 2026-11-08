@@ -64,7 +64,7 @@ Across the 22 Beryl regions that reach 80% power, the median N80 is 100 neurons,
 
 ![Same for six Beryl regions.](figures/007_marek_beryl.png){#fig-marek-beryl}
 
-**Many sessions with few neurons beat few sessions with many.** At a fixed total, spreading neurons over sessions maximises power (@fig-design). CTX-VIS reaches 80% with 90 neurons as 30 sessions × 3, versus 269 under the ≥5-per-session pool rule. Requiring more neurons per session raises N80 two- to fivefold (@fig-kmin). The cost is a higher sign-error rate with very few neurons per session (up to ~10% at ≥1 neuron).
+**Splitting neurons over more sessions helps in cortex, not everywhere.** At a fixed total, power peaks at 3–8 neurons per session in CTX-VIS, VISp and LP (@fig-design, @fig-stouffer). CTX-VIS reaches 80% with 90 neurons as 30 sessions × 3, versus 269 under the ≥5-per-session pool rule. Power is flat in TH and rises with neurons per session in HPF, where large-n designs can only use the few sessions with many HPF neurons (a selected subset). In pool resampling, requiring more neurons per session raises N80 two- to fivefold, mostly because fewer sessions contribute (@fig-kmin). One or two neurons per session cost power and raise sign errors (up to ~10% at ≥1 neuron).
 
 ![Power over sessions S × neurons per session n (cyan: 80%; dotted: iso total neurons). Cells require ≥10 sessions with ≥n neurons and S ≤ half of them.](figures/008_design_map.png){#fig-design}
 
@@ -78,9 +78,12 @@ The conclusions are robust; the N80 values are, if anything, conservative (@fig-
 - **k-grid lookup.** Rounding drawn counts down or up instead of to the nearest grid point changes N80 by at most one step of the N grid (for example LP 194 vs 248).
 - **Null size.** With M = 100 instead of 200, N80 is unchanged except for LP and HPF (one grid step). M = 50 costs one grid step everywhere. Because p cannot go below 1/(M+1), 23–27% of full-population sessions in strong regions sit at that floor. This compresses Fisher p at large N but does not affect N80.
 - **CV runs.** Averaging 10 CV runs (as in the BWM paper) shrinks the null SD by 15–25% and lowers session p-values for intermediate effects (for example 0.19 → 0.07 and 0.045 → 0.025) on 6 full-population cells. Our single-run power curves are therefore a lower bound; N80 with 10 runs would be somewhat smaller.
+- **Session p floor.** Fisher session p-values cannot go below 1/201, which caps each session's contribution and could favour many small sessions. Replacing Fisher with Stouffer's z on a Gaussian fit to each session's null (no floor) raises power by 0–0.1 throughout but leaves the dependence on neurons per session and the cheapest 80% designs unchanged (CTX-VIS 90, TH 240, LP 96, HPF 600 neurons; VISp 60 vs 90; @fig-stouffer). At most 10% of design-map sessions sit at the floor.
 - **Monte Carlo noise.** Repeated runs move HPF's N80 between about 2,000 and 2,700 (adjacent grid points), because its power curve is shallow.
 
 ![Sensitivity: (a) significance thresholds incl. Bonferroni and FDR vs BWM, (b) k-grid lookup rounding, (c) null size, (d) 1 vs 10 CV runs.](figures/009_sensitivity.png){#fig-sens}
+
+![Fixed total neurons N split over S = N / n sessions: power vs neurons per session n, Fisher (filled, session p floored at 1/201) vs Stouffer (open, Gaussian null z, no floor).](figures/010_stouffer_check.png){#fig-stouffer}
 
 ## Discussion
 
@@ -92,9 +95,10 @@ The conclusions are robust; the N80 values are, if anything, conservative (@fig-
 | Stricter threshold | Bonferroni: ~9,500 | α 0.01: ×1.3; Bonferroni: ×1.4–2.1 (HPF, VPM never reach 80%) |
 | Small-sample variability | n = 25: 99% CI r ± 0.52 | N < 150: effect range up to 0.3 for true ≈ 0.03 |
 | Inflation of significant effects | ≥100% for half at n = 1,000 | 2–25× winner’s curse below 200 neurons; ≥100% vs full pool for 2/3 of significant CTX-VIS draws at N = 42 |
+| Design trade-off | scan time vs participants (Ooi et al. 2025): accuracy grows with total scan time up to ~20 min per participant, then sample size matters more | neurons per session vs sessions: 3–8 per session best in CTX-VIS, VISp, LP; flat in TH |
 | Sign errors | rise with lenient thresholds | ≤3% (CTX-VIS, TH); up to 17% in HPF (Fisher vs median disagreement) |
 
-The parallel holds qualitatively. Region-level decoding effects are small, small samples give wildly variable and inflated estimates, and significance requires hundreds to thousands of neurons. Most published BWM regions sit near the edge: at the BWM inclusion rule, a typical region has 100–1,000 neurons, around its N80. Two differences matter. First, the effect size grows with the number of neurons per session, so "the" effect of a region is defined only for a recording design. Second, recording design is a lever with no BWAS counterpart: many sessions with a few neurons each gives the most power per neuron.
+The parallel holds qualitatively. Region-level decoding effects are small, small samples give wildly variable and inflated estimates, and significance requires hundreds to thousands of neurons. Most published BWM regions sit near the edge: at the BWM inclusion rule, a typical region has 100–1,000 neurons, around its N80. One difference matters: the effect size grows with the number of neurons per session, so "the" effect of a region is defined only for a recording design. The design trade-off itself has a BWAS counterpart. Ooi et al. (2025) found that scan time per participant and number of participants are interchangeable up to about 20 minutes, beyond which participants matter more. Here, neurons per session play the role of scan time and sessions the role of participants: in cortex and LP a few neurons in many sessions give the most power per neuron. The likely reason is the same in both cases. Each new session (participant) brings independent trials and its own noise, while extra neurons (scan time) within a session give diminishing returns because they share its trials and correlated noise. This is not an artefact of the session p-value floor (@fig-stouffer).
 
 **Caveats.**
 
@@ -121,8 +125,15 @@ The parallel holds qualitatively. Region-level decoding effects are small, small
 | Two-sample Kolmogorov–Smirnov | @fig-null | subset-marginal vs pooled per-subset null (3 cells) | D | 200 vs 200 | > 0.19 | — |
 | One-way ANOVA | @fig-null | null mean across fixed subsets (VISp cell) | F | 10 subsets | 1 × 10⁻⁶ | spread 0.008 vs null SD 0.041 |
 | Benjamini–Hochberg FDR | @fig-sens a | 56 Beryl full-pool p-values, q = 0.01 | — | 56 | — | 13 significant (11 of 12 BWM-significant) |
+| Stouffer's combined z | @fig-stouffer | design map, session z vs Gaussian null fit (no p floor) | Σz / √S | S sessions, R = 1,000 | — | power vs Fisher: +0–0.1 |
 | Bootstrap (multivariate hypergeometric) | @fig-power–@fig-sens | power, inflation, sign errors vs N | — | R = 1,000 per N | — | N80 (table in Results) |
 
 ## Data and methods
 
 BWM ephys dataset version 1.2.1 (good units, QC-passing insertions; 14 insertions excluded for a spike timing offset, see separate report). Published region scores are from the BWM paper repository (`region_info.csv`). Decoder: scikit-learn `LogisticRegression` (L1, liblinear, class-balanced), C ∈ {10⁻⁵ … 10¹}. Pseudo-sessions: `brainbox.task.closed_loop.generate_pseudo_session`. Bootstrap: R = 1,000 draws per N, 25 log-spaced N per region.
+
+## References
+
+- International Brain Laboratory et al. (2025). A brain-wide map of neural activity during complex behaviour. *Nature* 645, 177–191. <https://doi.org/10.1038/s41586-025-09235-0>
+- Marek S. et al. (2022). Reproducible brain-wide association studies require thousands of individuals. *Nature* 603, 654–660. <https://doi.org/10.1038/s41586-022-04492-9>
+- Ooi L. Q. R. et al. (2025). Longer scans boost prediction and cut costs in brain-wide association studies. *Nature* 644, 731–740. <https://doi.org/10.1038/s41586-025-09250-1>
