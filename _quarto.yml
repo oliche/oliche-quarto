@@ -20,6 +20,8 @@ project:
     - analyses/2026-10-csd/index.qmd
     - analyses/2026-10-cadzow-seams/index.qmd
     - analyses/2026-10-lfpack-v05/index.qmd
+    - analyses/2026-11-probe-sync-lag/index.qmd
+    - analyses/2026-11-probe-sync-lag/ucla_rig.qmd
 
 website:
   title: "Analysis Hub"

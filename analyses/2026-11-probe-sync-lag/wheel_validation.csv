@@ -1,0 +1,57 @@
+subject,date,probe,pid,dn,offset_rule_s,offset_wheel_s,peak_snr,wheel_confident,confidence,role
+ibl_witten_29,2021-06-14,probe00,7d63ab43-95e4-41f5-bd43-c629578de7a9,-6.0,-3.0,-2.92,4.257,True,high (sync + wheel agree),candidate
+MFD_07,2023-08-29,probe00,06b677d6-b074-4444-bd4a-3235a310e6e0,-3.0,-1.5,-1.44,6.775,True,high (sync + wheel agree),candidate
+NYU-12,2020-01-21,probe01,c893c0a3-5597-49cf-baa1-60efdfdef542,-2.0,-1.0,-0.99,15.406,True,high (sync + wheel agree),candidate
+UCLA034,2022-01-25,probe00,f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1,-2.0,-1.0,-0.96,4.702,True,high (sync + wheel agree),candidate
+SWC_039,2020-09-10,probe00,39180bcb-13e5-46f9-89e1-8ea2cba22105,-2.0,-1.0,-1.07,4.783,True,high (sync + wheel agree),candidate
+DY_020,2020-10-01,probe00,6aa08c75-8ee5-457d-9794-b89ee1c4453f,0.0,0.0,0.0,2.758,True,high (sync + wheel agree),control
+DY_020,2020-10-02,probe00,a4d9d9d5-6ea3-4234-aa28-e064e83626fa,0.0,0.0,-0.01,2.743,True,high (sync + wheel agree),control
+PL030,2022-09-16,probe00,a21bade7-5be7-4a17-a9b9-ddee453e6260,0.0,0.0,-0.02,4.693,True,high (sync + wheel agree),control
+PL033,2022-10-28,probe00,c44adf4f-3d1c-491f-88e4-c516cc910bd8,0.0,0.0,0.04,7.206,True,high (sync + wheel agree),control
+PL050,2023-06-09,probe00,47403ac7-6635-4477-9477-18ff605ff5d4,0.0,0.0,-0.06,2.877,True,high (sync + wheel agree),control
+ZFM-01576,2020-12-01,probe01,dce4e63f-7ece-4dae-bd6e-5b116c2fbe37,0.0,0.0,0.98,0.916,False,medium (sync only),control
+ZFM-01592,2020-10-21,probe01,64f4afa4-ec5f-4ad6-ab28-415a9a8098ed,0.0,0.0,0.0,2.624,False,medium (sync only),control
+ZFM-02368,2021-06-01,probe00,0b8ea3ec-e75b-41a1-9442-64f5fbc11a5a,-6.0,0.0,0.1,2.744,True,high (sync + wheel agree),candidate
+ZFM-02368,2021-06-01,probe01,a5f2ec22-0ff3-4249-bd2f-6247c3990e53,-6.0,0.0,0.0,2.605,False,low,candidate
+ZM_3003,2020-07-27,probe00,0b877123-0902-4432-b789-c4c6cc681df4,0.0,0.0,0.59,1.849,False,medium (sync only),control
+SWC_052,2020-10-17,probe00,3ccb2d59-9e94-48e6-9e72-0b7b96bd3f9b,0.0,0.0,0.02,10.426,True,high (sync + wheel agree),control
+SWC_052,2020-10-19,probe00,10f59add-706e-41d0-87ed-9a55eb138a66,0.0,0.0,0.04,12.282,True,high (sync + wheel agree),control
+NR_0019,2022-05-03,probe01,83716e49-3026-41a3-b021-1a4b6362f433,0.0,0.0,0.0,9.054,True,high (sync + wheel agree),control
+NR_0020,2022-05-10,probe01,f84f36c9-88f8-4d80-ba34-7f7a2b254ece,0.0,0.0,-0.04,3.624,True,high (sync + wheel agree),control
+NR_0021,2022-07-08,probe00,fdeff6df-7216-4b83-ab64-241e9fd173da,0.0,0.0,-0.04,5.159,True,high (sync + wheel agree),control
+NR_0029,2023-09-05,probe00a,fb962a77-ed5a-40e0-bfdf-b3220427c55e,0.0,0.0,0.0,2.332,True,high (sync + wheel agree),control
+ibl_witten_29,2021-06-16,probe00,88e1154c-bd92-446d-bd6d-550062666223,0.0,0.0,0.09,2.6,True,high (sync + wheel agree),candidate
+CSH_ZAD_011,2020-03-21,probe01,68c98fb2-402b-4670-9b3b-0c77619998ea,0.0,0.0,0.03,2.098,False,medium (sync only),control
+CSH_ZAD_011,2020-03-22,probe00,a3d13b05-bf4d-427a-a2d5-2fe050d603ec,0.0,0.0,0.03,9.856,True,high (sync + wheel agree),control
+CSH_ZAD_019,2020-08-18,probe00,0fa33419-e7b9-4d00-8cab-3b51f93ecf0c,0.0,0.0,-0.04,6.355,True,high (sync + wheel agree),control
+CSH_ZAD_022,2020-05-26,probe00,3220377b-f53e-412d-a859-ef8ccb8f0a40,0.0,0.0,0.04,3.49,True,high (sync + wheel agree),control
+DY_020,2020-09-29,probe01,ca5404f7-297c-40f1-bbf0-5ac0a63e24f8,0.0,0.0,0.0,1.298,False,medium (sync only),control
+DY_018,2020-10-17,probe01,fb0de39b-c750-4adc-af18-12bf8a22ed41,0.0,0.0,0.3,2.546,True,CONFLICT,candidate
+DY_013,2020-03-07,probe00,9f78a787-c6d5-4e51-b4fb-1552e81eccd5,-3.0,0.0,0.09,2.19,True,high (sync + wheel agree),candidate
+CSH_ZAD_025,2020-07-27,probe00,99086aba-f671-42b5-bdc0-e665c61f5452,0.0,0.0,2.78,1.336,False,medium (sync only),control
+NYU-40,2021-04-14,probe00,ef7e9f3e-a53a-4e00-8f6a-537667af2bea,0.0,0.0,-0.01,4.41,True,high (sync + wheel agree),control
+NYU-65,2022-09-12,probe00,5135e93f-2f1f-4301-9532-b5ad62548c49,0.0,0.0,-0.05,2.855,True,high (sync + wheel agree),control
+NYU-65,2022-09-15,probe00,81f35c52-f7bb-4342-8f91-1837a068c045,-3.0,0.0,0.12,2.636,True,high (sync + wheel agree),candidate
+NYU-65,2022-09-15,probe01,93a76e52-fed0-494f-8852-2b978f56a8e7,-3.0,0.0,-0.04,4.05,True,high (sync + wheel agree),candidate
+DY_018,2020-10-15,probe01,94fcff55-2da2-4366-a2c7-2f58c05b54dc,0.0,0.0,0.04,2.073,True,high (sync + wheel agree),control
+UCLA037,2022-02-08,probe00,e05af01e-8721-4ec7-8d0f-dc022b3bebc3,0.0,0.0,-1.56,1.769,False,medium (sync only),control
+CSH_ZAD_026,2020-08-19,probe01,00a96dee-1e8b-44cc-9cc3-aca704d2b594,1.0,0.0,0.36,1.068,False,low,candidate
+KS016,2019-12-05,probe00,31811232-52ef-456c-9772-5021c00b2bc9,0.0,0.0,0.1,2.969,True,high (sync + wheel agree),control
+KS094,2022-06-16,probe01,d591a59c-b49b-46ba-a914-df379ada9813,0.0,0.0,-0.15,1.854,False,medium (sync only),control
+KS046,2020-12-05,probe01,cc9d666c-6fe5-418d-9b37-114428d25454,0.0,0.0,0.03,2.905,True,high (sync + wheel agree),candidate
+KS045,2020-12-06,probe00,aecd7612-b5c5-4ad2-9e76-e5b783387e47,0.0,0.0,0.03,3.033,True,high (sync + wheel agree),control
+KS044,2020-12-09,probe00,3017e4dc-2150-43ad-9b08-b95b48ba8dfa,0.0,0.0,0.06,2.451,True,high (sync + wheel agree),candidate
+KS044,2020-12-07,probe01,50445b30-f4ef-4405-b014-1d792ddfed88,0.0,0.0,-0.06,3.214,True,high (sync + wheel agree),control
+UCLA048,2022-08-16,probe01,53b3a7c6-ae42-49da-b69c-69e55a43a427,0.0,0.0,0.01,3.69,True,high (sync + wheel agree),control
+MFD_05,2023-08-15,probe00,d3507787-60c8-4cea-a61e-0c708b4361d8,1.0,0.5,0.61,4.791,True,high (sync + wheel agree),candidate
+MFD_05,2023-08-16,probe00,92822789-608f-44a6-ad64-fe549402b2df,1.0,0.5,0.54,5.842,True,high (sync + wheel agree),candidate
+MFD_05,2023-08-17,probe00,d65ab768-bd77-4719-acb9-677abca4e9d8,1.0,0.5,0.52,9.142,True,high (sync + wheel agree),candidate
+MFD_06,2023-08-22,probe00,069c2674-80b0-44b4-a3d9-28337512967f,1.0,0.5,0.56,7.375,True,high (sync + wheel agree),candidate
+MFD_06,2023-08-24,probe00,38e9e5b8-db29-4158-a09d-cc1de4a1365a,1.0,0.5,0.53,4.686,True,high (sync + wheel agree),candidate
+MFD_06,2023-08-25,probe00,17fa2600-6349-4b6f-a7e4-d8ea5558fa12,1.0,0.5,0.56,2.694,True,high (sync + wheel agree),candidate
+MFD_07,2023-09-01,probe00,24149f5c-2984-4b48-922b-3cd1452cd4bd,1.0,0.5,0.53,7.902,True,high (sync + wheel agree),candidate
+MFD_08,2023-09-07,probe00,a8a59fc3-a658-4db4-b5e8-09f1e4df03fd,1.0,0.5,0.48,5.028,True,high (sync + wheel agree),candidate
+MFD_08,2023-09-08,probe00,a759e857-fd8f-4653-a397-c48547230427,1.0,0.5,0.46,6.034,True,high (sync + wheel agree),candidate
+MFD_09,2023-10-19,probe00,8c732bf2-639d-496c-bf82-464bc9c2d54b,1.0,0.5,0.55,2.804,True,high (sync + wheel agree),candidate
+MFD_06,2023-08-23,probe00,d7187e4f-7bfe-42b3-9e36-761c76eb6e8f,1.0,0.5,0.51,4.055,True,high (sync + wheel agree),candidate
+MFD_07,2023-08-31,probe00,7a620688-66cb-44d3-b79b-ccac1c8ba23e,1.0,0.5,0.54,4.106,True,high (sync + wheel agree),candidate
