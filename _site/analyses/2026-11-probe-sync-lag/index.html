@@ -166,16 +166,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#mechanism" id="toc-mechanism" class="nav-link" data-scroll-target="#mechanism">Mechanism</a>
-  <ul class="collapse">
-  <li><a href="#mechanism-a-on-the-ucla-rig" id="toc-mechanism-a-on-the-ucla-rig" class="nav-link" data-scroll-target="#mechanism-a-on-the-ucla-rig">Mechanism A on the UCLA rig</a></li>
-  <li><a href="#wheel-cross-correlation" id="toc-wheel-cross-correlation" class="nav-link" data-scroll-target="#wheel-cross-correlation">Wheel cross-correlation</a></li>
-  </ul></li>
   <li><a href="#damage-report" id="toc-damage-report" class="nav-link" data-scroll-target="#damage-report">Damage report</a>
   <ul class="collapse">
   <li><a href="#bwm-insertions" id="toc-bwm-insertions" class="nav-link" data-scroll-target="#bwm-insertions">BWM insertions</a></li>
   <li><a href="#all-flagged-probes-on-alyx" id="toc-all-flagged-probes-on-alyx" class="nav-link" data-scroll-target="#all-flagged-probes-on-alyx">All flagged probes on Alyx</a></li>
   <li><a href="#shifted-probes-by-acquisition-version" id="toc-shifted-probes-by-acquisition-version" class="nav-link" data-scroll-target="#shifted-probes-by-acquisition-version">Shifted probes by acquisition version</a></li>
+  </ul></li>
+  <li><a href="#mechanism" id="toc-mechanism" class="nav-link" data-scroll-target="#mechanism">Mechanism</a>
+  <ul class="collapse">
+  <li><a href="#mechanism-a-on-the-ucla-rig" id="toc-mechanism-a-on-the-ucla-rig" class="nav-link" data-scroll-target="#mechanism-a-on-the-ucla-rig">Mechanism A on the UCLA rig</a></li>
+  <li><a href="#wheel-cross-correlation" id="toc-wheel-cross-correlation" class="nav-link" data-scroll-target="#wheel-cross-correlation">Wheel cross-correlation</a></li>
   </ul></li>
   <li><a href="#implications-for-the-ibllib-fix" id="toc-implications-for-the-ibllib-fix" class="nav-link" data-scroll-target="#implications-for-the-ibllib-fix">Implications for the ibllib fix</a></li>
   <li><a href="#caveats" id="toc-caveats" class="nav-link" data-scroll-target="#caveats">Caveats</a></li>
@@ -276,56 +276,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>the one disagreement (DY_018 probe01, +0.30 s) has clean sync and is a different problem.</li>
 </ul>
 <p>Session-level report for the UCLA rig (mechanism A): <a href="../../analyses/2026-11-probe-sync-lag/ucla_rig.html">UCLA rig, Aug–Oct 2023</a>.</p>
-</section>
-<section id="mechanism" class="level2">
-<h2 class="anchored" data-anchor-id="mechanism">Mechanism</h2>
-<p>SpikeGLX starts the probe and nidq files on the same phase of the sync square wave. In all 674 BWM-era insertions checked, the first front of each stream falls at the same time in file time, to within 1 ms. The true start offset is therefore always a whole number <em>k</em> of half-periods, and the fronts alone cannot reveal <em>k</em>.</p>
-<p>The SpikeGLX metadata records <code>firstSample</code>, the index of each file’s first sample since the start of the run. It should give the offset directly:</p>
-<pre><code>start_lead = firstSample_nidq / niSampRate - firstSample_probe / imSampRate   # &gt; 0: probe started first</code></pre>
-<p>In practice, <code>firstSample</code> carries a shared error of up to ~3.6 s on older SpikeGLX versions. On the wheel-validated cases, <code>firstSample</code> alone gets 39 of 46 right; it fails at −1.0 s and −3.0 s. That error cancels in the difference between the start and end offsets:</p>
-<pre><code>boundary = (start_lead - end_lead) / 0.5     # fronts gained at the start minus fronts lost at the end</code></pre>
-<p><code>boundary</code> equals the front-count difference <code>n_probe - n_nidq</code> exactly whenever the extra or missing fronts sit at the file boundaries (red points below). The files then end together, so <em>k</em> = <code>boundary</code>. When fronts are lost mid-recording (grey points off the diagonal), the deficit is not at the boundaries and <em>k</em> = 0. Those probes are correctly synced.</p>
-<div class="quarto-layout-panel" data-layout-ncol="2">
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/boundary_vs_edges.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Front-count difference against the metadata boundary estimate, 766 probes with sync fronts."><img src="figures/boundary_vs_edges.png" class="img-fluid figure-img" alt="Front-count difference against the metadata boundary estimate, 766 probes with sync fronts."></a></p>
-<figcaption>Front-count difference against the metadata boundary estimate, 766 probes with sync fronts.</figcaption>
-</figure>
-</div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/wheel_vs_rule.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Wheel-xcorr offset against the predicted offset, 46 confident estimates."><img src="figures/wheel_vs_rule.png" class="img-fluid figure-img" alt="Wheel-xcorr offset against the predicted offset, 46 confident estimates."></a></p>
-<figcaption>Wheel-xcorr offset against the predicted offset, 46 confident estimates.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<p><strong>Rule (no behaviour needed):</strong> shift = 0.5 s × <code>round(boundary)</code> when <code>boundary</code> is within 0.25 of an integer and |<code>boundary</code>| ≤ 20. It can be computed from the two <code>.meta</code> files alone and agrees with the sync-front version on all 781 probes where both exist.</p>
-<section id="mechanism-a-on-the-ucla-rig" class="level3">
-<h3 class="anchored" data-anchor-id="mechanism-a-on-the-ucla-rig">Mechanism A on the UCLA rig</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/churchland_timeline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted."><img src="figures/churchland_timeline.png" class="img-fluid figure-img" alt="All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted."></a></p>
-<figcaption>All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted.</figcaption>
-</figure>
-</div>
-<p>On mechanism A probes, the probe also sees the sync wave differently. The high-minus-low half-period asymmetry is about +66 µs (2 samples) on every other probe, and about 0 µs on these. The first-front polarity is the same on both streams even though the pairing is offset by one front, which suggests the probe sees the wave inverted.</p>
-</section>
-<section id="wheel-cross-correlation" class="level3">
-<h3 class="anchored" data-anchor-id="wheel-cross-correlation">Wheel cross-correlation</h3>
-<p>Population rate (10 ms bins) is cross-correlated with the absolute wheel speed (50 ms boxcar) over the whole session. On 30 random aligned controls, the peak sits at −0.08 s (neural activity leads movement), and offsets are measured from that baseline. Confidence requires a peak SNR ≥ 2 and a 10-block bootstrap CI narrower than 0.3 s. Sibling probes from the same sessions show the effect is per probe: UCLA034 probe00 is at −1.0 s while probe01 is aligned.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/006_wheel_xcorr.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Wheel-xcorr curves for the first suspects and controls."><img src="figures/006_wheel_xcorr.png" class="img-fluid figure-img" alt="Wheel-xcorr curves for the first suspects and controls."></a></p>
-<figcaption>Wheel-xcorr curves for the first suspects and controls.</figcaption>
-</figure>
-</div>
-</section>
 </section>
 <section id="damage-report" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="damage-report">Damage report</h2>
@@ -506,11 +456,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="all-flagged-probes-on-alyx">All flagged probes on Alyx</h3>
 <p>Every 3B probe that is not cleanly aligned, from the metadata census: 8,689 probes, 8,535 aligned.</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>category</th>
@@ -522,7 +467,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>shifted</td>
 <td>80</td>
-<td>whole-front shift, rule applies; see <code>offset_s</code></td>
+<td>whole-front shift, the <a href="#mechanism">boundary rule</a> applies; see <code>offset_s</code></td>
 </tr>
 <tr class="even">
 <td>ambiguous</td>
@@ -545,8 +490,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold hidden">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb3" data-startfrom="159" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 158;"><span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a>flagged <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"flagged_probes.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span>
-<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a>viewof cat <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">select</span>([<span class="st">"all"</span><span class="op">,</span> <span class="op">...</span><span class="kw">new</span> <span class="bu">Set</span>(flagged<span class="op">.</span><span class="fu">map</span>(d <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">category</span>))]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"category"</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb1" data-startfrom="105" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 104;"><span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>flagged <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"flagged_probes.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>viewof cat <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">select</span>([<span class="st">"all"</span><span class="op">,</span> <span class="op">...</span><span class="kw">new</span> <span class="bu">Set</span>(flagged<span class="op">.</span><span class="fu">map</span>(d <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">category</span>))]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"category"</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -566,14 +511,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold hidden">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb4" data-startfrom="164" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 163;"><span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(flagged<span class="op">.</span><span class="fu">filter</span>(d <span class="kw">=&gt;</span> cat <span class="op">===</span> <span class="st">"all"</span> <span class="op">||</span> d<span class="op">.</span><span class="at">category</span> <span class="op">===</span> cat)<span class="op">,</span> {</span>
-<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"category"</span><span class="op">,</span> <span class="st">"mechanism"</span><span class="op">,</span> <span class="st">"offset_s"</span><span class="op">,</span> <span class="st">"offset_wheel_s"</span><span class="op">,</span> <span class="st">"evidence"</span><span class="op">,</span> <span class="st">"lab"</span><span class="op">,</span> <span class="st">"session"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"pid"</span><span class="op">,</span></span>
-<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a>            <span class="st">"in_bwm_release"</span><span class="op">,</span> <span class="st">"bwm_project"</span><span class="op">,</span> <span class="st">"boundary"</span><span class="op">,</span> <span class="st">"start_lead_s"</span><span class="op">,</span> <span class="st">"end_lead_s"</span><span class="op">,</span> <span class="st">"dn"</span><span class="op">,</span> <span class="st">"appVersion"</span><span class="op">,</span> <span class="st">"imDatBsc_fw"</span><span class="op">,</span> <span class="st">"link"</span>]<span class="op">,</span></span>
-<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">offset_s</span><span class="op">:</span> <span class="st">"shift (s)"</span><span class="op">,</span> <span class="dt">offset_wheel_s</span><span class="op">:</span> <span class="st">"wheel (s)"</span><span class="op">,</span> <span class="dt">dn</span><span class="op">:</span> <span class="st">"n_probe − n_nidq"</span><span class="op">,</span> <span class="dt">imDatBsc_fw</span><span class="op">:</span> <span class="st">"BSC fw"</span>}<span class="op">,</span></span>
-<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>  <span class="dt">format</span><span class="op">:</span> {<span class="dt">link</span><span class="op">:</span> x <span class="kw">=&gt;</span> x <span class="op">?</span> htl<span class="op">.</span><span class="fu">html</span><span class="vs">`&lt;a href=</span><span class="sc">${</span>x<span class="sc">}</span><span class="vs"> target=_blank&gt;alyx&lt;/a&gt;`</span> <span class="op">:</span> <span class="st">""</span>}<span class="op">,</span></span>
-<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">280</span><span class="op">,</span> <span class="dt">session</span><span class="op">:</span> <span class="dv">220</span><span class="op">,</span> <span class="dt">mechanism</span><span class="op">:</span> <span class="dv">220</span>}<span class="op">,</span></span>
-<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span></span>
-<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb2" data-startfrom="110" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 109;"><span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(flagged<span class="op">.</span><span class="fu">filter</span>(d <span class="kw">=&gt;</span> cat <span class="op">===</span> <span class="st">"all"</span> <span class="op">||</span> d<span class="op">.</span><span class="at">category</span> <span class="op">===</span> cat)<span class="op">,</span> {</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"category"</span><span class="op">,</span> <span class="st">"mechanism"</span><span class="op">,</span> <span class="st">"offset_s"</span><span class="op">,</span> <span class="st">"offset_wheel_s"</span><span class="op">,</span> <span class="st">"evidence"</span><span class="op">,</span> <span class="st">"lab"</span><span class="op">,</span> <span class="st">"session"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"pid"</span><span class="op">,</span></span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>            <span class="st">"in_bwm_release"</span><span class="op">,</span> <span class="st">"bwm_project"</span><span class="op">,</span> <span class="st">"boundary"</span><span class="op">,</span> <span class="st">"start_lead_s"</span><span class="op">,</span> <span class="st">"end_lead_s"</span><span class="op">,</span> <span class="st">"dn"</span><span class="op">,</span> <span class="st">"appVersion"</span><span class="op">,</span> <span class="st">"imDatBsc_fw"</span><span class="op">,</span> <span class="st">"link"</span>]<span class="op">,</span></span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">offset_s</span><span class="op">:</span> <span class="st">"shift (s)"</span><span class="op">,</span> <span class="dt">offset_wheel_s</span><span class="op">:</span> <span class="st">"wheel (s)"</span><span class="op">,</span> <span class="dt">dn</span><span class="op">:</span> <span class="st">"n_probe − n_nidq"</span><span class="op">,</span> <span class="dt">imDatBsc_fw</span><span class="op">:</span> <span class="st">"BSC fw"</span>}<span class="op">,</span></span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>  <span class="dt">format</span><span class="op">:</span> {<span class="dt">link</span><span class="op">:</span> x <span class="kw">=&gt;</span> x <span class="op">?</span> htl<span class="op">.</span><span class="fu">html</span><span class="vs">`&lt;a href=</span><span class="sc">${</span>x<span class="sc">}</span><span class="vs"> target=_blank&gt;alyx&lt;/a&gt;`</span> <span class="op">:</span> <span class="st">""</span>}<span class="op">,</span></span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">280</span><span class="op">,</span> <span class="dt">session</span><span class="op">:</span> <span class="dv">220</span><span class="op">,</span> <span class="dt">mechanism</span><span class="op">:</span> <span class="dv">220</span>}<span class="op">,</span></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span></span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="ojs-cell-2" data-nodetype="expression">
@@ -588,13 +533,63 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold hidden">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb5" data-startfrom="180" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 179;"><span id="cb5-180"><a href="#cb5-180" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(<span class="fu">FileAttachment</span>(<span class="st">"summary_by_version.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})<span class="op">,</span> {<span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb3" data-startfrom="126" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 125;"><span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(<span class="fu">FileAttachment</span>(<span class="st">"summary_by_version.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})<span class="op">,</span> {<span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="ojs-cell-3" data-nodetype="expression">
 
 </div>
 </div>
+</div>
+</section>
+</section>
+<section id="mechanism" class="level2">
+<h2 class="anchored" data-anchor-id="mechanism">Mechanism</h2>
+<p>SpikeGLX starts the probe and nidq files on the same phase of the sync square wave. In all 674 BWM-era insertions checked, the first front of each stream falls at the same time in file time, to within 1 ms. The true start offset is therefore always a whole number <em>k</em> of half-periods, and the fronts alone cannot reveal <em>k</em>.</p>
+<p>The SpikeGLX metadata records <code>firstSample</code>, the index of each file’s first sample since the start of the run. It should give the offset directly:</p>
+<pre><code>start_lead = firstSample_nidq / niSampRate - firstSample_probe / imSampRate   # &gt; 0: probe started first</code></pre>
+<p>In practice, <code>firstSample</code> carries a shared error of up to ~3.6 s on older SpikeGLX versions. On the wheel-validated cases, <code>firstSample</code> alone gets 39 of 46 right; it fails at −1.0 s and −3.0 s. That error cancels in the difference between the start and end offsets:</p>
+<pre><code>boundary = (start_lead - end_lead) / 0.5     # fronts gained at the start minus fronts lost at the end</code></pre>
+<p><code>boundary</code> equals the front-count difference <code>n_probe - n_nidq</code> exactly whenever the extra or missing fronts sit at the file boundaries (red points below). The files then end together, so <em>k</em> = <code>boundary</code>. When fronts are lost mid-recording (grey points off the diagonal), the deficit is not at the boundaries and <em>k</em> = 0. Those probes are correctly synced.</p>
+<div class="quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/boundary_vs_edges.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Front-count difference against the metadata boundary estimate, 766 probes with sync fronts."><img src="figures/boundary_vs_edges.png" class="img-fluid figure-img" alt="Front-count difference against the metadata boundary estimate, 766 probes with sync fronts."></a></p>
+<figcaption>Front-count difference against the metadata boundary estimate, 766 probes with sync fronts.</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/wheel_vs_rule.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Wheel-xcorr offset against the predicted offset, 46 confident estimates."><img src="figures/wheel_vs_rule.png" class="img-fluid figure-img" alt="Wheel-xcorr offset against the predicted offset, 46 confident estimates."></a></p>
+<figcaption>Wheel-xcorr offset against the predicted offset, 46 confident estimates.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p><strong>Rule (no behaviour needed):</strong> shift = 0.5 s × <code>round(boundary)</code> when <code>boundary</code> is within 0.25 of an integer and |<code>boundary</code>| ≤ 20. It can be computed from the two <code>.meta</code> files alone and agrees with the sync-front version on all 781 probes where both exist.</p>
+<section id="mechanism-a-on-the-ucla-rig" class="level3">
+<h3 class="anchored" data-anchor-id="mechanism-a-on-the-ucla-rig">Mechanism A on the UCLA rig</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/churchland_timeline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted."><img src="figures/churchland_timeline.png" class="img-fluid figure-img" alt="All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted."></a></p>
+<figcaption>All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted.</figcaption>
+</figure>
+</div>
+<p>On mechanism A probes, the probe also sees the sync wave differently. The high-minus-low half-period asymmetry is about +66 µs (2 samples) on every other probe, and about 0 µs on these. The first-front polarity is the same on both streams even though the pairing is offset by one front, which suggests the probe sees the wave inverted.</p>
+</section>
+<section id="wheel-cross-correlation" class="level3">
+<h3 class="anchored" data-anchor-id="wheel-cross-correlation">Wheel cross-correlation</h3>
+<p>Population rate (10 ms bins) is cross-correlated with the absolute wheel speed (50 ms boxcar) over the whole session. On 30 random aligned controls, the peak sits at −0.08 s (neural activity leads movement), and offsets are measured from that baseline. Confidence requires a peak SNR ≥ 2 and a 10-block bootstrap CI narrower than 0.3 s. Sibling probes from the same sessions show the effect is per probe: UCLA034 probe00 is at −1.0 s while probe01 is aligned.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/006_wheel_xcorr.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Wheel-xcorr curves for the first suspects and controls."><img src="figures/006_wheel_xcorr.png" class="img-fluid figure-img" alt="Wheel-xcorr curves for the first suspects and controls."></a></p>
+<figcaption>Wheel-xcorr curves for the first suspects and controls.</figcaption>
+</figure>
 </div>
 </section>
 </section>
@@ -1178,136 +1173,136 @@ window._ojs.runtime.interpretFromScriptTags();
 <span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>Session-level report for the UCLA rig (mechanism A): <span class="co">[</span><span class="ot">UCLA rig, Aug–Oct 2023</span><span class="co">](ucla_rig.qmd)</span>.</span>
 <span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mechanism</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## Damage report</span></span>
 <span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>SpikeGLX starts the probe and nidq files on the same phase of the sync square wave. In all 674 BWM-era</span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>insertions checked, the first front of each stream falls at the same time in file time, to within 1 ms. The true</span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>start offset is therefore always a whole number *k* of half-periods, and the fronts alone cannot reveal *k*.</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="fu">### BWM insertions</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>Mechanism A is +0.5 s except MFD_07 2023-08-29. "Wheel" is the measured offset where confident.</span>
 <span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>The SpikeGLX metadata records <span class="in">`firstSample`</span>, the index of each file's first sample since the start of the run. It</span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>should give the offset directly:</span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a><span class="in">start_lead = firstSample_nidq / niSampRate - firstSample_probe / imSampRate   # &gt; 0: probe started first</span></span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>In practice, <span class="in">`firstSample`</span> carries a shared error of up to ~3.6 s on older SpikeGLX versions. On the wheel-validated</span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>cases, <span class="in">`firstSample`</span> alone gets 39 of 46 right; it fails at −1.0 s and −3.0 s. That error cancels in the difference</span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>between the start and end offsets:</span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="in">boundary = (start_lead - end_lead) / 0.5     # fronts gained at the start minus fronts lost at the end</span></span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="in">`boundary`</span> equals the front-count difference <span class="in">`n_probe - n_nidq`</span> exactly whenever the extra or missing fronts sit</span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>at the file boundaries (red points below). The files then end together, so *k* = <span class="in">`boundary`</span>. When fronts are lost</span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>mid-recording (grey points off the diagonal), the deficit is not at the boundaries and *k* = 0. Those probes are</span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>correctly synced.</span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="al">![Front-count difference against the metadata boundary estimate, 766 probes with sync fronts.](figures/boundary_vs_edges.png)</span></span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-xcorr offset against the predicted offset, 46 confident estimates.](figures/wheel_vs_rule.png)</span></span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>**Rule (no behaviour needed):** shift = 0.5 s × <span class="in">`round(boundary)`</span> when <span class="in">`boundary`</span> is within 0.25 of an integer</span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>and |<span class="in">`boundary`</span>| ≤ 20. It can be computed from the two <span class="in">`.meta`</span> files alone and agrees with the sync-front version</span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>on all 781 probes where both exist.</span>
-<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mechanism A on the UCLA rig</span></span>
-<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a><span class="al">![All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted.](figures/churchland_timeline.png)</span></span>
-<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>On mechanism A probes, the probe also sees the sync wave differently. The high-minus-low half-period asymmetry</span>
-<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>is about +66 µs (2 samples) on every other probe, and about 0 µs on these. The first-front polarity is the same on</span>
-<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>both streams even though the pairing is offset by one front, which suggests the probe sees the wave inverted.</span>
-<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a><span class="fu">### Wheel cross-correlation</span></span>
-<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>Population rate (10 ms bins) is cross-correlated with the absolute wheel speed (50 ms boxcar) over the whole</span>
-<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>session. On 30 random aligned controls, the peak sits at −0.08 s (neural activity leads movement), and offsets are</span>
-<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>measured from that baseline. Confidence requires a peak SNR ≥ 2 and a 10-block bootstrap CI narrower than 0.3 s.</span>
-<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>Sibling probes from the same sessions show the effect is per probe: UCLA034 probe00 is at −1.0 s while probe01</span>
-<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>is aligned.</span>
-<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-xcorr curves for the first suspects and controls.](figures/006_wheel_xcorr.png)</span></span>
-<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## Damage report</span></span>
-<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a><span class="fu">### BWM insertions</span></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> insertion <span class="pp">|</span> BWM release <span class="pp">|</span> shift (s) <span class="pp">|</span> wheel (s) <span class="pp">|</span> mech. <span class="pp">|</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">7d63ab43-95e4-41f5-bd43-c629578de7a9 ibl_witten_29/2021-06-14/003 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/7d63ab43-95e4-41f5-bd43-c629578de7a9/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −3.0 <span class="pp">|</span> −2.92 <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">06b677d6-b074-4444-bd4a-3235a310e6e0 MFD_07/2023-08-29/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/06b677d6-b074-4444-bd4a-3235a310e6e0/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.5 <span class="pp">|</span> −1.44 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">c893c0a3-5597-49cf-baa1-60efdfdef542 NYU-12/2020-01-21/001 probe01</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/c893c0a3-5597-49cf-baa1-60efdfdef542/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −0.99 <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">39180bcb-13e5-46f9-89e1-8ea2cba22105 SWC_039/2020-09-10/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/39180bcb-13e5-46f9-89e1-8ea2cba22105/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −1.07 <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1 UCLA034/2022-01-25/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −0.96 <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d3507787-60c8-4cea-a61e-0c708b4361d8 MFD_05/2023-08-15/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d3507787-60c8-4cea-a61e-0c708b4361d8/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.61 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">92822789-608f-44a6-ad64-fe549402b2df MFD_05/2023-08-16/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/92822789-608f-44a6-ad64-fe549402b2df/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.54 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d65ab768-bd77-4719-acb9-677abca4e9d8 MFD_05/2023-08-17/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d65ab768-bd77-4719-acb9-677abca4e9d8/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.52 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">069c2674-80b0-44b4-a3d9-28337512967f MFD_06/2023-08-22/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/069c2674-80b0-44b4-a3d9-28337512967f/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.56 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d7187e4f-7bfe-42b3-9e36-761c76eb6e8f MFD_06/2023-08-23/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d7187e4f-7bfe-42b3-9e36-761c76eb6e8f/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.51 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">38e9e5b8-db29-4158-a09d-cc1de4a1365a MFD_06/2023-08-24/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/38e9e5b8-db29-4158-a09d-cc1de4a1365a/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.53 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">17fa2600-6349-4b6f-a7e4-d8ea5558fa12 MFD_06/2023-08-25/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/17fa2600-6349-4b6f-a7e4-d8ea5558fa12/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.56 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">730770d6-617a-4ada-95db-a48521befda5 MFD_06/2023-08-29/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/730770d6-617a-4ada-95db-a48521befda5/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">7a620688-66cb-44d3-b79b-ccac1c8ba23e MFD_07/2023-08-31/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/7a620688-66cb-44d3-b79b-ccac1c8ba23e/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.54 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">24149f5c-2984-4b48-922b-3cd1452cd4bd MFD_07/2023-09-01/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/24149f5c-2984-4b48-922b-3cd1452cd4bd/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.53 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">c78432d0-42b0-4837-ab64-bc68918f38a9 MFD_08/2023-09-06/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/c78432d0-42b0-4837-ab64-bc68918f38a9/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">a8a59fc3-a658-4db4-b5e8-09f1e4df03fd MFD_08/2023-09-07/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/a8a59fc3-a658-4db4-b5e8-09f1e4df03fd/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.48 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">a759e857-fd8f-4653-a397-c48547230427 MFD_08/2023-09-08/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/a759e857-fd8f-4653-a397-c48547230427/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.46 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">64346da1-c8f0-494f-a9b9-c415d7da582b MFD_09/2023-10-18/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/64346da1-c8f0-494f-a9b9-c415d7da582b/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">8c732bf2-639d-496c-bf82-464bc9c2d54b MFD_09/2023-10-19/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/8c732bf2-639d-496c-bf82-464bc9c2d54b/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.55 <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">915a3b71-1558-4796-b5ae-7c8faf6d7ed7 MFD_09/2023-10-20/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/915a3b71-1558-4796-b5ae-7c8faf6d7ed7/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">b825c7ec-12b3-44f8-92f4-0f5711380242 KS075/2021-12-12/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/b825c7ec-12b3-44f8-92f4-0f5711380242/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> −1.0 <span class="pp">|</span> <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>BWM-project raw data with no registered insertion, and therefore no downstream spikes: MFD_07/2023-08-30/001</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>probe00 (+0.5 s, A) and SWC_012/2020-01-15/001 probe01 (−1.0 s, B).</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>The original behavioural QC (sharpest feedback-PSTH transient) flagged 13 of these 17 BWM-release insertions. It</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>missed the three −1.0 s insertions and the −3.0 s one, and produced one false positive (DY_018 probe01).</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a><span class="fu">### All flagged probes on Alyx</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>Every 3B probe that is not cleanly aligned, from the metadata census: 8,689 probes, 8,535 aligned.</span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> category <span class="pp">|</span> probes <span class="pp">|</span> meaning <span class="pp">|</span></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shifted <span class="pp">|</span> 80 <span class="pp">|</span> whole-front shift, the <span class="co">[</span><span class="ot">boundary rule</span><span class="co">](#mechanism)</span> applies; see <span class="in">`offset_s`</span> <span class="pp">|</span></span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ambiguous <span class="pp">|</span> 25 <span class="pp">|</span> <span class="in">`boundary`</span> not near an integer: 21 cortexlab KS080–KS126 (2022–23), 1–3 fronts missing, needs a behaviour check; none in the BWM release <span class="pp">|</span></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> truncated file <span class="pp">|</span> 29 <span class="pp">|</span> probe or nidq file ends &gt; 10 s before the other, start aligned; front pairing from index 0 is correct (2 in the BWM release, NR_0031 2023-07-14) <span class="pp">|</span></span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> inconsistent metadata <span class="pp">|</span> 18 <span class="pp">|</span> file starts &gt; 10 s apart (MC047, PL012/014/021, ZFM-02180, ZFM-02368); <span class="in">`firstSample`</span> unusable; none in the BWM release <span class="pp">|</span></span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>::: {.column-page}</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>flagged <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"flagged_probes.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>viewof cat <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">select</span>([<span class="st">"all"</span><span class="op">,</span> <span class="op">...</span><span class="kw">new</span> <span class="bu">Set</span>(flagged<span class="op">.</span><span class="fu">map</span>(d <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">category</span>))]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"category"</span>})</span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a>Mechanism A is +0.5 s except MFD_07 2023-08-29. "Wheel" is the measured offset where confident.</span>
-<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> insertion <span class="pp">|</span> BWM release <span class="pp">|</span> shift (s) <span class="pp">|</span> wheel (s) <span class="pp">|</span> mech. <span class="pp">|</span></span>
-<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
-<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">7d63ab43-95e4-41f5-bd43-c629578de7a9 ibl_witten_29/2021-06-14/003 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/7d63ab43-95e4-41f5-bd43-c629578de7a9/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −3.0 <span class="pp">|</span> −2.92 <span class="pp">|</span> B <span class="pp">|</span></span>
-<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">06b677d6-b074-4444-bd4a-3235a310e6e0 MFD_07/2023-08-29/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/06b677d6-b074-4444-bd4a-3235a310e6e0/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.5 <span class="pp">|</span> −1.44 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">c893c0a3-5597-49cf-baa1-60efdfdef542 NYU-12/2020-01-21/001 probe01</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/c893c0a3-5597-49cf-baa1-60efdfdef542/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −0.99 <span class="pp">|</span> B <span class="pp">|</span></span>
-<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">39180bcb-13e5-46f9-89e1-8ea2cba22105 SWC_039/2020-09-10/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/39180bcb-13e5-46f9-89e1-8ea2cba22105/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −1.07 <span class="pp">|</span> B <span class="pp">|</span></span>
-<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1 UCLA034/2022-01-25/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> −1.0 <span class="pp">|</span> −0.96 <span class="pp">|</span> B <span class="pp">|</span></span>
-<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d3507787-60c8-4cea-a61e-0c708b4361d8 MFD_05/2023-08-15/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d3507787-60c8-4cea-a61e-0c708b4361d8/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.61 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">92822789-608f-44a6-ad64-fe549402b2df MFD_05/2023-08-16/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/92822789-608f-44a6-ad64-fe549402b2df/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.54 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d65ab768-bd77-4719-acb9-677abca4e9d8 MFD_05/2023-08-17/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d65ab768-bd77-4719-acb9-677abca4e9d8/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.52 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">069c2674-80b0-44b4-a3d9-28337512967f MFD_06/2023-08-22/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/069c2674-80b0-44b4-a3d9-28337512967f/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.56 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">d7187e4f-7bfe-42b3-9e36-761c76eb6e8f MFD_06/2023-08-23/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/d7187e4f-7bfe-42b3-9e36-761c76eb6e8f/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.51 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">38e9e5b8-db29-4158-a09d-cc1de4a1365a MFD_06/2023-08-24/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/38e9e5b8-db29-4158-a09d-cc1de4a1365a/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.53 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">17fa2600-6349-4b6f-a7e4-d8ea5558fa12 MFD_06/2023-08-25/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/17fa2600-6349-4b6f-a7e4-d8ea5558fa12/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.56 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">730770d6-617a-4ada-95db-a48521befda5 MFD_06/2023-08-29/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/730770d6-617a-4ada-95db-a48521befda5/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">7a620688-66cb-44d3-b79b-ccac1c8ba23e MFD_07/2023-08-31/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/7a620688-66cb-44d3-b79b-ccac1c8ba23e/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.54 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">24149f5c-2984-4b48-922b-3cd1452cd4bd MFD_07/2023-09-01/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/24149f5c-2984-4b48-922b-3cd1452cd4bd/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.53 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">c78432d0-42b0-4837-ab64-bc68918f38a9 MFD_08/2023-09-06/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/c78432d0-42b0-4837-ab64-bc68918f38a9/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">a8a59fc3-a658-4db4-b5e8-09f1e4df03fd MFD_08/2023-09-07/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/a8a59fc3-a658-4db4-b5e8-09f1e4df03fd/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.48 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">a759e857-fd8f-4653-a397-c48547230427 MFD_08/2023-09-08/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/a759e857-fd8f-4653-a397-c48547230427/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.46 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">64346da1-c8f0-494f-a9b9-c415d7da582b MFD_09/2023-10-18/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/64346da1-c8f0-494f-a9b9-c415d7da582b/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">8c732bf2-639d-496c-bf82-464bc9c2d54b MFD_09/2023-10-19/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/8c732bf2-639d-496c-bf82-464bc9c2d54b/change/)</span> <span class="pp">|</span> yes <span class="pp">|</span> +0.5 <span class="pp">|</span> +0.55 <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">915a3b71-1558-4796-b5ae-7c8faf6d7ed7 MFD_09/2023-10-20/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/915a3b71-1558-4796-b5ae-7c8faf6d7ed7/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> +0.5 <span class="pp">|</span> <span class="pp">|</span> A <span class="pp">|</span></span>
-<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="co">[</span><span class="ot">b825c7ec-12b3-44f8-92f4-0f5711380242 KS075/2021-12-12/001 probe00</span><span class="co">](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/b825c7ec-12b3-44f8-92f4-0f5711380242/change/)</span> <span class="pp">|</span> no <span class="pp">|</span> −1.0 <span class="pp">|</span> <span class="pp">|</span> B <span class="pp">|</span></span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(flagged<span class="op">.</span><span class="fu">filter</span>(d <span class="kw">=&gt;</span> cat <span class="op">===</span> <span class="st">"all"</span> <span class="op">||</span> d<span class="op">.</span><span class="at">category</span> <span class="op">===</span> cat)<span class="op">,</span> {</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"category"</span><span class="op">,</span> <span class="st">"mechanism"</span><span class="op">,</span> <span class="st">"offset_s"</span><span class="op">,</span> <span class="st">"offset_wheel_s"</span><span class="op">,</span> <span class="st">"evidence"</span><span class="op">,</span> <span class="st">"lab"</span><span class="op">,</span> <span class="st">"session"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"pid"</span><span class="op">,</span></span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>            <span class="st">"in_bwm_release"</span><span class="op">,</span> <span class="st">"bwm_project"</span><span class="op">,</span> <span class="st">"boundary"</span><span class="op">,</span> <span class="st">"start_lead_s"</span><span class="op">,</span> <span class="st">"end_lead_s"</span><span class="op">,</span> <span class="st">"dn"</span><span class="op">,</span> <span class="st">"appVersion"</span><span class="op">,</span> <span class="st">"imDatBsc_fw"</span><span class="op">,</span> <span class="st">"link"</span>]<span class="op">,</span></span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">offset_s</span><span class="op">:</span> <span class="st">"shift (s)"</span><span class="op">,</span> <span class="dt">offset_wheel_s</span><span class="op">:</span> <span class="st">"wheel (s)"</span><span class="op">,</span> <span class="dt">dn</span><span class="op">:</span> <span class="st">"n_probe − n_nidq"</span><span class="op">,</span> <span class="dt">imDatBsc_fw</span><span class="op">:</span> <span class="st">"BSC fw"</span>}<span class="op">,</span></span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>  <span class="dt">format</span><span class="op">:</span> {<span class="dt">link</span><span class="op">:</span> x <span class="kw">=&gt;</span> x <span class="op">?</span> htl<span class="op">.</span><span class="fu">html</span><span class="vs">`&lt;a href=</span><span class="sc">${</span>x<span class="sc">}</span><span class="vs"> target=_blank&gt;alyx&lt;/a&gt;`</span> <span class="op">:</span> <span class="st">""</span>}<span class="op">,</span></span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">280</span><span class="op">,</span> <span class="dt">session</span><span class="op">:</span> <span class="dv">220</span><span class="op">,</span> <span class="dt">mechanism</span><span class="op">:</span> <span class="dv">220</span>}<span class="op">,</span></span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span></span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="fu">### Shifted probes by acquisition version</span></span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(<span class="fu">FileAttachment</span>(<span class="st">"summary_by_version.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})<span class="op">,</span> {<span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span>})</span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mechanism</span></span>
 <span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>BWM-project raw data with no registered insertion, and therefore no downstream spikes: MFD_07/2023-08-30/001</span>
-<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>probe00 (+0.5 s, A) and SWC_012/2020-01-15/001 probe01 (−1.0 s, B).</span>
-<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>The original behavioural QC (sharpest feedback-PSTH transient) flagged 13 of these 17 BWM-release insertions. It</span>
-<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>missed the three −1.0 s insertions and the −3.0 s one, and produced one false positive (DY_018 probe01).</span>
-<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a><span class="fu">### All flagged probes on Alyx</span></span>
-<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a>Every 3B probe that is not cleanly aligned, from the metadata census: 8,689 probes, 8,535 aligned.</span>
-<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> category <span class="pp">|</span> probes <span class="pp">|</span> meaning <span class="pp">|</span></span>
-<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> shifted <span class="pp">|</span> 80 <span class="pp">|</span> whole-front shift, rule applies; see <span class="in">`offset_s`</span> <span class="pp">|</span></span>
-<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ambiguous <span class="pp">|</span> 25 <span class="pp">|</span> <span class="in">`boundary`</span> not near an integer: 21 cortexlab KS080–KS126 (2022–23), 1–3 fronts missing, needs a behaviour check; none in the BWM release <span class="pp">|</span></span>
-<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> truncated file <span class="pp">|</span> 29 <span class="pp">|</span> probe or nidq file ends &gt; 10 s before the other, start aligned; front pairing from index 0 is correct (2 in the BWM release, NR_0031 2023-07-14) <span class="pp">|</span></span>
-<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> inconsistent metadata <span class="pp">|</span> 18 <span class="pp">|</span> file starts &gt; 10 s apart (MC047, PL012/014/021, ZFM-02180, ZFM-02368); <span class="in">`firstSample`</span> unusable; none in the BWM release <span class="pp">|</span></span>
-<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>::: {.column-page}</span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>SpikeGLX starts the probe and nidq files on the same phase of the sync square wave. In all 674 BWM-era</span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>insertions checked, the first front of each stream falls at the same time in file time, to within 1 ms. The true</span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>start offset is therefore always a whole number *k* of half-periods, and the fronts alone cannot reveal *k*.</span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>The SpikeGLX metadata records <span class="in">`firstSample`</span>, the index of each file's first sample since the start of the run. It</span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a>should give the offset directly:</span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a><span class="in">start_lead = firstSample_nidq / niSampRate - firstSample_probe / imSampRate   # &gt; 0: probe started first</span></span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>In practice, <span class="in">`firstSample`</span> carries a shared error of up to ~3.6 s on older SpikeGLX versions. On the wheel-validated</span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>cases, <span class="in">`firstSample`</span> alone gets 39 of 46 right; it fails at −1.0 s and −3.0 s. That error cancels in the difference</span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>between the start and end offsets:</span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a><span class="in">boundary = (start_lead - end_lead) / 0.5     # fronts gained at the start minus fronts lost at the end</span></span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
-<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
-<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>flagged <span class="op">=</span> <span class="fu">FileAttachment</span>(<span class="st">"flagged_probes.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})</span>
-<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>viewof cat <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">select</span>([<span class="st">"all"</span><span class="op">,</span> <span class="op">...</span><span class="kw">new</span> <span class="bu">Set</span>(flagged<span class="op">.</span><span class="fu">map</span>(d <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">category</span>))]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"category"</span>})</span>
-<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a><span class="in">`boundary`</span> equals the front-count difference <span class="in">`n_probe - n_nidq`</span> exactly whenever the extra or missing fronts sit</span>
+<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>at the file boundaries (red points below). The files then end together, so *k* = <span class="in">`boundary`</span>. When fronts are lost</span>
+<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>mid-recording (grey points off the diagonal), the deficit is not at the boundaries and *k* = 0. Those probes are</span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>correctly synced.</span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>::: {layout-ncol=2}</span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a><span class="al">![Front-count difference against the metadata boundary estimate, 766 probes with sync fronts.](figures/boundary_vs_edges.png)</span></span>
 <span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
-<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
-<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(flagged<span class="op">.</span><span class="fu">filter</span>(d <span class="kw">=&gt;</span> cat <span class="op">===</span> <span class="st">"all"</span> <span class="op">||</span> d<span class="op">.</span><span class="at">category</span> <span class="op">===</span> cat)<span class="op">,</span> {</span>
-<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>  <span class="dt">columns</span><span class="op">:</span> [<span class="st">"category"</span><span class="op">,</span> <span class="st">"mechanism"</span><span class="op">,</span> <span class="st">"offset_s"</span><span class="op">,</span> <span class="st">"offset_wheel_s"</span><span class="op">,</span> <span class="st">"evidence"</span><span class="op">,</span> <span class="st">"lab"</span><span class="op">,</span> <span class="st">"session"</span><span class="op">,</span> <span class="st">"probe"</span><span class="op">,</span> <span class="st">"pid"</span><span class="op">,</span></span>
-<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>            <span class="st">"in_bwm_release"</span><span class="op">,</span> <span class="st">"bwm_project"</span><span class="op">,</span> <span class="st">"boundary"</span><span class="op">,</span> <span class="st">"start_lead_s"</span><span class="op">,</span> <span class="st">"end_lead_s"</span><span class="op">,</span> <span class="st">"dn"</span><span class="op">,</span> <span class="st">"appVersion"</span><span class="op">,</span> <span class="st">"imDatBsc_fw"</span><span class="op">,</span> <span class="st">"link"</span>]<span class="op">,</span></span>
-<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>  <span class="dt">header</span><span class="op">:</span> {<span class="dt">offset_s</span><span class="op">:</span> <span class="st">"shift (s)"</span><span class="op">,</span> <span class="dt">offset_wheel_s</span><span class="op">:</span> <span class="st">"wheel (s)"</span><span class="op">,</span> <span class="dt">dn</span><span class="op">:</span> <span class="st">"n_probe − n_nidq"</span><span class="op">,</span> <span class="dt">imDatBsc_fw</span><span class="op">:</span> <span class="st">"BSC fw"</span>}<span class="op">,</span></span>
-<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a>  <span class="dt">format</span><span class="op">:</span> {<span class="dt">link</span><span class="op">:</span> x <span class="kw">=&gt;</span> x <span class="op">?</span> htl<span class="op">.</span><span class="fu">html</span><span class="vs">`&lt;a href=</span><span class="sc">${</span>x<span class="sc">}</span><span class="vs"> target=_blank&gt;alyx&lt;/a&gt;`</span> <span class="op">:</span> <span class="st">""</span>}<span class="op">,</span></span>
-<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> {<span class="dt">pid</span><span class="op">:</span> <span class="dv">280</span><span class="op">,</span> <span class="dt">session</span><span class="op">:</span> <span class="dv">220</span><span class="op">,</span> <span class="dt">mechanism</span><span class="op">:</span> <span class="dv">220</span>}<span class="op">,</span></span>
-<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span></span>
-<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a><span class="fu">### Shifted probes by acquisition version</span></span>
-<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{ojs}</span></span>
-<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a><span class="co">//| echo: false</span></span>
-<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a>Inputs<span class="op">.</span><span class="fu">table</span>(<span class="fu">FileAttachment</span>(<span class="st">"summary_by_version.csv"</span>)<span class="op">.</span><span class="fu">csv</span>({<span class="dt">typed</span><span class="op">:</span> <span class="kw">true</span>})<span class="op">,</span> {<span class="dt">maxHeight</span><span class="op">:</span> <span class="dv">600</span>})</span>
-<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-xcorr offset against the predicted offset, 46 confident estimates.](figures/wheel_vs_rule.png)</span></span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>**Rule (no behaviour needed):** shift = 0.5 s × <span class="in">`round(boundary)`</span> when <span class="in">`boundary`</span> is within 0.25 of an integer</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>and |<span class="in">`boundary`</span>| ≤ 20. It can be computed from the two <span class="in">`.meta`</span> files alone and agrees with the sync-front version</span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>on all 781 probes where both exist.</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mechanism A on the UCLA rig</span></span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a><span class="al">![All churchlandlab_ucla probes in 2023 by SpikeGLX version and base-station (BSC) firmware. Only the 20201103 + 3.2.186 combination is shifted.](figures/churchland_timeline.png)</span></span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>On mechanism A probes, the probe also sees the sync wave differently. The high-minus-low half-period asymmetry</span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a>is about +66 µs (2 samples) on every other probe, and about 0 µs on these. The first-front polarity is the same on</span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>both streams even though the pairing is offset by one front, which suggests the probe sees the wave inverted.</span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a><span class="fu">### Wheel cross-correlation</span></span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>Population rate (10 ms bins) is cross-correlated with the absolute wheel speed (50 ms boxcar) over the whole</span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a>session. On 30 random aligned controls, the peak sits at −0.08 s (neural activity leads movement), and offsets are</span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>measured from that baseline. Confidence requires a peak SNR ≥ 2 and a 10-block bootstrap CI narrower than 0.3 s.</span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a>Sibling probes from the same sessions show the effect is per probe: UCLA034 probe00 is at −1.0 s while probe01</span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>is aligned.</span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a><span class="al">![Wheel-xcorr curves for the first suspects and controls.](figures/006_wheel_xcorr.png)</span></span>
 <span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a><span class="fu">## Implications for the ibllib fix</span></span>
 <span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a></span>
