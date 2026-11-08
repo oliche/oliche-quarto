@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Olivier Winter">
+<meta name="dcterms.date" content="2026-11-07">
+<meta name="description" content="Bootstrapping neurons from region pools: power, inflation, sign errors and sampling variability of BWM stimulus-side decoding vs number of neurons, in parallel with Marek et al.&nbsp;(2022).">
+
+<title>How many neurons does population decoding need? – Analysis Hub</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-997f3bee8414e4416227c4bdeef383f8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Analysis Hub</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Analyses</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/oliche"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#original-question" id="toc-original-question" class="nav-link active" data-scroll-target="#original-question">Original question</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#refinement-of-the-question" id="toc-refinement-of-the-question" class="nav-link" data-scroll-target="#refinement-of-the-question">Refinement of the question</a></li>
+  <li><a href="#analysis-plan" id="toc-analysis-plan" class="nav-link" data-scroll-target="#analysis-plan">Analysis plan</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#post-hoc-analyses-sensitivity" id="toc-post-hoc-analyses-sensitivity" class="nav-link" data-scroll-target="#post-hoc-analyses-sensitivity">Post-hoc analyses: sensitivity</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a></li>
+  <li><a href="#statistical-information" id="toc-statistical-information" class="nav-link" data-scroll-target="#statistical-information">Statistical information</a></li>
+  <li><a href="#data-and-methods" id="toc-data-and-methods" class="nav-link" data-scroll-target="#data-and-methods">Data and methods</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">How many neurons does population decoding need?</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="subtitle lead">A Marek-style power analysis of Brain-Wide Map decoding</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">brain-wide-map</div>
+    <div class="quarto-category">decoding</div>
+    <div class="quarto-category">power-analysis</div>
+    <div class="quarto-category">reproducibility</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Bootstrapping neurons from region pools: power, inflation, sign errors and sampling variability of BWM stimulus-side decoding vs number of neurons, in parallel with Marek et al.&nbsp;(2022).
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Olivier Winter </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 7, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="original-question" class="level2">
+<h2 class="anchored" data-anchor-id="original-question">Original question</h2>
+<p>Reproduce the Brain-Wide Map (BWM, IBL 2025) population-decoding analysis for visual/parietal cortex, hippocampus and thalamus, and run a Marek et al.&nbsp;(2022)-style power analysis in which the sample is the number of neurons, bootstrapped from the neuron pool of each coarse region (CTX-VIS, HPF, TH) and of each Beryl region: how do detection power, effect-size inflation, sign errors and sampling variability depend on the number of neurons, up to the thousands?</p>
+</section>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Marek et al.&nbsp;(2022) showed that brain-wide association studies (BWAS) in humans have tiny effects (median |r| = 0.01, top 1% |r| &gt; 0.06), so that at typical sample sizes (n ≈ 25) they are underpowered, significant effects are inflated, and two samples can disagree in sign; reproducibility required thousands of participants. The BWM paper decodes task variables from neural populations of each brain region with weak effects too: the stimulus side decoded from the first 100 ms after stimulus onset reaches a null-corrected balanced accuracy of 0.01–0.05 in most significant regions. Here the “participant” is a neuron: we ask how many recorded neurons a region-level decoding claim needs.</p>
+</section>
+<section id="refinement-of-the-question" class="level2">
+<h2 class="anchored" data-anchor-id="refinement-of-the-question">Refinement of the question</h2>
+<p><strong>Data.</strong> BWM ephys dataset (good units, QC-passing insertions), stimulus side only (choice, feedback and wheel were dropped). The repeated-site insertions alone gave too few neurons (hundreds per group), so the pool was extended to all BWM sessions, giving 2,937 CTX-VIS, 6,767 HPF and 10,948 TH neurons over 278 sessions (<a href="#fig-counts" class="quarto-xref">Figure&nbsp;1</a>).</p>
+<div id="fig-counts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/000_neuron_counts.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Neurons per session and region (repeated-site subset), motivating the extension to the full BWM pool."><img src="figures/000_neuron_counts.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Neurons per session and region (repeated-site subset), motivating the extension to the full BWM pool.
+</figcaption>
+</figure>
+</div>
+<p><strong>Decoder and statistics (BWM).</strong> Each session decodes the stimulus side from spike counts in the 0–100 ms window after stimulus onset. The decoder is L1 logistic regression with nested 5×5 cross-validation (one CV run instead of ten), scored by balanced accuracy. The session p-value is the rank of the true score among M = 200 pseudo-session decodes. The region p-value is the Fisher combination over sessions (one-sided). The region effect is the median over sessions of the true score minus the median null score. Probes of a session are pooled.</p>
+<p><strong>Resampling design.</strong> N neurons are drawn without replacement from the region pool; each session decodes its own drawn subset, and sessions with at least 5 drawn neurons (the BWM rule) contribute. To make thousands of draws affordable, we precomputed a (session × region × k) grid on a cluster: k on a 12-point log scale up to all neurons, with 20 true-label decodes and 200 pseudo-session decodes per cell, each on a fresh random k-subset (2.8 M decodes, 10.5 h on 48 cores). The bootstrap is then a lookup. Using a null that also resamples the subset was validated against a per-subset null (<a href="#fig-null" class="quarto-xref">Figure&nbsp;2</a>).</p>
+<div id="fig-null" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-null-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/002_null_validity.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Validity of the subset-marginal null: null distributions pooling random subsets match per-subset nulls (KS p > 0.19); session p-values agree."><img src="figures/002_null_validity.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-null-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Validity of the subset-marginal null: null distributions pooling random subsets match per-subset nulls (KS p &gt; 0.19); session p-values agree.
+</figcaption>
+</figure>
+</div>
+<p><strong>Metrics (Marek definitions).</strong> The reference is the full pool. <em>Power</em>: fraction of draws significant (p &lt; 0.05) with a positive effect. <em>Sign error</em>: significant with an effect ≤ 0. <em>Inflation</em>: median effect of significant draws relative to the full-pool effect, and relative to the median of all draws at the same N (winner’s curse). <em>Sampling variability</em>: distribution of the effect across draws.</p>
+<p><strong>Revised question.</strong> For stimulus-side decoding with the BWM pipeline, how many neurons (and in what arrangement over sessions) are needed for 80% power, and how inflated and variable are region-level effects below that?</p>
+</section>
+<section id="analysis-plan" class="level2">
+<h2 class="anchored" data-anchor-id="analysis-plan">Analysis plan</h2>
+<p>No confirmatory split was made (user decision). This is a descriptive power study on all QC-passing sessions. The reference definition, region statistics (Fisher p and median effect) and the minimum of 5 neurons per session for displays were fixed before computing the power curves. The minimum neurons per session was then explored as a design parameter.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p><strong>The full-pool analysis reproduces the BWM paper.</strong> Null-corrected region scores match the published <code>stim_dec</code> values (52 Beryl regions; Spearman 0.88, Pearson 0.81, median difference −0.003; <a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a>, top left).</p>
+<div id="fig-power" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-power-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/006_power_coarse.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Coarse groups. Top left: validation against published BWM region scores. Power (solid α = 0.05, dotted α = 0.01), sampling variability (95% interval, dashed = full pool), inflation, sign errors and contributing sessions vs N."><img src="figures/006_power_coarse.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-power-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Coarse groups. Top left: validation against published BWM region scores. Power (solid α = 0.05, dotted α = 0.01), sampling variability (95% interval, dashed = full pool), inflation, sign errors and contributing sessions vs N.
+</figcaption>
+</figure>
+</div>
+<p><strong>Power needs hundreds to thousands of neurons.</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Group</th>
+<th>Full-pool effect</th>
+<th>N for 80% power (α 0.05 / 0.01)</th>
+<th>Contributing sessions at N80</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CTX-VIS</td>
+<td>+0.042</td>
+<td>269 / 351</td>
+<td>~15</td>
+</tr>
+<tr class="even">
+<td>TH</td>
+<td>+0.033</td>
+<td>612 / 843</td>
+<td>~45</td>
+</tr>
+<tr class="odd">
+<td>HPF</td>
+<td>−0.002 (Fisher p &lt; 0.001)</td>
+<td>~2,000–2,700 / 3,700</td>
+<td>~120</td>
+</tr>
+</tbody>
+</table>
+<p>Across the 22 Beryl regions that reach 80% power, the median N80 is 100 neurons, ranging from 20 (PF, CL) to 760 (CA3; <a href="#fig-beryl" class="quarto-xref">Figure&nbsp;4</a>). Regions with large effects need few neurons. CA1 and PO are significant in the full pool but never reach 80%.</p>
+<div id="fig-beryl" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-beryl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/006_power_beryl.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Beryl regions: power curves (colour = full-pool effect), false-positive-like behaviour of regions not significant in the full pool, and N for 80% power vs effect size."><img src="figures/006_power_beryl.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-beryl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Beryl regions: power curves (colour = full-pool effect), false-positive-like behaviour of regions not significant in the full pool, and N for 80% power vs effect size.
+</figcaption>
+</figure>
+</div>
+<p><strong>Sampling variability and inflation mirror Marek Fig. 1e–f.</strong> Below about 150 neurons, single draws range up to 0.10–0.30 in region effect, against full-pool values of 0.02–0.04, and the null band is as wide (<a href="#fig-marek" class="quarto-xref">Figure&nbsp;5</a>, <a href="#fig-marek-beryl" class="quarto-xref">Figure&nbsp;6</a>). Significant draws at N &lt; 200 overstate the typical effect at the same N by 2–25× (the winner’s curse). The calibrated test (null 95/99% bands at p ≈ 0.05/0.01 for every N) separates from the null well before the effect distribution does. Unlike Marek’s correlations, the effect is not a fixed quantity. Its mean grows with N because each session decodes more neurons, so the full-pool effect is itself an N-dependent target.</p>
+<div id="fig-marek" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-marek-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/007_marek_coarse.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Sampling distributions vs N (Marek Fig. 1e–f style): per-N KDE of region effect (top) and −log10 Fisher p (bottom); mean, min–max, full-pool value (red) and null 95/99% bands from pseudo-session decodes on the same neurons."><img src="figures/007_marek_coarse.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-marek-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Sampling distributions vs N (Marek Fig. 1e–f style): per-N KDE of region effect (top) and −log10 Fisher p (bottom); mean, min–max, full-pool value (red) and null 95/99% bands from pseudo-session decodes on the same neurons.
+</figcaption>
+</figure>
+</div>
+<div id="fig-marek-beryl" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-marek-beryl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/007_marek_beryl.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Same for six Beryl regions."><img src="figures/007_marek_beryl.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-marek-beryl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Same for six Beryl regions.
+</figcaption>
+</figure>
+</div>
+<p><strong>Many sessions with few neurons beat few sessions with many.</strong> At a fixed total, spreading neurons over sessions maximises power (<a href="#fig-design" class="quarto-xref">Figure&nbsp;7</a>). CTX-VIS reaches 80% with 90 neurons as 30 sessions × 3, versus 269 under the ≥5-per-session pool rule. Requiring more neurons per session raises N80 two- to fivefold (<a href="#fig-kmin" class="quarto-xref">Figure&nbsp;8</a>). The cost is a higher sign-error rate with very few neurons per session (up to ~10% at ≥1 neuron).</p>
+<div id="fig-design" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/008_design_map.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Power over sessions S × neurons per session n (cyan: 80%; dotted: iso total neurons). Cells require ≥10 sessions with ≥n neurons and S ≤ half of them."><img src="figures/008_design_map.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Power over sessions S × neurons per session n (cyan: 80%; dotted: iso total neurons). Cells require ≥10 sessions with ≥n neurons and S ≤ half of them.
+</figcaption>
+</figure>
+</div>
+<div id="fig-kmin" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/008_kmin_sweep.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Pool resampling with different minima of neurons per contributing session: power (solid) and sign errors (dotted)."><img src="figures/008_kmin_sweep.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-kmin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Pool resampling with different minima of neurons per contributing session: power (solid) and sign errors (dotted).
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="post-hoc-analyses-sensitivity" class="level2">
+<h2 class="anchored" data-anchor-id="post-hoc-analyses-sensitivity">Post-hoc analyses: sensitivity</h2>
+<p>The conclusions are robust; the N80 values are, if anything, conservative (<a href="#fig-sens" class="quarto-xref">Figure&nbsp;9</a>).</p>
+<ul>
+<li><strong>Significance threshold.</strong> α = 0.01 multiplies N80 by about 1.3. Bonferroni over 59 regions (α ≈ 8.5 × 10⁻⁴) multiplies it by 1.4–2.1, and HPF and VPM never reach 80%. This is the same direction as Marek’s ×4 from p &lt; 0.05 to p &lt; 10⁻⁷. With BH-FDR 0.01 across the 56 Beryl regions, the full pool recovers 11 of the 12 BWM-significant regions (the miss is Eth, effect ≈ 0) and adds PF and VISli.</li>
+<li><strong>k-grid lookup.</strong> Rounding drawn counts down or up instead of to the nearest grid point changes N80 by at most one step of the N grid (for example LP 194 vs 248).</li>
+<li><strong>Null size.</strong> With M = 100 instead of 200, N80 is unchanged except for LP and HPF (one grid step). M = 50 costs one grid step everywhere. Because p cannot go below 1/(M+1), 23–27% of full-population sessions in strong regions sit at that floor. This compresses Fisher p at large N but does not affect N80.</li>
+<li><strong>CV runs.</strong> Averaging 10 CV runs (as in the BWM paper) shrinks the null SD by 15–25% and lowers session p-values for intermediate effects (for example 0.19 → 0.07 and 0.045 → 0.025) on 6 full-population cells. Our single-run power curves are therefore a lower bound; N80 with 10 runs would be somewhat smaller.</li>
+<li><strong>Monte Carlo noise.</strong> Repeated runs move HPF’s N80 between about 2,000 and 2,700 (adjacent grid points), because its power curve is shallow.</li>
+</ul>
+<div id="fig-sens" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sens-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/009_sensitivity.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: Sensitivity: (a) significance thresholds incl.&nbsp;Bonferroni and FDR vs BWM, (b) k-grid lookup rounding, (c) null size, (d) 1 vs 10 CV runs."><img src="figures/009_sensitivity.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sens-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Sensitivity: (a) significance thresholds incl.&nbsp;Bonferroni and FDR vs BWM, (b) k-grid lookup rounding, (c) null size, (d) 1 vs 10 CV runs.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Marek et al.&nbsp;2022 (BWAS)</th>
+<th>This study (BWM decoding)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sampling unit</td>
+<td>participant</td>
+<td>neuron (grouped in sessions)</td>
+</tr>
+<tr class="even">
+<td>Effect size</td>
+<td>correlation r: median 0.01, top 1% &gt; 0.06</td>
+<td>null-corrected balanced accuracy: median 0.035 in significant regions</td>
+</tr>
+<tr class="odd">
+<td>N for 80% power, p &lt; 0.05</td>
+<td>~2,200 (top 1% effects)</td>
+<td>20–760 per Beryl region; 270 CTX-VIS, 610 TH, 2,000–2,700 HPF</td>
+</tr>
+<tr class="even">
+<td>Stricter threshold</td>
+<td>Bonferroni: ~9,500</td>
+<td>α 0.01: ×1.3; Bonferroni: ×1.4–2.1 (HPF, VPM never reach 80%)</td>
+</tr>
+<tr class="odd">
+<td>Small-sample variability</td>
+<td>n = 25: 99% CI r ± 0.52</td>
+<td>N &lt; 150: effect range up to 0.3 for true ≈ 0.03</td>
+</tr>
+<tr class="even">
+<td>Inflation of significant effects</td>
+<td>≥100% for half at n = 1,000</td>
+<td>2–25× winner’s curse below 200 neurons; ≥100% vs full pool for 2/3 of significant CTX-VIS draws at N = 42</td>
+</tr>
+<tr class="odd">
+<td>Sign errors</td>
+<td>rise with lenient thresholds</td>
+<td>≤3% (CTX-VIS, TH); up to 17% in HPF (Fisher vs median disagreement)</td>
+</tr>
+</tbody>
+</table>
+<p>The parallel holds qualitatively. Region-level decoding effects are small, small samples give wildly variable and inflated estimates, and significance requires hundreds to thousands of neurons. Most published BWM regions sit near the edge: at the BWM inclusion rule, a typical region has 100–1,000 neurons, around its N80. Two differences matter. First, the effect size grows with the number of neurons per session, so “the” effect of a region is defined only for a recording design. Second, recording design is a lever with no BWAS counterpart: many sessions with a few neurons each gives the most power per neuron.</p>
+<p><strong>Caveats.</strong></p>
+<ul>
+<li>Stimulus side only; one CV run per decode.</li>
+<li>Lookup at the nearest of 12 k values per session.</li>
+<li>Large-n design cells select sessions with many neurons.</li>
+<li>Fisher combination is sensitive to a few strong sessions, which makes HPF “significant” with a negative median effect.</li>
+<li>The full pool is a reference, not a ground truth.</li>
+</ul>
+<p><strong>Lessons for AI-assisted analysis.</strong></p>
+<ul>
+<li>Validate against published numbers early, applying the paper’s inclusion rule.</li>
+<li>When an expensive estimator must be resampled, precomputing a grid and bootstrapping by lookup makes a Marek-style analysis tractable.</li>
+</ul>
+</section>
+<section id="statistical-information" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-information">Statistical information</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Test</th>
+<th>Figure</th>
+<th>Comparison</th>
+<th>Statistic</th>
+<th>df / n</th>
+<th>p</th>
+<th>Effect size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Spearman / Pearson correlation</td>
+<td><a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a> (top left)</td>
+<td>full-pool region scores vs published BWM <code>stim_dec</code></td>
+<td>ρ = 0.88; r = 0.81</td>
+<td>52 regions</td>
+<td>—</td>
+<td>median difference −0.003</td>
+</tr>
+<tr class="even">
+<td>Pseudo-session permutation test (one-sided)</td>
+<td>all</td>
+<td>session true score vs 200 pseudo-session decodes</td>
+<td>rank</td>
+<td>M = 200</td>
+<td>≥ 1/201</td>
+<td>null-corrected balanced accuracy</td>
+</tr>
+<tr class="odd">
+<td>Fisher’s combined probability (χ²)</td>
+<td><a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a></td>
+<td>CTX-VIS full pool</td>
+<td>χ²</td>
+<td>200 (100 sessions)</td>
+<td>5 × 10⁻³⁰</td>
+<td>+0.042</td>
+</tr>
+<tr class="even">
+<td>Fisher’s combined probability (χ²)</td>
+<td><a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a></td>
+<td>TH full pool</td>
+<td>χ²</td>
+<td>314 (157 sessions)</td>
+<td>1 × 10⁻³⁷</td>
+<td>+0.033</td>
+</tr>
+<tr class="odd">
+<td>Fisher’s combined probability (χ²)</td>
+<td><a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a></td>
+<td>HPF full pool</td>
+<td>χ²</td>
+<td>388 (194 sessions)</td>
+<td>5 × 10⁻⁴</td>
+<td>−0.002</td>
+</tr>
+<tr class="even">
+<td>Two-sample Kolmogorov–Smirnov</td>
+<td><a href="#fig-null" class="quarto-xref">Figure&nbsp;2</a></td>
+<td>subset-marginal vs pooled per-subset null (3 cells)</td>
+<td>D</td>
+<td>200 vs 200</td>
+<td>&gt; 0.19</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>One-way ANOVA</td>
+<td><a href="#fig-null" class="quarto-xref">Figure&nbsp;2</a></td>
+<td>null mean across fixed subsets (VISp cell)</td>
+<td>F</td>
+<td>10 subsets</td>
+<td>1 × 10⁻⁶</td>
+<td>spread 0.008 vs null SD 0.041</td>
+</tr>
+<tr class="even">
+<td>Benjamini–Hochberg FDR</td>
+<td><a href="#fig-sens" class="quarto-xref">Figure&nbsp;9</a> a</td>
+<td>56 Beryl full-pool p-values, q = 0.01</td>
+<td>—</td>
+<td>56</td>
+<td>—</td>
+<td>13 significant (11 of 12 BWM-significant)</td>
+</tr>
+<tr class="odd">
+<td>Bootstrap (multivariate hypergeometric)</td>
+<td><a href="#fig-power" class="quarto-xref">Figure&nbsp;3</a>–<a href="#fig-sens" class="quarto-xref">Figure&nbsp;9</a></td>
+<td>power, inflation, sign errors vs N</td>
+<td>—</td>
+<td>R = 1,000 per N</td>
+<td>—</td>
+<td>N80 (table in Results)</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-and-methods" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-methods">Data and methods</h2>
+<p>BWM ephys dataset version 1.2.1 (good units, QC-passing insertions; 14 insertions excluded for a spike timing offset, see separate report). Published region scores are from the BWM paper repository (<code>region_info.csv</code>). Decoder: scikit-learn <code>LogisticRegression</code> (L1, liblinear, class-balanced), C ∈ {10⁻⁵ … 10¹}. Pseudo-sessions: <code>brainbox.task.closed_loop.generate_pseudo_session</code>. Bootstrap: R = 1,000 draws per N, 25 log-spaced N per region.</p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How many neurons does population decoding need?"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "A Marek-style power analysis of Brain-Wide Map decoding"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Bootstrapping neurons from region pools: power, inflation, sign errors and sampling variability of BWM stimulus-side decoding vs number of neurons, in parallel with Marek et al. (2022)."</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-11-07"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Olivier Winter"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [brain-wide-map, decoding, power-analysis, reproducibility]</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    fig-width: 10</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">    lightbox:</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">      match: auto</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## Original question</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>Reproduce the Brain-Wide Map (BWM, IBL 2025) population-decoding analysis for visual/parietal cortex, hippocampus and thalamus, and run a Marek et al. (2022)-style power analysis in which the sample is the number of neurons, bootstrapped from the neuron pool of each coarse region (CTX-VIS, HPF, TH) and of each Beryl region: how do detection power, effect-size inflation, sign errors and sampling variability depend on the number of neurons, up to the thousands?</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>Marek et al. (2022) showed that brain-wide association studies (BWAS) in humans have tiny effects (median |r| = 0.01, top 1% |r| &gt; 0.06), so that at typical sample sizes (n ≈ 25) they are underpowered, significant effects are inflated, and two samples can disagree in sign; reproducibility required thousands of participants. The BWM paper decodes task variables from neural populations of each brain region with weak effects too: the stimulus side decoded from the first 100 ms after stimulus onset reaches a null-corrected balanced accuracy of 0.01–0.05 in most significant regions. Here the "participant" is a neuron: we ask how many recorded neurons a region-level decoding claim needs.</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">## Refinement of the question</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>**Data.** BWM ephys dataset (good units, QC-passing insertions), stimulus side only (choice, feedback and wheel were dropped). The repeated-site insertions alone gave too few neurons (hundreds per group), so the pool was extended to all BWM sessions, giving 2,937 CTX-VIS, 6,767 HPF and 10,948 TH neurons over 278 sessions (@fig-counts).</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="al">![Neurons per session and region (repeated-site subset), motivating the extension to the full BWM pool.](figures/000_neuron_counts.png)</span>{#fig-counts}</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>**Decoder and statistics (BWM).** Each session decodes the stimulus side from spike counts in the 0–100 ms window after stimulus onset. The decoder is L1 logistic regression with nested 5×5 cross-validation (one CV run instead of ten), scored by balanced accuracy. The session p-value is the rank of the true score among M = 200 pseudo-session decodes. The region p-value is the Fisher combination over sessions (one-sided). The region effect is the median over sessions of the true score minus the median null score. Probes of a session are pooled.</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>**Resampling design.** N neurons are drawn without replacement from the region pool; each session decodes its own drawn subset, and sessions with at least 5 drawn neurons (the BWM rule) contribute. To make thousands of draws affordable, we precomputed a (session × region × k) grid on a cluster: k on a 12-point log scale up to all neurons, with 20 true-label decodes and 200 pseudo-session decodes per cell, each on a fresh random k-subset (2.8 M decodes, 10.5 h on 48 cores). The bootstrap is then a lookup. Using a null that also resamples the subset was validated against a per-subset null (@fig-null).</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="al">![Validity of the subset-marginal null: null distributions pooling random subsets match per-subset nulls (KS p &gt; 0.19); session p-values agree.](figures/002_null_validity.png)</span>{#fig-null}</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>**Metrics (Marek definitions).** The reference is the full pool. *Power*: fraction of draws significant (p &lt; 0.05) with a positive effect. *Sign error*: significant with an effect ≤ 0. *Inflation*: median effect of significant draws relative to the full-pool effect, and relative to the median of all draws at the same N (winner's curse). *Sampling variability*: distribution of the effect across draws.</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>**Revised question.** For stimulus-side decoding with the BWM pipeline, how many neurons (and in what arrangement over sessions) are needed for 80% power, and how inflated and variable are region-level effects below that?</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## Analysis plan</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>No confirmatory split was made (user decision). This is a descriptive power study on all QC-passing sessions. The reference definition, region statistics (Fisher p and median effect) and the minimum of 5 neurons per session for displays were fixed before computing the power curves. The minimum neurons per session was then explored as a design parameter.</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>**The full-pool analysis reproduces the BWM paper.** Null-corrected region scores match the published <span class="in">`stim_dec`</span> values (52 Beryl regions; Spearman 0.88, Pearson 0.81, median difference −0.003; @fig-power, top left).</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="al">![Coarse groups. Top left: validation against published BWM region scores. Power (solid α = 0.05, dotted α = 0.01), sampling variability (95% interval, dashed = full pool), inflation, sign errors and contributing sessions vs N.](figures/006_power_coarse.png)</span>{#fig-power}</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>**Power needs hundreds to thousands of neurons.**</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Group <span class="pp">|</span> Full-pool effect <span class="pp">|</span> N for 80% power (α 0.05 / 0.01) <span class="pp">|</span> Contributing sessions at N80 <span class="pp">|</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> CTX-VIS <span class="pp">|</span> +0.042 <span class="pp">|</span> 269 / 351 <span class="pp">|</span> ~15 <span class="pp">|</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> TH <span class="pp">|</span> +0.033 <span class="pp">|</span> 612 / 843 <span class="pp">|</span> ~45 <span class="pp">|</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> HPF <span class="pp">|</span> −0.002 (Fisher p &lt; 0.001) <span class="pp">|</span> ~2,000–2,700 / 3,700 <span class="pp">|</span> ~120 <span class="pp">|</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>Across the 22 Beryl regions that reach 80% power, the median N80 is 100 neurons, ranging from 20 (PF, CL) to 760 (CA3; @fig-beryl). Regions with large effects need few neurons. CA1 and PO are significant in the full pool but never reach 80%.</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="al">![Beryl regions: power curves (colour = full-pool effect), false-positive-like behaviour of regions not significant in the full pool, and N for 80% power vs effect size.](figures/006_power_beryl.png)</span>{#fig-beryl}</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>**Sampling variability and inflation mirror Marek Fig. 1e–f.** Below about 150 neurons, single draws range up to 0.10–0.30 in region effect, against full-pool values of 0.02–0.04, and the null band is as wide (@fig-marek, @fig-marek-beryl). Significant draws at N &lt; 200 overstate the typical effect at the same N by 2–25× (the winner’s curse). The calibrated test (null 95/99% bands at p ≈ 0.05/0.01 for every N) separates from the null well before the effect distribution does. Unlike Marek's correlations, the effect is not a fixed quantity. Its mean grows with N because each session decodes more neurons, so the full-pool effect is itself an N-dependent target.</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="al">![Sampling distributions vs N (Marek Fig. 1e–f style): per-N KDE of region effect (top) and −log10 Fisher p (bottom); mean, min–max, full-pool value (red) and null 95/99% bands from pseudo-session decodes on the same neurons.](figures/007_marek_coarse.png)</span>{#fig-marek}</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="al">![Same for six Beryl regions.](figures/007_marek_beryl.png)</span>{#fig-marek-beryl}</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>**Many sessions with few neurons beat few sessions with many.** At a fixed total, spreading neurons over sessions maximises power (@fig-design). CTX-VIS reaches 80% with 90 neurons as 30 sessions × 3, versus 269 under the ≥5-per-session pool rule. Requiring more neurons per session raises N80 two- to fivefold (@fig-kmin). The cost is a higher sign-error rate with very few neurons per session (up to ~10% at ≥1 neuron).</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="al">![Power over sessions S × neurons per session n (cyan: 80%; dotted: iso total neurons). Cells require ≥10 sessions with ≥n neurons and S ≤ half of them.](figures/008_design_map.png)</span>{#fig-design}</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="al">![Pool resampling with different minima of neurons per contributing session: power (solid) and sign errors (dotted).](figures/008_kmin_sweep.png)</span>{#fig-kmin}</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="fu">## Post-hoc analyses: sensitivity</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>The conclusions are robust; the N80 values are, if anything, conservative (@fig-sens).</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Significance threshold.** α = 0.01 multiplies N80 by about 1.3. Bonferroni over 59 regions (α ≈ 8.5 × 10⁻⁴) multiplies it by 1.4–2.1, and HPF and VPM never reach 80%. This is the same direction as Marek's ×4 from p &lt; 0.05 to p &lt; 10⁻⁷. With BH-FDR 0.01 across the 56 Beryl regions, the full pool recovers 11 of the 12 BWM-significant regions (the miss is Eth, effect ≈ 0) and adds PF and VISli.</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**k-grid lookup.** Rounding drawn counts down or up instead of to the nearest grid point changes N80 by at most one step of the N grid (for example LP 194 vs 248).</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Null size.** With M = 100 instead of 200, N80 is unchanged except for LP and HPF (one grid step). M = 50 costs one grid step everywhere. Because p cannot go below 1/(M+1), 23–27% of full-population sessions in strong regions sit at that floor. This compresses Fisher p at large N but does not affect N80.</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CV runs.** Averaging 10 CV runs (as in the BWM paper) shrinks the null SD by 15–25% and lowers session p-values for intermediate effects (for example 0.19 → 0.07 and 0.045 → 0.025) on 6 full-population cells. Our single-run power curves are therefore a lower bound; N80 with 10 runs would be somewhat smaller.</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Monte Carlo noise.** Repeated runs move HPF's N80 between about 2,000 and 2,700 (adjacent grid points), because its power curve is shallow.</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="al">![Sensitivity: (a) significance thresholds incl. Bonferroni and FDR vs BWM, (b) k-grid lookup rounding, (c) null size, (d) 1 vs 10 CV runs.](figures/009_sensitivity.png)</span>{#fig-sens}</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="fu">## Discussion</span></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="pp">|</span> Marek et al. 2022 (BWAS) <span class="pp">|</span> This study (BWM decoding) <span class="pp">|</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Sampling unit <span class="pp">|</span> participant <span class="pp">|</span> neuron (grouped in sessions) <span class="pp">|</span></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Effect size <span class="pp">|</span> correlation r: median 0.01, top 1% &gt; 0.06 <span class="pp">|</span> null-corrected balanced accuracy: median 0.035 in significant regions <span class="pp">|</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> N for 80% power, p &lt; 0.05 <span class="pp">|</span> ~2,200 (top 1% effects) <span class="pp">|</span> 20–760 per Beryl region; 270 CTX-VIS, 610 TH, 2,000–2,700 HPF <span class="pp">|</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stricter threshold <span class="pp">|</span> Bonferroni: ~9,500 <span class="pp">|</span> α 0.01: ×1.3; Bonferroni: ×1.4–2.1 (HPF, VPM never reach 80%) <span class="pp">|</span></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Small-sample variability <span class="pp">|</span> n = 25: 99% CI r ± 0.52 <span class="pp">|</span> N &lt; 150: effect range up to 0.3 for true ≈ 0.03 <span class="pp">|</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Inflation of significant effects <span class="pp">|</span> ≥100% for half at n = 1,000 <span class="pp">|</span> 2–25× winner’s curse below 200 neurons; ≥100% vs full pool for 2/3 of significant CTX-VIS draws at N = 42 <span class="pp">|</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Sign errors <span class="pp">|</span> rise with lenient thresholds <span class="pp">|</span> ≤3% (CTX-VIS, TH); up to 17% in HPF (Fisher vs median disagreement) <span class="pp">|</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>The parallel holds qualitatively. Region-level decoding effects are small, small samples give wildly variable and inflated estimates, and significance requires hundreds to thousands of neurons. Most published BWM regions sit near the edge: at the BWM inclusion rule, a typical region has 100–1,000 neurons, around its N80. Two differences matter. First, the effect size grows with the number of neurons per session, so "the" effect of a region is defined only for a recording design. Second, recording design is a lever with no BWAS counterpart: many sessions with a few neurons each gives the most power per neuron.</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>**Caveats.**</span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Stimulus side only; one CV run per decode.</span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Lookup at the nearest of 12 k values per session.</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Large-n design cells select sessions with many neurons.</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Fisher combination is sensitive to a few strong sessions, which makes HPF "significant" with a negative median effect.</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The full pool is a reference, not a ground truth.</span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>**Lessons for AI-assisted analysis.**</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Validate against published numbers early, applying the paper's inclusion rule.</span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>When an expensive estimator must be resampled, precomputing a grid and bootstrapping by lookup makes a Marek-style analysis tractable.</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## Statistical information</span></span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Test <span class="pp">|</span> Figure <span class="pp">|</span> Comparison <span class="pp">|</span> Statistic <span class="pp">|</span> df / n <span class="pp">|</span> p <span class="pp">|</span> Effect size <span class="pp">|</span></span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|---|---|</span></span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Spearman / Pearson correlation <span class="pp">|</span> @fig-power (top left) <span class="pp">|</span> full-pool region scores vs published BWM <span class="in">`stim_dec`</span> <span class="pp">|</span> ρ = 0.88; r = 0.81 <span class="pp">|</span> 52 regions <span class="pp">|</span> — <span class="pp">|</span> median difference −0.003 <span class="pp">|</span></span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Pseudo-session permutation test (one-sided) <span class="pp">|</span> all <span class="pp">|</span> session true score vs 200 pseudo-session decodes <span class="pp">|</span> rank <span class="pp">|</span> M = 200 <span class="pp">|</span> ≥ 1/201 <span class="pp">|</span> null-corrected balanced accuracy <span class="pp">|</span></span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Fisher's combined probability (χ²) <span class="pp">|</span> @fig-power <span class="pp">|</span> CTX-VIS full pool <span class="pp">|</span> χ² <span class="pp">|</span> 200 (100 sessions) <span class="pp">|</span> 5 × 10⁻³⁰ <span class="pp">|</span> +0.042 <span class="pp">|</span></span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Fisher's combined probability (χ²) <span class="pp">|</span> @fig-power <span class="pp">|</span> TH full pool <span class="pp">|</span> χ² <span class="pp">|</span> 314 (157 sessions) <span class="pp">|</span> 1 × 10⁻³⁷ <span class="pp">|</span> +0.033 <span class="pp">|</span></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Fisher's combined probability (χ²) <span class="pp">|</span> @fig-power <span class="pp">|</span> HPF full pool <span class="pp">|</span> χ² <span class="pp">|</span> 388 (194 sessions) <span class="pp">|</span> 5 × 10⁻⁴ <span class="pp">|</span> −0.002 <span class="pp">|</span></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Two-sample Kolmogorov–Smirnov <span class="pp">|</span> @fig-null <span class="pp">|</span> subset-marginal vs pooled per-subset null (3 cells) <span class="pp">|</span> D <span class="pp">|</span> 200 vs 200 <span class="pp">|</span> &gt; 0.19 <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> One-way ANOVA <span class="pp">|</span> @fig-null <span class="pp">|</span> null mean across fixed subsets (VISp cell) <span class="pp">|</span> F <span class="pp">|</span> 10 subsets <span class="pp">|</span> 1 × 10⁻⁶ <span class="pp">|</span> spread 0.008 vs null SD 0.041 <span class="pp">|</span></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Benjamini–Hochberg FDR <span class="pp">|</span> @fig-sens a <span class="pp">|</span> 56 Beryl full-pool p-values, q = 0.01 <span class="pp">|</span> — <span class="pp">|</span> 56 <span class="pp">|</span> — <span class="pp">|</span> 13 significant (11 of 12 BWM-significant) <span class="pp">|</span></span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Bootstrap (multivariate hypergeometric) <span class="pp">|</span> @fig-power–@fig-sens <span class="pp">|</span> power, inflation, sign errors vs N <span class="pp">|</span> — <span class="pp">|</span> R = 1,000 per N <span class="pp">|</span> — <span class="pp">|</span> N80 (table in Results) <span class="pp">|</span></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data and methods</span></span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>BWM ephys dataset version 1.2.1 (good units, QC-passing insertions; 14 insertions excluded for a spike timing offset, see separate report). Published region scores are from the BWM paper repository (<span class="in">`region_info.csv`</span>). Decoder: scikit-learn <span class="in">`LogisticRegression`</span> (L1, liblinear, class-balanced), C ∈ {10⁻⁵ … 10¹}. Pseudo-sessions: <span class="in">`brainbox.task.closed_loop.generate_pseudo_session`</span>. Bootstrap: R = 1,000 draws per N, 25 log-spaced N per region.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Olivier Winter</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
