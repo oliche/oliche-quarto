@@ -21,8 +21,8 @@ project:
     - analyses/2026-10-cadzow-seams/index.qmd
     - analyses/2026-10-lfpack-v05/index.qmd
     - analyses/2026-11-probe-sync-lag/index.qmd
-    - analyses/2026-11-probe-sync-lag/ucla_rig.qmd
     - analyses/2026-11-repeated-site-decoding-power/index.qmd
+    - analyses/2026-11-nn-mouse-prior/index.qmd
 
 website:
   title: "Analysis Hub"
@@ -50,3 +50,4 @@ format:
     code-tools: true
     highlight-style: github
     lightbox: true
+    css: styles.css

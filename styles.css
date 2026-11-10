@@ -1,0 +1,8 @@
+/* Draft cards in the hub listing — light pink.
+   Drafts (draft: true) are only rendered during `quarto preview`;
+   `quarto render` excludes them from the listing entirely, so these
+   rules are inert on the published site. Add one selector per draft. */
+.g-col-1:has(a.quarto-grid-link[href*="2026-11-nn-mouse-prior"]) .quarto-grid-item {
+  background-color: #ffe4ee;
+  border: 1px solid #f3b9cd;
+}
