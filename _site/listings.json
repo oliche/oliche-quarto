@@ -3,7 +3,6 @@
     "listing": "/index.html",
     "items": [
       "/analyses/2026-11-probe-sync-lag/index.html",
-      "/analyses/2026-11-nn-mouse-prior/index.html",
       "/analyses/2026-11-repeated-site-decoding-power/index.html",
       "/analyses/2026-10-lfpack-v05/index.html",
       "/analyses/2026-10-csd/index.html",
