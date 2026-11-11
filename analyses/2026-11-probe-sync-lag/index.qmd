@@ -1,6 +1,6 @@
 ---
 title: "SpikeGLX Synchronisation Issue"
-description: "Cause, impact, correction and wheel validation."
+description: "Cause, impact, correction."
 date: "2026-11-10"
 author: "Olivier Winter"
 categories: [electrophysiology, synchronization, QC, Neuropixels, spikeglx]
@@ -63,26 +63,24 @@ or more remove task-locked responses from typical analysis windows.**
 | sporadic | ibl_witten_29/2021-06-14/003 probe00 | −3.0 | −2.92 | [viz](https://viz.internationalbrainlab.org/app?spikesorting=ss_2024-05-06&dset=bwm&pid=7d63ab43-95e4-41f5-bd43-c629578de7a9&tid=0&cid=0&qc=0#trialviewer) · [alyx](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/7d63ab43-95e4-41f5-bd43-c629578de7a9/change/) |
 | sporadic | UCLA034/2022-01-25/001 probe00 | −1.0 | −0.96 | [viz](https://viz.internationalbrainlab.org/app?spikesorting=ss_2024-05-06&dset=bwm&pid=f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1&tid=0&cid=0&qc=0#trialviewer) · [alyx](https://alyx.internationalbrainlab.org/admin/experiments/probeinsertion/f9d8aacd-b2a0-49f2-bd71-c2f5aadcfdd1/change/) |
 
-## Impact on released projects
 
-| group                                | recordings | protected | release tags                                                                                                                                                                                                                                                          |
-| ------------------------------------ | ---------: | --------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BWM release                          | 17         | **17**    | `Brainwidemap`, `2022_Q4_IBL_et_al_BWM`, `2023_Q4_IBL_et_al_BWM_2`, `2024_Q2_IBL_et_al_BWM_iblsort`, `2025_Q3_IBL_et_al_BWM`, `2025_Q3_Zang_et_al_Aging`. 5 are also in `RepeatedSite` / `2024_Q2_IBL_et_al_RepeatedSite`, and 1 in `2023_Q1_Biderman_Whiteway_et_al` |
-| Witten dopamine (dop_47, 48, 49, 53) | 8          | **8**     | `2025_Q4_Pan_Vazquez_et_al`                                                                                                                                                                                                                                           |
-| MFD_06 2023-08-29 probe00            | 1          | **1**     | `2024_Q2_IBL_et_al_RepeatedSite`, `RepeatedSite`                                                                                                                                                                                                                      |
-| all other projects                   | 43         | 0         | none                                                                                                                                                                                                                                                                  |
+## Impact on BWM decoding
 
+We reran the BWM decoding of stimulus side, choice and feedback, and the prior decoding of the companion paper, on the
+17 BWM sessions, with the released and with the re-extracted spike times ([Methods](#re-extraction-and-decoding)).
+Only the affected probe changes, so regions recorded on the session's other probe give identical results.
 
-## Other projects
+![Decoding score minus the null median, released (x) vs re-extracted (y) spike times, one point per session × region. Circled: significant (p < 0.05) only with the released spike times.](figures/016_decoding.png)
 
+::: {.callout-note}
+These are session-level results on the 17 affected sessions. The region-level results of the papers combine all the
+sessions recording a region (Fisher's method), so the effect on their conclusions remains to be computed.
+:::
+
+## Impact on other projects
 **52 more recordings** outside the BWM release have the same signature.
-
 - **38 come from the same UCLA rig**, 33 of them from MM012 (three probes per session).
 - **14 are sporadic**, mostly in the Witten lab dopamine project (dop_47 to dop_53, −1 to −7 s).
-- **Wheel check:** of the 44 with spike sorting, 42 confirm the metadata shift to within 0.09 s. Two have a wheel
-  correlation too weak to tell (KS075, MFD_09 2023-10-18), and none contradicts it.
-- **Not testable:** 8 recordings, six without spike sorting and two without a registered insertion.
-  CSH_ZAD_021 2020-06-15 probe01 has a −105 s shift (210 missing edges) and is among them.
 
 | project | labs | subjects | dates | rec. | cause | shift (s) | wheel check |
 |---|---|---|---|--:|---|--:|---|
@@ -93,6 +91,17 @@ or more remove task-locked responses from typical analysis windows.**
 | angelaki_mouseASD | angelakilab | CSP004, SH011, NYU-08 | 2019-11-26 → 2020-03-19 | 3 | sporadic | −5.0, −3.0, −1.0 | not testable |
 | carandiniharris_midbrain_ibl | cortexlab | KS019 | 2020-03-04 | 1 | sporadic | −2.0 | not testable |
 | **total** | | | | **52** | | | **42 confirmed, 2 weak, 8 not testable** |
+
+
+## Released projects
+
+| group                                | recordings | protected | release tags                                                                                                                                                                                                                                                          |
+| ------------------------------------ | ---------: | --------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BWM release                          | 17         | **17**    | `Brainwidemap`, `2022_Q4_IBL_et_al_BWM`, `2023_Q4_IBL_et_al_BWM_2`, `2024_Q2_IBL_et_al_BWM_iblsort`, `2025_Q3_IBL_et_al_BWM`, `2025_Q3_Zang_et_al_Aging`. 5 are also in `RepeatedSite` / `2024_Q2_IBL_et_al_RepeatedSite`, and 1 in `2023_Q1_Biderman_Whiteway_et_al` |
+| Witten dopamine (dop_47, 48, 49, 53) | 8          | **8**     | `2025_Q4_Pan_Vazquez_et_al`                                                                                                                                                                                                                                           |
+| MFD_06 2023-08-29 probe00            | 1          | **1**     | `2024_Q2_IBL_et_al_RepeatedSite`, `RepeatedSite`                                                                                                                                                                                                                      |
+| all other projects                   | 43         | 0         | none                                                                                                                                                                                                                                                                  |
+
 
 
 ## Root cause
@@ -171,6 +180,23 @@ shift), so the wheel was used to check. Every testable case was a shift.
 
 In **SpikeGLX `20221012` and later:** the `firstSample` field is reliable and settles it. These 1,432 recordings show no shift and one truncation (KM_041).
 :::
+
+### Re-extraction and decoding
+
+**Re-extraction.** For each insertion, the sync QC (`ibldsp.sync.spikeglx_sync_qc`, ibl-neuropixel branch
+`sync-criteria`) must fail only on the durations and the edge counts, with the edge-count difference equal to *k*.
+The probe and nidq edges are then paired from the last edge, and the probe sync is fitted as in ibllib `version3B`.
+`spikes.times` are recomputed from `spikes.samples` for every spike sorting collection. The re-extracted datasets
+are in `/mnt/home/owinter/ceph/sync_lag/<pid>/` on popeye, in the ALF layout; they are not registered on Alyx.
+
+**Decoding.** BWM settings (prior-localization, branch `sirena`): probes merged per session, good units of the
+spike sorting revision `2024-05-06`, L1 logistic regression, 10 runs of nested 5-fold cross-validation, 200
+pseudo-sessions, BWM trial selection and saturation flags. Windows: stimulus side 0 to 100 ms after stimulus onset,
+choice 100 ms before first movement, feedback 0 to 200 ms after feedback. The prior follows the companion paper:
+Bayes-optimal prior, −600 to −100 ms before stimulus onset, Lasso, R², at least 250 trials. The score is the mean
+over the 10 runs, minus the median of the pseudo-sessions; the p-value is the rank of the score among them. With
+the re-extracted spike times, only the spikes of the affected probe change, through the released and the new probe
+syncs. Code: `sdsc-slurms/2026-11_probe-sync-lag`; figures and tables: `scripts/016_reextraction_report.py`.
 
 ## Appendix: all affected insertions
 All 69 recordings labelled *missing edges at start*. The shift is predicted from the metadata (*k* × 0.5 s, positive
