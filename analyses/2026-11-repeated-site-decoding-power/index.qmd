@@ -1,10 +1,11 @@
 ---
-title: "How many neurons does population decoding need?"
-subtitle: "A Marek-style power analysis of Brain-Wide Map decoding"
-description: "Bootstrapping neurons from region pools: power, inflation, sign errors and sampling variability of BWM stimulus-side decoding vs number of neurons, in parallel with Marek et al. (2022)."
-date: "2026-11-07"
+title: "Planning brain-wide decoding studies"
+subtitle: "A textbook power model fitted on the Brain-Wide Map"
+description: "Two-level power model (sessions, trials, neurons) fitted on BWM stimulus-side decoding: sessions and neurons are not interchangeable (b ≈ 0.25), sessions for 80% power per region, and what the BWM Fisher region test tests."
+date: "2026-11-11"
 author: "Olivier Winter"
-categories: [brain-wide-map, decoding, power-analysis, reproducibility]
+categories: [brain-wide-map, decoding, power-analysis, study-design]
+draft: true
 format:
   html:
     fig-width: 10
@@ -14,126 +15,156 @@ format:
 
 ## Original question
 
-Reproduce the Brain-Wide Map (BWM, IBL 2025) population-decoding analysis for visual/parietal cortex, hippocampus and thalamus, and run a Marek et al. (2022)-style power analysis in which the sample is the number of neurons, bootstrapped from the neuron pool of each coarse region (CTX-VIS, HPF, TH) and of each Beryl region: how do detection power, effect-size inflation, sign errors and sampling variability depend on the number of neurons, up to the thousands?
+Reproduce the Brain-Wide Map (BWM; IBL 2025) population decoding of stimulus side for visual/parietal cortex (CTX-VIS), hippocampus (HPF) and thalamus (TH), and run a Marek et al. (2022)-style power analysis with neurons as the sampling unit. How do power, effect-size inflation, sign errors and sampling variability depend on the number of neurons?
 
 ## Introduction
 
-Marek et al. (2022) showed that brain-wide association studies (BWAS) in humans have tiny effects (median |r| = 0.01, top 1% |r| > 0.06), so that at typical sample sizes (n ≈ 25) they are underpowered, significant effects are inflated, and two samples can disagree in sign; reproducibility required thousands of participants. The BWM paper decodes task variables from neural populations of each brain region with weak effects too: the stimulus side decoded from the first 100 ms after stimulus onset reaches a null-corrected balanced accuracy of 0.01–0.05 in most significant regions. Here the "participant" is a neuron: we ask how many recorded neurons a region-level decoding claim needs.
+Marek et al. (2022) resampled large human cohorts. They showed that brain-wide association studies (BWAS) have small effects, which makes them underpowered at typical sample sizes, inflates significant estimates and lets them flip sign. The BWM decodes stimulus side with similarly small effects: null-corrected balanced accuracy is 0.01–0.05 in most significant regions. A Marek-style resampling of the BWM therefore looked like a natural way to ask how many neurons a region-level decoding claim needs.
+
+None of the qualitative phenomena is new. For a test of an effect with standardized size *d*, power, the inflation of significant estimates (type M error) and sign errors (type S error) are textbook functions of *d* and the sample size (Button et al. 2013; Gelman & Carlin 2014). Marek's own n ≈ 2,200 for 80% power at r = 0.06 is the Fisher-z formula. The useful output of such a study is therefore not the phenomena but the **parameters** of a standard planning model. Here the model is a two-level design: sessions are the clusters, trials are the replicates and neurons are features that set the effect size (Raudenbush & Liu 2000; Baker et al. 2021). This report estimates those parameters from the BWM.
 
 ## Refinement of the question
 
-**Data.** BWM ephys dataset (good units, QC-passing insertions), stimulus side only (choice, feedback and wheel were dropped). The repeated-site insertions alone gave too few neurons (hundreds per group), so the pool was extended to all BWM sessions, giving 2,937 CTX-VIS, 6,767 HPF and 10,948 TH neurons over 278 sessions (@fig-counts).
+The Marek-style analysis of Beryl regions (@fig-marek-beryl) reproduces the expected picture. Below about 100 neurons, single draws of the region effect range up to 0.1–0.3, against full-pool values of 0.01–0.03, and the null band is as wide. Two features do not fit the BWAS analogy and motivated the revision:
 
-![Neurons per session and region (repeated-site subset), motivating the extension to the full BWM pool.](figures/000_neuron_counts.png){#fig-counts}
+1. **The estimand moves with N.** The mean effect drifts as more neurons are drawn (VPM 0.01 → 0.03, LGd 0.08 → 0.02). Adding neurons changes what each session's decoder measures. It does not only reduce the variance around a fixed value.
+2. **Significance keeps growing where the effect does not.** The Fisher −log10 p rises steadily with N in every region. In CA1 (full-pool effect +0.003) it crosses p = 0.05 at a few hundred neurons.
 
-**Decoder and statistics (BWM).** Each session decodes the stimulus side from spike counts in the 0–100 ms window after stimulus onset. The decoder is L1 logistic regression with nested 5×5 cross-validation (one CV run instead of ten), scored by balanced accuracy. The session p-value is the rank of the true score among M = 200 pseudo-session decodes. The region p-value is the Fisher combination over sessions (one-sided). The region effect is the median over sessions of the true score minus the median null score. Probes of a session are pooled.
+Both point to the session, not the neuron, as the unit of replication. Neurons enter only through the per-session effect. In Marek's own taxonomy, trial-level decoding within a session is a "within-person, induced-effect" design, not a BWAS.
 
-**Resampling design.** N neurons are drawn without replacement from the region pool; each session decodes its own drawn subset, and sessions with at least 5 drawn neurons (the BWM rule) contribute. To make thousands of draws affordable, we precomputed a (session × region × k) grid on a cluster: k on a 12-point log scale up to all neurons, with 20 true-label decodes and 200 pseudo-session decodes per cell, each on a fresh random k-subset (2.8 M decodes, 10.5 h on 48 cores). The bootstrap is then a lookup. Using a null that also resamples the subset was validated against a per-subset null (@fig-null).
+![Marek Fig. 1e–f-style sampling distributions for six Beryl regions, N neurons drawn from the region pool (≥ 5 per contributing session). Top of each pair: region effect (median null-corrected balanced accuracy) per N, with mean, min–max, full-pool value (red) and null 95/99% bands. Bottom: −log10 Fisher p.](figures/007_marek_beryl.png){#fig-marek-beryl}
 
-![Validity of the subset-marginal null: null distributions pooling random subsets match per-subset nulls (KS p > 0.19); session p-values agree.](figures/002_null_validity.png){#fig-null}
-
-**Metrics (Marek definitions).** The reference is the full pool. *Power*: fraction of draws significant (p < 0.05) with a positive effect. *Sign error*: significant with an effect ≤ 0. *Inflation*: median effect of significant draws relative to the full-pool effect, and relative to the median of all draws at the same N (winner's curse). *Sampling variability*: distribution of the effect across draws.
-
-**Revised question.** For stimulus-side decoding with the BWM pipeline, how many neurons (and in what arrangement over sessions) are needed for 80% power, and how inflated and variable are region-level effects below that?
+**Revised question.** For BWM stimulus-side decoding, what are the parameters of the two-level planning model? How far are sessions and neurons from interchangeable? Does the BWM region test answer "does the typical session decode"?
 
 ## Analysis plan
 
-No confirmatory split was made (user decision). This is a descriptive power study on all QC-passing sessions. The reference definition, region statistics (Fisher p and median effect) and the minimum of 5 neurons per session for displays were fixed before computing the power curves. The minimum neurons per session was then explored as a design parameter.
+This is a descriptive study on all QC-passing BWM sessions, with no confirmatory split (user decision). All quantities come from a precomputed grid of decodes: for each session, region and number of neurons k, 20 true-label and 200 pseudo-session decodes, each on a random k-subset (Methods).
+
+**Model.** For n neurons per session, the session effect (one decode minus the median pseudo-session decode) is
+
+$$e_s = \delta(n) + u_s + \varepsilon_s,\quad u_s \sim \mathcal N(0,\tau^2),\quad \varepsilon_s \sim \mathcal N(0,\sigma_\text{trial}^2 + \sigma_\text{neuron}^2)$$
+
+| Symbol | Meaning | Estimated from |
+|---|---|---|
+| S, n, N = S·n | sessions, neurons per session, total neurons | design |
+| T | trials per session | data (median 348) |
+| δ(n) | mean session effect (null-corrected balanced accuracy) | mean of e_s |
+| σ_trial | finite-trial decoder noise | pseudo-session null SD |
+| σ_neuron | variation with *which* n neurons are recorded | SD over random n-subsets of a session |
+| τ | true between-session differences | residual between-session variance |
+| d(n) | standardized session effect δ / √(τ² + σ²_neuron + σ²_trial) | |
+| d₁, b | fit d(n) = d₁·nᵇ; b = 0.5 if neurons carried independent information | log-log regression, n ≤ 30 |
+| S80 | sessions for 80% power, one-sided one-sample t-test of mean e_s > 0, α = 0.05 | noncentral t |
+
+Power is 1 − F_nct(t₀.₉₅,S−1; S−1, d√S), or approximately S80 ≈ 6.2/d² + 2. If b = 0.5, power depends on N = S·n only, so sessions and neurons are interchangeable. If b < 0.5, extra neurons within a session give diminishing returns.
 
 ## Results
 
-**The full-pool analysis reproduces the BWM paper.** Null-corrected region scores match the published `stim_dec` values (52 Beryl regions; Spearman 0.88, Pearson 0.81, median difference −0.003; @fig-power, top left).
+**Parameters.** Trial noise scales as σ_trial ≈ 0.59/√T (fitted exponent −0.43, r = −0.70, 1,647 session–regions; the binomial floor is 0.5/√T), which is 0.031 at the median T. With few neurons per session, the differences between sessions are fully explained by trial noise and by which neurons were sampled: τ ≈ 0 up to n = 2 in CTX-VIS, n = 8 in TH and n = 20 in HPF. Beyond that, τ grows with the signal and reaches about twice σ_trial at n = 20 in CTX-VIS.
 
-![Coarse groups. Top left: validation against published BWM region scores. Power (solid α = 0.05, dotted α = 0.01), sampling variability (95% interval, dashed = full pool), inflation, sign errors and contributing sessions vs N.](figures/006_power_coarse.png){#fig-power}
+| Group | n | δ | σ_trial | σ_neuron | τ | **d** | d₁ | b (± SE) | S80 at n = 5 / 20 |
+|---|---|---|---|---|---|---|---|---|---|
+| CTX-VIS | 5 / 20 | 0.033 / 0.062 | 0.031 / 0.034 | 0.042 / 0.039 | 0.036 / 0.071 | **0.53 / 0.70** | 0.31 | 0.28 ± 0.03 | 28 / 14 |
+| TH | 5 / 20 | 0.017 / 0.035 | 0.031 / 0.033 | 0.040 / 0.042 | 0 / 0.037 | **0.36 / 0.54** | 0.23 | 0.27 ± 0.02 | 49 / 24 |
+| HPF | 5 / 20 | 0.008 / 0.010 | 0.030 / 0.033 | 0.030 / 0.030 | 0 / 0 | **0.20 / 0.24** | 0.13 | 0.23 ± 0.02 | 172 / 91 |
 
-**Power needs hundreds to thousands of neurons.**
+The formula reproduces the power of t-tests on resampled session effects within 0.03 (median absolute difference at S = 30) to 0.05 (S = 5). Near 80% power it is slightly conservative (@fig-model-check).
 
-| Group | Full-pool effect | N for 80% power (α 0.05 / 0.01) | Contributing sessions at N80 |
-|---|---|---|---|
-| CTX-VIS | +0.042 | 269 / 351 | ~15 |
-| TH | +0.033 | 612 / 843 | ~45 |
-| HPF | −0.002 (Fisher p < 0.001) | ~2,000–2,700 / 3,700 | ~120 |
+**Sessions and neurons are not interchangeable.** All three groups have b ≈ 0.25, about half the independent-neuron value of 0.5 (median 0.33 over 13 well-fitted Beryl regions). Each curve in @fig-s80 therefore slopes between vertical (interchangeable) and horizontal (neurons useless). Going from 1 to 20 neurons per session cuts the sessions needed about fivefold but quadruples the total number of neurons. The three groups follow parallel curves, so region identity enters mostly through d₁. HPF needs about six times more sessions than CTX-VIS at every n. Among Beryl regions, PO, SUB and DG show b ≈ 0: only sessions help (@fig-s80-beryl).
 
-Across the 22 Beryl regions that reach 80% power, the median N80 is 100 neurons, ranging from 20 (PF, CL) to 760 (CA3; @fig-beryl). Regions with large effects need few neurons. CA1 and PO are significant in the full pool but never reach 80%.
+![Sessions needed for 80% power vs total neurons, coarse groups (Allen colours). Lines: model S80 from n = 1 (large marker) to 30 neurons per session. Markers: S80 from the measured d at each n (hollow: more sessions than the BWM has). Dotted: constant neurons per session.](figures/011_s80_coarse.png){#fig-s80}
 
-![Beryl regions: power curves (colour = full-pool effect), false-positive-like behaviour of regions not significant in the full pool, and N for 80% power vs effect size.](figures/006_power_beryl.png){#fig-beryl}
+**The BWM region test is a test of "any session".** Fisher combination of session p-values tests the global null that no session decodes, so a few strong sessions can make a region significant (Heard & Rubin-Delanchy 2018). A one-sided t-test on session effects (random effects; Hedges & Vevea 1998) tests whether the mean session decodes. At full pool, the coarse groups pass both tests. Of 41 Beryl regions with at least 5 sessions, 12 pass Fisher at BH q < 0.01 against 6 for the t-test (and 6 for Wilcoxon). Seven are Fisher-only: Eth, LGd, LGv, MG, VISl, VISli and VM, with 5–22 sessions each. For six of them the median session effect is 0.024–0.052, so the t-test simply lacks power with few sessions. **Eth** (median +0.0004) and **HPF** are the cases where the typical session does not decode. HPF passes Fisher (p = 5 × 10⁻⁴) and the t-test (p = 7 × 10⁻⁴, mean +0.012), but not Wilcoxon (p = 0.06, median −0.002): a minority of strong sessions sets the mean (@fig-fisher).
 
-**Sampling variability and inflation mirror Marek Fig. 1e–f.** Below about 150 neurons, single draws range up to 0.10–0.30 in region effect, against full-pool values of 0.02–0.04, and the null band is as wide (@fig-marek, @fig-marek-beryl). Significant draws at N < 200 overstate the typical effect at the same N by 2–25× (the winner’s curse). The calibrated test (null 95/99% bands at p ≈ 0.05/0.01 for every N) separates from the null well before the effect distribution does. Unlike Marek's correlations, the effect is not a fixed quantity. Its mean grows with N because each session decodes more neurons, so the full-pool effect is itself an N-dependent target.
+![Full pool. Left: −log10 p of the BWM Fisher test vs a one-sided t-test on session effects; diamonds are significant for one test only (BH q < 0.01). Right: per-session effects (solid: median, dashed: mean) for the coarse groups and the regions where the tests disagree.](figures/011_fisher_vs_re.png){#fig-fisher}
 
-![Sampling distributions vs N (Marek Fig. 1e–f style): per-N KDE of region effect (top) and −log10 Fisher p (bottom); mean, min–max, full-pool value (red) and null 95/99% bands from pseudo-session decodes on the same neurons.](figures/007_marek_coarse.png){#fig-marek}
-
-![Same for six Beryl regions.](figures/007_marek_beryl.png){#fig-marek-beryl}
-
-**Splitting neurons over more sessions helps in cortex, not everywhere.** At a fixed total, power peaks at 3–8 neurons per session in CTX-VIS, VISp and LP (@fig-design, @fig-stouffer). CTX-VIS reaches 80% with 90 neurons as 30 sessions × 3, versus 269 under the ≥5-per-session pool rule. Power is flat in TH and rises with neurons per session in HPF, where large-n designs can only use the few sessions with many HPF neurons (a selected subset). In pool resampling, requiring more neurons per session raises N80 two- to fivefold, mostly because fewer sessions contribute (@fig-kmin). One or two neurons per session cost power and raise sign errors (up to ~10% at ≥1 neuron).
-
-![Power over sessions S × neurons per session n (cyan: 80%; dotted: iso total neurons). Cells require ≥10 sessions with ≥n neurons and S ≤ half of them.](figures/008_design_map.png){#fig-design}
-
-![Pool resampling with different minima of neurons per contributing session: power (solid) and sign errors (dotted).](figures/008_kmin_sweep.png){#fig-kmin}
-
-## Post-hoc analyses: sensitivity
-
-The conclusions are robust; the N80 values are, if anything, conservative (@fig-sens).
-
-- **Significance threshold.** α = 0.01 multiplies N80 by about 1.3. Bonferroni over 59 regions (α ≈ 8.5 × 10⁻⁴) multiplies it by 1.4–2.1, and HPF and VPM never reach 80%. This is the same direction as Marek's ×4 from p < 0.05 to p < 10⁻⁷. With BH-FDR 0.01 across the 56 Beryl regions, the full pool recovers 11 of the 12 BWM-significant regions (the miss is Eth, effect ≈ 0) and adds PF and VISli.
-- **k-grid lookup.** Rounding drawn counts down or up instead of to the nearest grid point changes N80 by at most one step of the N grid (for example LP 194 vs 248).
-- **Null size.** With M = 100 instead of 200, N80 is unchanged except for LP and HPF (one grid step). M = 50 costs one grid step everywhere. Because p cannot go below 1/(M+1), 23–27% of full-population sessions in strong regions sit at that floor. This compresses Fisher p at large N but does not affect N80.
-- **CV runs.** Averaging 10 CV runs (as in the BWM paper) shrinks the null SD by 15–25% and lowers session p-values for intermediate effects (for example 0.19 → 0.07 and 0.045 → 0.025) on 6 full-population cells. Our single-run power curves are therefore a lower bound; N80 with 10 runs would be somewhat smaller.
-- **Session p floor.** Fisher session p-values cannot go below 1/201, which caps each session's contribution and could favour many small sessions. Replacing Fisher with Stouffer's z on a Gaussian fit to each session's null (no floor) raises power by 0–0.1 throughout but leaves the dependence on neurons per session and the cheapest 80% designs unchanged (CTX-VIS 90, TH 240, LP 96, HPF 600 neurons; VISp 60 vs 90; @fig-stouffer). At most 10% of design-map sessions sit at the floor.
-- **Monte Carlo noise.** Repeated runs move HPF's N80 between about 2,000 and 2,700 (adjacent grid points), because its power curve is shallow.
-
-![Sensitivity: (a) significance thresholds incl. Bonferroni and FDR vs BWM, (b) k-grid lookup rounding, (c) null size, (d) 1 vs 10 CV runs.](figures/009_sensitivity.png){#fig-sens}
-
-![Fixed total neurons N split over S = N / n sessions: power vs neurons per session n, Fisher (filled, session p floored at 1/201) vs Stouffer (open, Gaussian null z, no floor).](figures/010_stouffer_check.png){#fig-stouffer}
+**The pipeline reproduces the BWM.** Full-pool region scores match the published `stim_dec` values (52 Beryl regions; Spearman 0.88, Pearson 0.81, median difference −0.003; @fig-power top left). The null that pools random neuron subsets is valid (KS p > 0.19 against per-subset nulls; @fig-null).
 
 ## Discussion
 
-| | Marek et al. 2022 (BWAS) | This study (BWM decoding) |
-|---|---|---|
-| Sampling unit | participant | neuron (grouped in sessions) |
-| Effect size | correlation r: median 0.01, top 1% > 0.06 | null-corrected balanced accuracy: median 0.035 in significant regions |
-| N for 80% power, p < 0.05 | ~2,200 (top 1% effects) | 20–760 per Beryl region; 270 CTX-VIS, 610 TH, 2,000–2,700 HPF |
-| Stricter threshold | Bonferroni: ~9,500 | α 0.01: ×1.3; Bonferroni: ×1.4–2.1 (HPF, VPM never reach 80%) |
-| Small-sample variability | n = 25: 99% CI r ± 0.52 | N < 150: effect range up to 0.3 for true ≈ 0.03 |
-| Inflation of significant effects | ≥100% for half at n = 1,000 | 2–25× winner’s curse below 200 neurons; ≥100% vs full pool for 2/3 of significant CTX-VIS draws at N = 42 |
-| Design trade-off | scan time vs participants (Ooi et al. 2025): accuracy grows with total scan time up to ~20 min per participant, then sample size matters more | neurons per session vs sessions: 3–8 per session best in CTX-VIS, VISp, LP; flat in TH |
-| Sign errors | rise with lenient thresholds | ≤3% (CTX-VIS, TH); up to 17% in HPF (Fisher vs median disagreement) |
+**Relation to prior work.** The calculation is standard. It is the power of a multisite or cluster design (Raudenbush & Liu 2000), and the trade-off between sessions and neurons is a "power contour" (Baker et al. 2021). Inflation and sign errors at small N are type M/S errors (Gelman & Carlin 2014). The sublinear growth of decoding with neurons is the neuron-dropping curve (Wessberg et al. 2000), consistent with information-limiting correlations (Moreno-Bote et al. 2014). Ooi et al. (2025) found the analogous trade-off between scan time and participants in BWAS. What this study adds is the BWM-specific values of d₁, b, τ and σ_trial, which can be reused for planning. The "thousands of neurons" of the pool-resampling analysis (supplementary @fig-power) is mostly an artefact of drawing neurons uniformly across about 100–200 sessions. In session units, the requirements are moderate. This sits closer to Spisak et al. (2023), who argued that cross-validated multivariate effects replicate at moderate sample sizes, than to Marek's headline.
 
-The parallel holds qualitatively. Region-level decoding effects are small, small samples give wildly variable and inflated estimates, and significance requires hundreds to thousands of neurons. Most published BWM regions sit near the edge: at the BWM inclusion rule, a typical region has 100–1,000 neurons, around its N80. One difference matters: the effect size grows with the number of neurons per session, so "the" effect of a region is defined only for a recording design. The design trade-off itself has a BWAS counterpart. Ooi et al. (2025) found that scan time per participant and number of participants are interchangeable up to about 20 minutes, beyond which participants matter more. Here, neurons per session play the role of scan time and sessions the role of participants: in cortex and LP a few neurons in many sessions give the most power per neuron. The likely reason is the same in both cases. Each new session (participant) brings independent trials and its own noise, while extra neurons (scan time) within a session give diminishing returns because they share its trials and correlated noise. This is not an artefact of the session p-value floor (@fig-stouffer).
+**For planning.** Sessions, not neurons, are the cost unit: a probe yields tens of neurons per region at little extra cost. The relevant rule is S80 ≈ 6.2/(d₁² n^{2b}) + 2 at the n a probe actually delivers. More trials help only where τ and σ_neuron are small. At n = 20 in CTX-VIS, trial noise is 15% of the session variance, so doubling T saves about 7% of sessions. In HPF at n = 5 it is about 60%, so doubling T saves about 30%.
 
 **Caveats.**
 
-- Stimulus side only; one CV run per decode.
-- Lookup at the nearest of 12 k values per session.
-- Large-n design cells select sessions with many neurons.
-- Fisher combination is sensitive to a few strong sessions, which makes HPF "significant" with a negative median effect.
-- The full pool is a reference, not a ground truth.
+- The parameters are estimated on the data that made these regions BWM-significant, so they are optimistic for marginal regions, much like observed power (Hoenig & Heisey 2001). With about 100 sessions, the SE of d is about 0.1. For example, CTX-VIS at n = 5 gives S80 in roughly 18–35. Use the lower bound of d for planning.
+- Cells with large n use only sessions with many neurons in the region, a selected subset. The fits are therefore restricted to n ≤ 30 and at least 15 sessions.
+- Effects are heavy-tailed. The noncentral-t formula is optimistic by about 0.06 at S = 5, and mean and median disagree in HPF. Heterogeneity in visual regions plausibly reflects receptive-field placement relative to the stimulus.
+- The study covers stimulus side only, with one CV run per decode; 10 runs shrink σ_trial by 15–25% (@fig-sens).
 
 **Lessons for AI-assisted analysis.**
 
+- Write the analytic textbook model before running a resampling study, and use the resampling to estimate and check its parameters.
+- Match the resampled unit to the unit of replication: sessions, not neurons.
+- Check what null an inherited statistic tests (here, Fisher combination) before using it as a power target.
 - Validate against published numbers early, applying the paper's inclusion rule.
-- When an expensive estimator must be resampled, precomputing a grid and bootstrapping by lookup makes a Marek-style analysis tractable.
 
 ## Statistical information
 
 | Test | Figure | Comparison | Statistic | df / n | p | Effect size |
 |---|---|---|---|---|---|---|
-| Spearman / Pearson correlation | @fig-power (top left) | full-pool region scores vs published BWM `stim_dec` | ρ = 0.88; r = 0.81 | 52 regions | — | median difference −0.003 |
+| Spearman / Pearson correlation | @fig-power | full-pool region scores vs published BWM `stim_dec` | ρ = 0.88; r = 0.81 | 52 regions | — | median difference −0.003 |
 | Pseudo-session permutation test (one-sided) | all | session true score vs 200 pseudo-session decodes | rank | M = 200 | ≥ 1/201 | null-corrected balanced accuracy |
-| Fisher's combined probability (χ²) | @fig-power | CTX-VIS full pool | χ² | 200 (100 sessions) | 5 × 10⁻³⁰ | +0.042 |
-| Fisher's combined probability (χ²) | @fig-power | TH full pool | χ² | 314 (157 sessions) | 1 × 10⁻³⁷ | +0.033 |
-| Fisher's combined probability (χ²) | @fig-power | HPF full pool | χ² | 388 (194 sessions) | 5 × 10⁻⁴ | −0.002 |
-| Two-sample Kolmogorov–Smirnov | @fig-null | subset-marginal vs pooled per-subset null (3 cells) | D | 200 vs 200 | > 0.19 | — |
-| One-way ANOVA | @fig-null | null mean across fixed subsets (VISp cell) | F | 10 subsets | 1 × 10⁻⁶ | spread 0.008 vs null SD 0.041 |
-| Benjamini–Hochberg FDR | @fig-sens a | 56 Beryl full-pool p-values, q = 0.01 | — | 56 | — | 13 significant (11 of 12 BWM-significant) |
-| Stouffer's combined z | @fig-stouffer | design map, session z vs Gaussian null fit (no p floor) | Σz / √S | S sessions, R = 1,000 | — | power vs Fisher: +0–0.1 |
-| Bootstrap (multivariate hypergeometric) | @fig-power–@fig-sens | power, inflation, sign errors vs N | — | R = 1,000 per N | — | N80 (table in Results) |
-
-## Data and methods
-
-BWM ephys dataset version 1.2.1 (good units, QC-passing insertions; 14 insertions excluded for a spike timing offset, see separate report). Published region scores are from the BWM paper repository (`region_info.csv`). Decoder: scikit-learn `LogisticRegression` (L1, liblinear, class-balanced), C ∈ {10⁻⁵ … 10¹}. Pseudo-sessions: `brainbox.task.closed_loop.generate_pseudo_session`. Bootstrap: R = 1,000 draws per N, 25 log-spaced N per region.
+| Fisher's combined probability (χ²) | @fig-fisher | coarse groups, full pool | χ² | 2S (S = 100 / 157 / 194) | CTX-VIS 5 × 10⁻³⁰; TH 1 × 10⁻³⁷; HPF 5 × 10⁻⁴ | median +0.042 / +0.033 / −0.002 |
+| One-sample t-test (one-sided) | @fig-fisher | coarse groups, mean session effect > 0 | t | S − 1 | CTX-VIS 3 × 10⁻¹¹; TH 2 × 10⁻¹⁵; HPF 7 × 10⁻⁴ | mean +0.064 / +0.052 / +0.012 |
+| Wilcoxon signed-rank (one-sided) | @fig-fisher | coarse groups, session effects > 0 | W | S | CTX-VIS 7 × 10⁻¹¹; TH 1 × 10⁻¹⁵; HPF 0.06 | — |
+| Benjamini–Hochberg FDR | @fig-fisher | 41 Beryl regions (≥ 5 sessions), q = 0.01 | — | 41 | — | Fisher 12, t-test 6, Wilcoxon 6 significant |
+| Log-log linear regression | @fig-s80, @fig-model-check | d(n) = d₁ nᵇ, n ≤ 30 | slope b | 5–8 n values | — | b: CTX-VIS 0.28 ± 0.03, TH 0.27 ± 0.02, HPF 0.23 ± 0.02 |
+| Log-log linear regression | — | σ_trial vs trials T | slope −0.43 | 1,647 | — | r = −0.70 |
+| Noncentral t power vs resampled t-test power | @fig-model-check | 205 region × n cells, S = 5 / 12 / 30 | power difference | — | — | median abs. diff. 0.05 / 0.04 / 0.03 |
+| Two-sample Kolmogorov–Smirnov | @fig-null | subset-marginal vs per-subset null (3 cells) | D | 200 vs 200 | > 0.19 | — |
 
 ## References
 
+- Baker D. H. et al. (2021). Power contours: optimising sample size and precision in experimental psychology and human neuroscience. *Psychological Methods* 26, 295–314.
+- Button K. S. et al. (2013). Power failure: why small sample size undermines the reliability of neuroscience. *Nat. Rev. Neurosci.* 14, 365–376. <https://doi.org/10.1038/nrn3475>
+- Gelman A. & Carlin J. (2014). Beyond power calculations: assessing type S (sign) and type M (magnitude) errors. *Perspect. Psychol. Sci.* 9, 641–651. <https://doi.org/10.1177/1745691614551642>
+- Heard N. A. & Rubin-Delanchy P. (2018). Choosing between methods of combining p-values. *Biometrika* 105, 239–246.
+- Hedges L. V. & Vevea J. L. (1998). Fixed- and random-effects models in meta-analysis. *Psychological Methods* 3, 486–504.
+- Hoenig J. M. & Heisey D. M. (2001). The abuse of power: the pervasive fallacy of power calculations for data analysis. *Am. Stat.* 55, 19–24.
 - International Brain Laboratory et al. (2025). A brain-wide map of neural activity during complex behaviour. *Nature* 645, 177–191. <https://doi.org/10.1038/s41586-025-09235-0>
 - Marek S. et al. (2022). Reproducible brain-wide association studies require thousands of individuals. *Nature* 603, 654–660. <https://doi.org/10.1038/s41586-022-04492-9>
+- Moreno-Bote R. et al. (2014). Information-limiting correlations. *Nat. Neurosci.* 17, 1410–1417. <https://doi.org/10.1038/nn.3807>
 - Ooi L. Q. R. et al. (2025). Longer scans boost prediction and cut costs in brain-wide association studies. *Nature* 644, 731–740. <https://doi.org/10.1038/s41586-025-09250-1>
+- Raudenbush S. W. & Liu X. (2000). Statistical power and optimal design for multisite randomized trials. *Psychological Methods* 5, 199–213.
+- Spisak T., Bingel U. & Wager T. D. (2023). Multivariate BWAS can be replicable with moderate sample sizes. *Nature* 615, E4–E7. <https://doi.org/10.1038/s41586-023-05745-x>
+- Wessberg J. et al. (2000). Real-time prediction of hand trajectory by ensembles of cortical neurons in primates. *Nature* 408, 361–365.
+
+## Supplementary material
+
+### Methods
+
+**Data.** BWM ephys dataset version 1.2.1, good units of QC-passing insertions, BWM trial mask. Fourteen insertions were excluded for a spike-timing offset (separate report). The repeated-site insertions alone gave too few neurons, so the pool covers all BWM sessions: 2,937 CTX-VIS, 6,767 HPF and 10,948 TH neurons over 278 sessions (@fig-counts). CTX-VIS is Allen VIS plus PTLp. Beryl regions are included with at least 2 sessions of at least 5 neurons (BWM rule).
+
+**Decoder (BWM).** Stimulus side is decoded from spike counts 0–100 ms after stimulus onset. The decoder is L1 logistic regression (scikit-learn, liblinear, class-balanced, C ∈ {10⁻⁵ … 10¹}) with nested 5×5 cross-validation and one CV run (BWM: ten), scored by balanced accuracy. The session p-value is the rank of the true score among M = 200 pseudo-session decodes (`brainbox.task.closed_loop.generate_pseudo_session`). Probes of a session are pooled. The region p-value is the one-sided Fisher combination; the region effect is the median over sessions of the true score minus the median null score.
+
+**Decoding grid.** For each (session, region) and k on a 12-point log scale up to all neurons, 20 true-label and 200 pseudo-session decodes were run, each on a fresh random k-subset. That is 12,615 cells and 2.8 M decodes (10.5 h on 48 cores). All resampling is a lookup at the nearest k.
+
+**Planning model (011).** For each region and n ∈ {1, 2, 3, 5, …, 120}, sessions with at least n neurons are used (at least 10 sessions required). Variance components come from the 20 true decodes (σ_neuron), the null SD (σ_trial) and the variance of session means (τ² = Var(session means) − σ²_trial − σ²_neuron/20, floored at 0). d₁ and b are fitted on cells with n ≤ 30 and at least 15 sessions. The validation draws S sessions without replacement and one decode each (2,000 draws) and runs a one-sided t-test.
+
+**Marek-style resampling (006–010).** N neurons are drawn without replacement from the region pool (multivariate hypergeometric over sessions, R = 1,000 draws for each of 25 log-spaced N). Sessions with at least 5 drawn neurons contribute. *Power* is the fraction of draws significant at p < 0.05 with a positive effect; *sign error* is significant with an effect ≤ 0; *inflation* is the median effect of significant draws relative to the full pool and to all draws at the same N.
+
+### Supplementary figures
+
+![Neurons per session and region in the repeated-site subset, which motivated extending the pool to all BWM sessions.](figures/000_neuron_counts.png){#fig-counts}
+
+![The subset-marginal null is valid: null distributions pooling random subsets match per-subset nulls (KS p > 0.19), and session p-values agree.](figures/002_null_validity.png){#fig-null}
+
+![Pool resampling, coarse groups. Top left: validation against published BWM region scores. Other panels vs N: power (solid α = 0.05, dotted α = 0.01), sampling variability, inflation, sign errors and contributing sessions. N for 80% power: CTX-VIS 269, TH 612, HPF 2,000–2,700, at about 15, 45 and 120 contributing sessions.](figures/006_power_coarse.png){#fig-power}
+
+![Pool resampling, Beryl regions: power curves, regions not significant in the full pool, and N for 80% power vs effect (median 100 neurons over the 22 regions that reach 80%).](figures/006_power_beryl.png){#fig-beryl}
+
+![Marek-style sampling distributions for the coarse groups (as @fig-marek-beryl).](figures/007_marek_coarse.png){#fig-marek}
+
+![Model check. Left: standardized session effect d vs neurons per session with power-law fits (dotted: b = 0.5). Right: noncentral-t power vs power of t-tests on resampled session effects.](figures/011_model_check.png){#fig-model-check}
+
+![S80 in the (N, S) plane for Beryl regions by major division (as @fig-s80). Thin lines: poor fits (r² < 0.5).](figures/011_s80_beryl.png){#fig-s80-beryl}
+
+![Power over sessions S × neurons per session n using the BWM Fisher statistic (cyan: 80%; dotted: constant total neurons). Fisher reaches 80% with fewer sessions than the t-test at large n, because it is sensitive to a few strong sessions.](figures/008_design_map.png){#fig-design}
+
+![Pool resampling with different minimum neurons per contributing session: power (solid) and sign errors (dotted).](figures/008_kmin_sweep.png){#fig-kmin}
+
+![Sensitivity of pool-resampling N80: (a) significance thresholds including Bonferroni and FDR, (b) k-grid rounding, (c) null size M, (d) 1 vs 10 CV runs. N80 changes by at most one grid step, except α = 0.01 (×1.3) and Bonferroni (×1.4–2.1).](figures/009_sensitivity.png){#fig-sens}
+
+![Fixed total neurons split over S = N/n sessions: Fisher (session p floored at 1/201) vs Stouffer z on a Gaussian null fit (no floor). The floor does not drive the design trade-off.](figures/010_stouffer_check.png){#fig-stouffer}

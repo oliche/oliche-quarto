@@ -6,3 +6,7 @@
   background-color: #ffe4ee;
   border: 1px solid #f3b9cd;
 }
+.g-col-1:has(a.quarto-grid-link[href*="2026-11-repeated-site-decoding-power"]) .quarto-grid-item {
+  background-color: #ffe4ee;
+  border: 1px solid #f3b9cd;
+}
